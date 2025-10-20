@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutDir>../libs</OutDir>
+    <VersionPrefix>0.0.1</VersionPrefix>
+
+    <AssemblyName>NativeCommandCompleter</AssemblyName>
+    <RootNamespace>MT.Comp</RootNamespace>
+
+    <!-- Disable deps.json generation -->
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management.Automation" Version="7.4.*" PrivateAssets="All"/>
+  </ItemGroup>
+</Project>
