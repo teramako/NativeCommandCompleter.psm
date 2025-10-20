@@ -1,0 +1,6 @@
+# C# projects
+/libs/
+/out/
+obj/
+bin/
+*-Help.xml
