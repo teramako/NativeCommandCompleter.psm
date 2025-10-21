@@ -72,7 +72,11 @@ NestedModules = 'libs/NativeCommandCompleter.dll'
 FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = @()
+CmdletsToExport = @(
+    'Register-NativeCompleter',
+    'Unregister-NativeCompleter',
+    'New-ParamCompleter'
+)
 
 # Variables to export from this module
 VariablesToExport = @()
@@ -87,7 +91,11 @@ AliasesToExport = @()
 # ModuleList = @()
 
 # List of all files packaged with this module
-# FileList = @()
+FileList = @(
+    'NativeCommandCompleter.psm.psd1'
+    'NativeCommandCompleter.psm1'
+    'libs/NativeCommandCompleter.dll'
+)
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
