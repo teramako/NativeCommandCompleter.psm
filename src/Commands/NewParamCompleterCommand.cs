@@ -2,7 +2,7 @@ using System.Management.Automation;
 
 namespace MT.Comp.Commands;
 
-[Cmdlet(VerbsCommon.New, "ParamCompleter")]
+[Cmdlet(VerbsCommon.New, "ParamCompleter", DefaultParameterSetName = "Default")]
 [OutputType(typeof(ParamCompleter))]
 public class NewParamCompleterCommand : Cmdlet
 {
@@ -23,7 +23,11 @@ public class NewParamCompleterCommand : Cmdlet
     [AllowEmptyString]
     public string Description { get; set; } = string.Empty;
 
-    [Parameter()]
+    [Parameter(ParameterSetName = "WithArguments", Mandatory = true)]
+    [Alias("a")]
+    public string[] Arguments { get; set; } = [];
+
+    [Parameter(ParameterSetName = "WithArgumentCompleter", Mandatory = true)]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
     protected override void EndProcessing()
@@ -34,6 +38,7 @@ public class NewParamCompleterCommand : Cmdlet
             ShortNames = ShortName,
             OldShortNames = OldName,
             Description = Description,
+            Arguments = Arguments,
             ArgumentCompleter = ArgumentCompleter
         };
         WriteObject(completer);

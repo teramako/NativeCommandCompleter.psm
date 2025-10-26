@@ -62,6 +62,8 @@ public class ParamCompleter(string longParamIndicator = "--",
     /// </summary>
     public ScriptBlock? ArgumentCompleter { get; internal set; }
 
+    public string[] Arguments { get; internal set; } = [];
+
     /// <summary>
     /// Complete long parameters
     /// </summary>
@@ -132,11 +134,23 @@ public class ParamCompleter(string longParamIndicator = "--",
     public IEnumerable<CompletionResult> CompleteValue(string paramName,
                                                        string paramValue,
                                                        int position,
-                                                       string paramIndicator,
+                                                       string indicator,
                                                        string prefix = "")
     {
-        Debug($"ParamCompleter.CompleteValue name: '{paramName}', value: '{paramValue}', position: {position}, indicator: '{paramIndicator}', prefix: '{prefix}'");
-
+        if (Arguments.Length > 0)
+        {
+            var values = string.IsNullOrEmpty(paramValue)
+                ? Arguments
+                : Arguments.Where(v => v.StartsWith(paramValue, StringComparison.OrdinalIgnoreCase));
+            foreach (var value in values)
+            {
+                var text = $"{prefix}{value}";
+                yield return new(text,
+                                 text,
+                                 CompletionResultType.ParameterValue,
+                                 $"[{indicator}{paramName}] {value}");
+            }
+        }
         if (ArgumentCompleter is null)
             yield break;
 
