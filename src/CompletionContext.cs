@@ -170,13 +170,10 @@ internal class CompletionContext
             }
             else if (CommandCompleter.SubCommands.Count > 0)
             {
-                foreach (var subCmd in CommandCompleter.SubCommands)
+                if (CommandCompleter.SubCommands.TryGetValue($"{tokenValue}", out var subCmd))
                 {
-                    if (tokenValue.Equals(subCmd.Name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        var subContext = new CompletionContext(subCmd, this, argumentIndex);
-                        return subContext.Build();
-                    }
+                    var subContext = new CompletionContext(subCmd, this, argumentIndex);
+                    return subContext.Build();
                 }
 
                 _unboundArguments.Add(token);
@@ -236,12 +233,12 @@ internal class CompletionContext
     {
         var subCommands = string.IsNullOrEmpty(tokenValue)
             ? CommandCompleter.SubCommands
-            : CommandCompleter.SubCommands.Where(cmd => cmd.Name.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
+            : CommandCompleter.SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
 
-        return subCommands.Select(cmd => new CompletionResult(cmd.Name,
-                                                              $"{cmd.Name} - ({cmd.Description})",
-                                                              CompletionResultType.Command,
-                                                              $"{CommandCompleter.Name} {cmd.Name} - ({cmd.Description})"));
+        return subCommands.Select(kv => new CompletionResult(kv.Value.Name,
+                                                             $"{kv.Value.Name} - ({kv.Value.Description})",
+                                                             CompletionResultType.Command,
+                                                             $"{CommandCompleter.Name} {kv.Value.Name} - ({kv.Value.Description})"));
     }
 
     private IEnumerable<CompletionResult> CompleteArgument(string tokenValue, int cursorPosition)

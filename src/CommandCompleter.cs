@@ -23,6 +23,8 @@ public class CommandCompleter(string name,
     public string Name { get; } = name;
     public string Description { get; set; } = description;
     public Collection<ParamCompleter> Params { get; } = [];
-    public Collection<CommandCompleter> SubCommands { get; } = [];
+    public ReadOnlyDictionary<string, CommandCompleter> SubCommands => _subCmds.AsReadOnly();
     public ScriptBlock? ArgumentCompleter { get; set; }
+
+    internal Dictionary<string, CommandCompleter> _subCmds = [];
 }
