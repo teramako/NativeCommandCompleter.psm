@@ -16,11 +16,17 @@ public class RegisterCompleterCommand : Cmdlet
     public PSObject[] Parameters { get; set; } = [];
 
     [Parameter()]
+    public ScriptBlock? ArgumentCompleter { get; set; }
+
+    [Parameter()]
     public SwitchParameter Force { get; set; }
 
     protected override void EndProcessing()
     {
-        CommandCompleter completer = new(Name, Description);
+        CommandCompleter completer = new(Name, Description)
+        {
+            ArgumentCompleter = ArgumentCompleter
+        };
         Collection<ParamCompleter> paramCompleters = new();
         foreach (var pso in Parameters)
         {
