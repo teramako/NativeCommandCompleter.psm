@@ -22,6 +22,7 @@ public class CommandCompleter
     }
 
     public string Name { get; }
+    public string Description { get; set; } = description;
     public Collection<ParamCompleter> Params { get; } = [];
     public ScriptBlock? ArgumentCompleter { get; set; }
 

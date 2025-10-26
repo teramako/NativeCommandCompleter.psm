@@ -9,6 +9,9 @@ public class RegisterCompleterCommand : Cmdlet
     [Parameter(Mandatory = true, Position = 0)]
     public string Name { get; set; } = string.Empty;
 
+    [Parameter(Position = 1)]
+    public string Description { get; set; } = string.Empty;
+
     [Parameter(ValueFromRemainingArguments = true)]
     public PSObject[] Parameters { get; set; } = [];
 
@@ -17,7 +20,7 @@ public class RegisterCompleterCommand : Cmdlet
 
     protected override void EndProcessing()
     {
-        CommandCompleter completer = new(Name);
+        CommandCompleter completer = new(Name, Description);
         Collection<ParamCompleter> paramCompleters = new();
         foreach (var pso in Parameters)
         {
