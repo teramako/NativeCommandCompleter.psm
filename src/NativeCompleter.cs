@@ -140,28 +140,23 @@ public static class NativeCompleter
         var cmdName = Path.GetFileName(fullName);
 
         Debug("--------------------------------------");
-        Debug($"CommandName: {cmdName} ({fullName})");
-
-        var (args, argIndex) = ParseCommandElements(commandAst, cursorPosition);
-
-        if (_completers.TryGetValue(cmdName, out var commandCompleter))
+        CommandCompleter? commandCompleter;
+        if (!_completers.TryGetValue(cmdName, out commandCompleter))
         {
-            Debug($"Found completer: {cmdName}");
-            return commandCompleter.Complete(args, argIndex);
+            if (TryGetCompleterScript(cmdName, out var completerFile)
+                && TryLoadScript(completerFile, wordToComplete, commandAst, cursorPosition, out var results))
+            {
+                if (!_completers.TryGetValue(cmdName, out commandCompleter))
+                {
+                    return PSObjectsToCompletionResults(results);
+                }
+            }
         }
 
-        if (TryGetCompleterScript(cmdName, out var completerFile))
+        if (commandCompleter is not null)
         {
-            Debug($"Load: {completerFile}");
-            if (TryLoadScript(completerFile, wordToComplete, commandAst, cursorPosition, out var results))
-            {
-                if (_completers.TryGetValue(cmdName, out commandCompleter))
-                {
-                    Debug($"Found completer(retry): {cmdName}");
-                    return commandCompleter.Complete(args, argIndex);
-                }
-                return PSObjectsToCompletionResults(results);
-            }
+            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition);
+            return context.Complete();
         }
 
         return [];

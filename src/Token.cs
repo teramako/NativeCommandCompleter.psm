@@ -2,23 +2,12 @@ using System.Management.Automation.Language;
 
 namespace MT.Comp;
 
-[Flags]
-public enum TokenType
-{
-    Value = 1 << 0,
-    ShortParameter = 1 << 1,
-    LongParameter = 1 << 2,
-}
-
 public class Token
 {
-    public const string LongParamIndicator = "--";
-    public const string ParamIndicator = "-";
-    public const char ValueSeparator = '=';
-
     public Token(CommandElementAst ast)
     {
         _ast = ast;
+        Position = ast.Extent.Text.Length;
     }
     public Token(CommandElementAst ast, int cursorPosition)
     {
@@ -36,17 +25,4 @@ public class Token
     public string Suffix => Position > 0 ? Value[Position..] : string.Empty;
 
     public override string ToString() => Value;
-
-    public TokenType GetTokenType()
-    {
-        if (Value.StartsWith(LongParamIndicator, StringComparison.Ordinal))
-        {
-            return TokenType.LongParameter;
-        }
-        else if (Value.StartsWith(ParamIndicator, StringComparison.Ordinal))
-        {
-            return TokenType.ShortParameter;
-        }
-        return TokenType.Value;
-    }
 }

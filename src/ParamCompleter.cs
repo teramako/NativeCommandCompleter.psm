@@ -11,10 +11,7 @@ public enum ArgumentType
     OnlyWithValueSperator = 1 << 2,
 }
 
-public class ParamCompleter(ArgumentType type,
-                            string longParamIndicator = "--",
-                            string paramIndicator = "-",
-                            char valueSeparator = '=')
+public class ParamCompleter(ArgumentType type)
 {
     [Conditional("DEBUG")]
     private void Debug(string msg)
@@ -23,29 +20,6 @@ public class ParamCompleter(ArgumentType type,
     }
 
     public ArgumentType Type { get; } = type;
-    /// <summary>
-    /// Parameter prefix indicator for long parameter names.
-    /// <para>
-    /// example) <c>--</c>
-    /// </para>
-    /// </summary>
-    private string LongParamIndicator = longParamIndicator;
-
-    /// <summary>
-    /// Parameter prefix indicator for short or old style parameter names
-    /// <para>
-    /// example) <c>-</c>, <c>/</c>
-    /// </para>
-    /// </summary>
-    private string ParamIndicator = paramIndicator;
-
-    /// <summary>
-    /// Parameter prefix indicator for long parameter names
-    /// <para>
-    /// example) <c>=</c>, <c>:</c>
-    /// </para>
-    /// </summary>
-    private char ValueSeparator = valueSeparator;
 
     /// <summary>
     /// One character parameter names.
@@ -74,68 +48,113 @@ public class ParamCompleter(ArgumentType type,
 
     public string[] Arguments { get; internal set; } = [];
 
+    internal bool IsMatchLongParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
+    {
+        foreach (ReadOnlySpan<char> name in LongNames)
+        {
+            if (name.Equals(inputValue, StringComparison.OrdinalIgnoreCase))
+            {
+                paramName = name;
+                return true;
+            }
+        }
+        paramName = default;
+        return false;
+    }
+    internal bool IsMatchOldStyleParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
+    {
+        foreach (ReadOnlySpan<char> name in OldShortNames)
+        {
+            if (name.Equals(inputValue, StringComparison.OrdinalIgnoreCase))
+            {
+                paramName = name;
+                return true;
+            }
+        }
+        paramName = default;
+        return false;
+    }
+    internal bool IsMatchShortParam(ReadOnlySpan<char> inputValue, out char paramName, out int position)
+    {
+        foreach (char c in ShortNames)
+        {
+            position = inputValue.IndexOf(c);
+            if (position < 0)
+                continue;
+
+            paramName = c;
+            return true;
+        }
+        position = -1;
+        paramName = default;
+        return false;
+    }
+
     /// <summary>
     /// Complete long parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteLongParam(string paramName, int position)
+    public IEnumerable<CompletionResult> CompleteLongParam(string paramName,
+                                                           int position,
+                                                           string indicator)
     {
-        Debug($"ParamCompleter.CompleteLongParam paramName: '{paramName}', position: {position}");
+        // Debug($"ParamCompleter.CompleteLongParam paramName: '{paramName}', position: {position}");
         if (LongNames.Length == 0)
         {
             return [];
         }
-        var valueSepPosition = paramName.IndexOf(ValueSeparator);
-        if (valueSepPosition > 0)
-        {
-            Debug($"param: '{paramName}'");
-            var newParamName = paramName[..valueSepPosition];
-            return CompleteValue(newParamName,
-                                 paramName[(valueSepPosition + 1)..],
-                                 position - valueSepPosition - 1,
-                                 LongParamIndicator,
-                                 $"{LongParamIndicator}{newParamName}=");
-        }
+        var names = string.IsNullOrEmpty(paramName)
+            ? LongNames
+            : LongNames.Where(n => n.StartsWith(paramName, StringComparison.OrdinalIgnoreCase)).ToArray();
 
-        return LongNames.Where(longName => string.IsNullOrEmpty(paramName)
-                                           || longName.StartsWith(paramName, StringComparison.Ordinal))
-                        .Select(longName => new CompletionResult($"--{longName}",
-                                                                 $"--{longName} ({Description})",
-                                                                 CompletionResultType.ParameterValue,
-                                                                 $"[--{longName}] - {Description}"));
+        if (names.Length == 0)
+            return [];
 
+        var desc = string.IsNullOrEmpty(Description) ? string.Empty : $" ({Description})";
+        return names.Select(n => new CompletionResult($"{indicator}{n}",
+                                                      $"{indicator}{n}{desc}",
+                                                      CompletionResultType.ParameterValue,
+                                                      $"[{indicator}{n}]{desc}"));
     }
 
     /// <summary>
     /// Complete old style parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteOldParam(string paramName, int position)
+    public IEnumerable<CompletionResult> CompleteOldParam(string paramName,
+                                                          int position,
+                                                          string indicator)
     {
-        if (OldShortNames is null or { Length: 0 })
+        if (OldShortNames.Length == 0)
         {
             return [];
         }
+        var desc = string.IsNullOrEmpty(Description) ? string.Empty : $" ({Description})";
         return OldShortNames.Where(name => string.IsNullOrEmpty(paramName)
-                                           || name.StartsWith(paramName, StringComparison.Ordinal))
-                            .Select(name => new CompletionResult($"-{name}",
-                                                                 $"-{name} ({Description})",
+                                           || name.StartsWith(paramName, StringComparison.OrdinalIgnoreCase))
+                            .Select(name => new CompletionResult($"{indicator}{name}",
+                                                                 $"{indicator}{name}({desc})",
                                                                  CompletionResultType.ParameterValue,
-                                                                 $"[-{name}] - {Description}"));
+                                                                 $"[{indicator}{name}]{desc}"));
     }
 
     /// <summary>
     /// Complete short parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteShortParam(string paramName, int position)
+    public IEnumerable<CompletionResult> CompleteShortParam(string paramName,
+                                                            int position,
+                                                            string indicator)
     {
-        if (ShortNames is null or { Length: 0 })
+        if (ShortNames.Length == 0)
         {
             return [];
         }
-        return ShortNames.Where(c => !paramName.Contains(c))
-                         .Select(c => new CompletionResult($"-{paramName[..position]}{c}{paramName[position..]}",
-                                                           $"-{c} ({Description})",
+        var paramName1 = paramName[..position];
+        var paramName2 = paramName[position..];
+        var desc = string.IsNullOrEmpty(Description) ? string.Empty : $" ({Description})";
+        return ShortNames.Where(c => !paramName1.Contains(c))
+                         .Select(c => new CompletionResult($"{indicator}{paramName1}{c}{paramName2}",
+                                                           $"{indicator}{c}{desc}",
                                                            CompletionResultType.ParameterValue,
-                                                           $"[-{c}] - {Description}"));
+                                                           $"[{indicator}{c}]{desc}"));
     }
 
     /// <summary>
@@ -165,28 +184,25 @@ public class ParamCompleter(ArgumentType type,
             yield break;
 
         CompletionResult completionResult;
-        foreach (var psobject in ArgumentCompleter.Invoke(paramName, paramValue, position))
+        foreach (var psobject in ArgumentCompleter.Invoke(paramValue, position))
         {
             if (LanguagePrimitives.TryConvertTo<CompletionResult>(psobject, out var result))
             {
-                Debug($"Convert {{ '{result.CompletionText}', '{result.ListItemText}' }} => {{ '{prefix}{result.CompletionText}', '[{paramIndicator}{paramName}] {result.ListItemText}' }}");
                 completionResult = new($"{prefix}{result.CompletionText}",
-                                       result.ListItemText,
+                                       $"{prefix}{result.ListItemText}",
                                        CompletionResultType.ParameterValue,
-                                       $"[{paramIndicator}{paramName}] {result.ToolTip}");
+                                       $"[{indicator}{paramName}] {result.ToolTip}");
 
             }
             else
             {
                 var text = $"{psobject}";
-                Debug($"Convert '{text}' => {{ '{prefix}{text}', '[{paramIndicator}{paramName}] {text}' }}");
                 completionResult = new($"{prefix}{text}",
-                                       text,
+                                       $"{prefix}{text}",
                                        CompletionResultType.ParameterValue,
-                                       $"[{paramIndicator}{paramName}] {text}");
+                                       $"[{indicator}{paramName}] {text}");
             }
             yield return completionResult;
         }
-
     }
 }
