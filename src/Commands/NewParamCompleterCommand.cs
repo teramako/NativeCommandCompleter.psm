@@ -23,6 +23,10 @@ public class NewParamCompleterCommand : Cmdlet
     [AllowEmptyString]
     public string Description { get; set; } = string.Empty;
 
+    [Parameter()]
+    [Alias("t")]
+    public ArgumentType Type { get; set; }
+
     [Parameter(ParameterSetName = "WithArguments", Mandatory = true)]
     [Alias("a")]
     public string[] Arguments { get; set; } = [];
@@ -30,9 +34,29 @@ public class NewParamCompleterCommand : Cmdlet
     [Parameter(ParameterSetName = "WithArgumentCompleter", Mandatory = true)]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
+    protected override void BeginProcessing()
+    {
+        if (ShortName.Length == 0 && OldName.Length == 0 && LongName.Length == 0)
+        {
+            throw new ArgumentException("At least one of 'ShortName', 'OldName' or 'LongName' must be specified");
+        }
+
+        if (Type is 0)
+        {
+            if (Arguments.Length == 0 && ArgumentCompleter is null)
+            {
+                Type = ArgumentType.Flag;
+            }
+            else
+            {
+                Type = ArgumentType.File;
+            }
+        }
+    }
+
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new()
+        ParamCompleter completer = new(Type)
         {
             LongNames = LongName,
             ShortNames = ShortName,

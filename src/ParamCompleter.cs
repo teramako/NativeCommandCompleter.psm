@@ -3,7 +3,16 @@ using System.Management.Automation;
 
 namespace MT.Comp;
 
-public class ParamCompleter(string longParamIndicator = "--",
+[Flags]
+public enum ArgumentType
+{
+    Flag = 1 << 0,
+    File = 1 << 1,
+    OnlyWithValueSperator = 1 << 2,
+}
+
+public class ParamCompleter(ArgumentType type,
+                            string longParamIndicator = "--",
                             string paramIndicator = "-",
                             char valueSeparator = '=')
 {
@@ -13,6 +22,7 @@ public class ParamCompleter(string longParamIndicator = "--",
         NativeCompleter.Messages.Add(msg);
     }
 
+    public ArgumentType Type { get; } = type;
     /// <summary>
     /// Parameter prefix indicator for long parameter names.
     /// <para>
