@@ -123,7 +123,7 @@ internal class CompletionContext
                     }
                 }
             }
-            else if (token.Value.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
+            else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
                 indicator = CommandCompleter.ParamIndicator;
                 var paramName = tokenValue[indicator.Length..];
