@@ -127,13 +127,19 @@ public class ParamCompleter(ArgumentType type)
         {
             return [];
         }
+        var names = string.IsNullOrEmpty(paramName)
+            ? OldShortNames
+            : OldShortNames.Where(n => n.StartsWith(paramName, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (names.Length == 0)
+        {
+            return [];
+        }
+
         var desc = string.IsNullOrEmpty(Description) ? string.Empty : $" ({Description})";
-        return OldShortNames.Where(name => string.IsNullOrEmpty(paramName)
-                                           || name.StartsWith(paramName, StringComparison.OrdinalIgnoreCase))
-                            .Select(name => new CompletionResult($"{indicator}{name}",
-                                                                 $"{indicator}{name}({desc})",
-                                                                 CompletionResultType.ParameterValue,
-                                                                 $"[{indicator}{name}]{desc}"));
+        return names.Select(n => new CompletionResult($"{indicator}{n}",
+                                                      $"{indicator}{n}({desc})",
+                                                      CompletionResultType.ParameterValue,
+                                                      $"[{indicator}{n}]{desc}"));
     }
 
     /// <summary>
