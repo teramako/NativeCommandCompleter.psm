@@ -1,50 +1,61 @@
-using System.Collections.ObjectModel;
 using System.Management.Automation;
 
 namespace MT.Comp.Commands;
 
-[Cmdlet(VerbsLifecycle.Register, "NativeCompleter", DefaultParameterSetName = "Command")]
+[Cmdlet(VerbsLifecycle.Register, "NativeCompleter")]
+[OutputType(typeof(void))]
 public class RegisterCompleterCommand : Cmdlet
 {
-    [Parameter(Mandatory = true, Position = 0)]
+    private const string ParameterSetNew = "New";
+    private const string ParameterSetInput = "Input";
+
+    [Parameter(ParameterSetName = ParameterSetNew, Mandatory = true, Position = 0)]
+    [Alias("n")]
     public string Name { get; set; } = string.Empty;
 
-    [Parameter(Position = 1)]
+    [Parameter(ParameterSetName = ParameterSetNew, Position = 1)]
+    [Alias("d")]
     public string Description { get; set; } = string.Empty;
 
-    [Parameter(ValueFromRemainingArguments = true)]
+    [Parameter(ParameterSetName = ParameterSetNew)]
+    [Alias("p")]
     public PSObject[] Parameters { get; set; } = [];
 
-    [Parameter()]
+    [Parameter(ParameterSetName = ParameterSetNew)]
+    [Alias("s")]
+    public CommandCompleter[] SubCommands { get; set; } = [];
+
+    [Parameter(ParameterSetName = ParameterSetNew)]
+    [Alias("a")]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
-    [Parameter(ParameterSetName = "SubCommand", Mandatory = true)]
-    public string ParentCommand { get; set; } = string.Empty;
+    [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0)]
+    public CommandCompleter? Completer { get; set; } = null;
 
     [Parameter()]
+    [Alias("f")]
     public SwitchParameter Force { get; set; }
 
-    private bool _subCommand;
-
-    protected override void BeginProcessing()
+    protected override void ProcessRecord()
     {
-        if (!string.IsNullOrEmpty(ParentCommand))
+        if (Completer is not null)
         {
-            if (!NativeCompleter._completers.ContainsKey(ParentCommand))
+            if (Force)
             {
-                throw new ArgumentException($"Parent command is not found: {ParentCommand}");
+                NativeCompleter._completers[Completer.Name] = Completer;
             }
-            _subCommand = true;
+            else if (!NativeCompleter._completers.TryAdd(Completer.Name, Completer))
+            {
+                throw new InvalidOperationException($"Failed to register completer: {Completer.Name}. Maybe it's already registered.");
+            }
         }
     }
-
     protected override void EndProcessing()
     {
         CommandCompleter completer = new(Name, Description)
         {
-            ArgumentCompleter = ArgumentCompleter
+            ArgumentCompleter = ArgumentCompleter,
         };
-        Collection<ParamCompleter> paramCompleters = new();
         foreach (var pso in Parameters)
         {
             if (pso.BaseObject is ParamCompleter paramCompleter1)
@@ -56,32 +67,18 @@ public class RegisterCompleterCommand : Cmdlet
                 completer.Params.Add(paramCompleter2);
             }
         }
-
-        if (_subCommand)
+        foreach (var subCmd in SubCommands)
         {
-            if (!NativeCompleter._completers.TryGetValue(ParentCommand, out var parent))
-            {
-                throw new ArgumentException($"Parent command is not found: {ParentCommand}");
-            }
-            if (Force)
-            {
-                parent._subCmds[Name] = completer;
-            }
-            else if (!parent._subCmds.TryAdd(Name, completer))
-            {
-                throw new InvalidOperationException($"Failed to register completer: {Name}. Maybe it's already registered.");
-            }
+            completer.SubCommands.Add(subCmd.Name, subCmd);
         }
-        else
+
+        if (Force)
         {
-            if (Force)
-            {
-                NativeCompleter._completers[Name] = completer;
-            }
-            else if (!NativeCompleter._completers.TryAdd(Name, completer))
-            {
-                throw new InvalidOperationException($"Failed to register completer: {Name}. Maybe it's already registered.");
-            }
+            NativeCompleter._completers[Name] = completer;
+        }
+        else if (!NativeCompleter._completers.TryAdd(Name, completer))
+        {
+            throw new InvalidOperationException($"Failed to register completer: {Name}. Maybe it's already registered.");
         }
     }
 }
