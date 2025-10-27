@@ -147,6 +147,13 @@ public class ParamCompleter(ArgumentType type)
         {
             return [];
         }
+        // -a|b
+        //   ^..cursor
+        // => Don't complete if the cursor position is last and the parameter is required arguments.
+        if (position < paramName.Length && !Type.HasFlag(ArgumentType.Flag))
+        {
+            return [];
+        }
         var paramName1 = paramName[..position];
         var paramName2 = paramName[position..];
         var desc = string.IsNullOrEmpty(Description) ? string.Empty : $" ({Description})";
