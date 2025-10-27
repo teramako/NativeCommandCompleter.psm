@@ -211,7 +211,7 @@ internal class CompletionContext
             }
             else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
-                return CompleteOldOrShortParams(tokenValue, cursorPosition);
+                return CompleteOldStyleParams(tokenValue, cursorPosition);
             }
             else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
             {
@@ -284,13 +284,13 @@ internal class CompletionContext
         return paramCompleters.SelectMany(p => p.CompleteLongParam(sParamName, position, indicator));
     }
 
-    private IEnumerable<CompletionResult> CompleteOldOrShortParams(string tokenValue, int cursorPosition)
+    private IEnumerable<CompletionResult> CompleteOldStyleParams(string tokenValue, int cursorPosition)
     {
         var indicator = CommandCompleter.ParamIndicator;
         var paramName = tokenValue[indicator.Length..];
         cursorPosition -= indicator.Length;
-        foreach (var result in CommandCompleter.Params.Where(p => p.OldShortNames.Length > 0)
-                                                      .SelectMany(p => p.CompleteOldParam(paramName, cursorPosition, indicator)))
+        foreach (var result in CommandCompleter.Params.Where(p => p.OldStyleNames.Length > 0)
+                                                      .SelectMany(p => p.CompleteOldStyleParam(paramName, cursorPosition, indicator)))
         {
             yield return result;
         }

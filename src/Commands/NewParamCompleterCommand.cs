@@ -16,7 +16,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     [Parameter()]
     [Alias("o")]
-    public string[] OldName { get; set; } = [];
+    public string[] OldStyleName { get; set; } = [];
 
     [Parameter()]
     [Alias("d")]
@@ -36,9 +36,9 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void BeginProcessing()
     {
-        if (ShortName.Length == 0 && OldName.Length == 0 && LongName.Length == 0)
+        if (ShortName.Length == 0 && OldStyleName.Length == 0 && LongName.Length == 0)
         {
-            throw new ArgumentException("At least one of 'ShortName', 'OldName' or 'LongName' must be specified");
+            throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
         }
 
         if (Type is 0)
@@ -60,7 +60,7 @@ public class NewParamCompleterCommand : Cmdlet
         {
             LongNames = LongName,
             ShortNames = ShortName,
-            OldShortNames = OldName,
+            OldStyleNames = OldStyleName,
             Description = Description,
             Arguments = Arguments,
             ArgumentCompleter = ArgumentCompleter

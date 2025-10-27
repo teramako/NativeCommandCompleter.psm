@@ -34,7 +34,7 @@ public class ParamCompleter(ArgumentType type)
     /// <summary>
     /// Old styles parameter names.
     /// </summary>
-    public string[] OldShortNames { get; internal set; } = [];
+    public string[] OldStyleNames { get; internal set; } = [];
 
     /// <summary>
     /// Parameter description.
@@ -63,7 +63,7 @@ public class ParamCompleter(ArgumentType type)
     }
     internal bool IsMatchOldStyleParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
     {
-        foreach (ReadOnlySpan<char> name in OldShortNames)
+        foreach (ReadOnlySpan<char> name in OldStyleNames)
         {
             if (name.Equals(inputValue, StringComparison.OrdinalIgnoreCase))
             {
@@ -119,17 +119,17 @@ public class ParamCompleter(ArgumentType type)
     /// <summary>
     /// Complete old style parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteOldParam(string paramName,
-                                                          int position,
-                                                          string indicator)
+    public IEnumerable<CompletionResult> CompleteOldStyleParam(string paramName,
+                                                               int position,
+                                                               string indicator)
     {
-        if (OldShortNames.Length == 0)
+        if (OldStyleNames.Length == 0)
         {
             return [];
         }
         var names = string.IsNullOrEmpty(paramName)
-            ? OldShortNames
-            : OldShortNames.Where(n => n.StartsWith(paramName, StringComparison.OrdinalIgnoreCase)).ToArray();
+            ? OldStyleNames
+            : OldStyleNames.Where(n => n.StartsWith(paramName, StringComparison.OrdinalIgnoreCase)).ToArray();
         if (names.Length == 0)
         {
             return [];
