@@ -236,6 +236,10 @@ internal class CompletionContext
             ? CommandCompleter.SubCommands
             : CommandCompleter.SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
 
+        // Prevent fallback to filename completion
+        if (!subCommands.Any())
+            return [null];
+
         return subCommands.Select(kv => new CompletionResult(kv.Value.Name,
                                                              $"{kv.Value.Name} - ({kv.Value.Description})",
                                                              CompletionResultType.Command,
