@@ -11,7 +11,7 @@ public enum ArgumentType
     OnlyWithValueSperator = 1 << 2,
 }
 
-public class ParamCompleter(ArgumentType type)
+public class ParamCompleter
 {
     [Conditional("DEBUG")]
     private void Debug(string msg)
@@ -19,22 +19,34 @@ public class ParamCompleter(ArgumentType type)
         NativeCompleter.Messages.Add(msg);
     }
 
-    public ArgumentType Type { get; } = type;
+    public ParamCompleter(ArgumentType type, string[] longNames, string[] oldStyleNames, char[] shortNames)
+    {
+        Name = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
+            ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
+        Type = type;
+        LongNames = longNames;
+        OldStyleNames = oldStyleNames;
+        ShortNames = shortNames;
+    }
+
+    public string Name { get; }
+
+    public ArgumentType Type { get; }
 
     /// <summary>
     /// One character parameter names.
     /// </summary>
-    public char[] ShortNames { get; internal set; } = [];
+    public char[] ShortNames { get; internal set; }
 
     /// <summary>
     /// Long parameter names.
     /// </summary>
-    public string[] LongNames { get; internal set; } = [];
+    public string[] LongNames { get; internal set; }
 
     /// <summary>
     /// Old styles parameter names.
     /// </summary>
-    public string[] OldStyleNames { get; internal set; } = [];
+    public string[] OldStyleNames { get; internal set; }
 
     /// <summary>
     /// Parameter description.

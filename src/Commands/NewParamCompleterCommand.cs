@@ -34,12 +34,12 @@ public class NewParamCompleterCommand : Cmdlet
     [Parameter(ParameterSetName = "WithArgumentCompleter", Mandatory = true)]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
+    private string _name = string.Empty;
+
     protected override void BeginProcessing()
     {
-        if (ShortName.Length == 0 && OldStyleName.Length == 0 && LongName.Length == 0)
-        {
-            throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
-        }
+        _name = LongName.Union(OldStyleName).Union(ShortName.Select(c => $"{c}")).First()
+            ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
 
         if (Type is 0)
         {
@@ -56,11 +56,8 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new(Type)
+        ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName)
         {
-            LongNames = LongName,
-            ShortNames = ShortName,
-            OldStyleNames = OldStyleName,
             Description = Description,
             Arguments = Arguments,
             ArgumentCompleter = ArgumentCompleter
