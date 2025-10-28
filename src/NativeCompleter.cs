@@ -120,7 +120,7 @@ public static class NativeCompleter
     /// Get completion results from <paramref name="commandLine"/>
     /// </summary>
     /// <seealso cref="Complete(string, CommandAst, int)"/>
-    public static IEnumerable<CompletionResult> Complete(string commandLine, int cursorPosition)
+    public static IEnumerable<CompletionResult?> Complete(string commandLine, int cursorPosition)
     {
         var ast = Parser.ParseInput(commandLine, out _, out _);
         var commandAst = ast.Find(a => a is CommandAst, false) as CommandAst;
@@ -134,7 +134,7 @@ public static class NativeCompleter
     /// Get completion results from <paramref name="commandAst"/>.
     /// It is assumed to be called from ScriptBlock registered with <c>Register-ArgumentCompleter</c> cmdlet.
     /// </summary>
-    public static IEnumerable<CompletionResult> Complete(string wordToComplete, CommandAst commandAst, int cursorPosition)
+    public static IEnumerable<CompletionResult?> Complete(string wordToComplete, CommandAst commandAst, int cursorPosition)
     {
         var fullName = commandAst.GetCommandName();
         var cmdName = Path.GetFileName(fullName);
@@ -162,7 +162,7 @@ public static class NativeCompleter
         return [];
     }
 
-    internal static IEnumerable<CompletionResult> PSObjectsToCompletionResults(IEnumerable<PSObject> psobjects)
+    internal static IEnumerable<CompletionResult?> PSObjectsToCompletionResults(IEnumerable<PSObject> psobjects)
     {
         foreach (var pso in psobjects)
         {

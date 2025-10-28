@@ -93,7 +93,7 @@ public class ParamCompleter(ArgumentType type)
     /// <summary>
     /// Complete long parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteLongParam(string paramName,
+    public IEnumerable<CompletionResult?> CompleteLongParam(string paramName,
                                                            int position,
                                                            string indicator)
     {
@@ -119,7 +119,7 @@ public class ParamCompleter(ArgumentType type)
     /// <summary>
     /// Complete old style parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteOldStyleParam(string paramName,
+    public IEnumerable<CompletionResult?> CompleteOldStyleParam(string paramName,
                                                                int position,
                                                                string indicator)
     {
@@ -145,7 +145,7 @@ public class ParamCompleter(ArgumentType type)
     /// <summary>
     /// Complete short parameters
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteShortParam(string paramName,
+    public IEnumerable<CompletionResult?> CompleteShortParam(string paramName,
                                                             int position,
                                                             string indicator)
     {
@@ -173,7 +173,7 @@ public class ParamCompleter(ArgumentType type)
     /// <summary>
     /// Complete parameter's argument values
     /// </summary>
-    public IEnumerable<CompletionResult> CompleteValue(string paramName,
+    public IEnumerable<CompletionResult?> CompleteValue(string paramName,
                                                        string paramValue,
                                                        int position,
                                                        string indicator,

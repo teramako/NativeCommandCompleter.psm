@@ -187,6 +187,7 @@ internal class CompletionContext
     }
 
     public IEnumerable<CompletionResult> Complete()
+    public IEnumerable<CompletionResult?> Complete()
     {
         NativeCompleter.Messages.Add($"[{Name}] Start Complete");
 
@@ -229,7 +230,7 @@ internal class CompletionContext
         return CompleteArgument(tokenValue, cursorPosition);
     }
 
-    private IEnumerable<CompletionResult> CompleteSubCommands(string tokenValue, int cursorPosition)
+    private IEnumerable<CompletionResult?> CompleteSubCommands(string tokenValue, int cursorPosition)
     {
         var subCommands = string.IsNullOrEmpty(tokenValue)
             ? CommandCompleter.SubCommands
@@ -241,7 +242,7 @@ internal class CompletionContext
                                                              $"{CommandCompleter.Name} {kv.Value.Name} - ({kv.Value.Description})"));
     }
 
-    private IEnumerable<CompletionResult> CompleteArgument(string tokenValue, int cursorPosition)
+    private IEnumerable<CompletionResult?> CompleteArgument(string tokenValue, int cursorPosition)
     {
         if (CommandCompleter.ArgumentCompleter is null)
             return [];
@@ -252,7 +253,7 @@ internal class CompletionContext
                 CommandCompleter.ArgumentCompleter.Invoke(tokenValue, cursorPosition, argIndex));
     }
 
-    private IEnumerable<CompletionResult> CompleteLongParams(ReadOnlySpan<char> tokenValue, int cursorPosition)
+    private IEnumerable<CompletionResult?> CompleteLongParams(ReadOnlySpan<char> tokenValue, int cursorPosition)
     {
         const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
         string indicator = CommandCompleter.LongParamIndicator;
@@ -284,7 +285,7 @@ internal class CompletionContext
         return paramCompleters.SelectMany(p => p.CompleteLongParam(sParamName, position, indicator));
     }
 
-    private IEnumerable<CompletionResult> CompleteOldStyleParams(string tokenValue, int cursorPosition)
+    private IEnumerable<CompletionResult?> CompleteOldStyleParams(string tokenValue, int cursorPosition)
     {
         var indicator = CommandCompleter.ParamIndicator;
         var paramName = tokenValue[indicator.Length..];
