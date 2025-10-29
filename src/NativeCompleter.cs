@@ -162,13 +162,19 @@ public static class NativeCompleter
         return [];
     }
 
-    internal static IEnumerable<CompletionResult?> PSObjectsToCompletionResults(IEnumerable<PSObject> psobjects)
+    internal static IEnumerable<CompletionResult?> PSObjectsToCompletionResults(IEnumerable<PSObject?> psobjects)
     {
         foreach (var pso in psobjects)
         {
-            if (pso.BaseObject is CompletionResult completionResult
+            if (pso is null)
+            {
+                Debug($"PsoToResult: is null");
+                yield return null;
+            }
+            else if (pso.BaseObject is CompletionResult completionResult
                 || LanguagePrimitives.TryConvertTo<CompletionResult>(pso, out completionResult))
             {
+                Debug($"PsoToResult: {{ '{completionResult.CompletionText}', '{completionResult.ListItemText}', {completionResult.ResultType}, '{completionResult.ToolTip}' }}");
                 yield return completionResult;
             }
         }
