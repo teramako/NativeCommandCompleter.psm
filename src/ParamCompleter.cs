@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Management.Automation;
 
@@ -105,49 +106,100 @@ public class ParamCompleter
     /// <summary>
     /// Complete parameter's argument values
     /// </summary>
-    public IEnumerable<CompletionResult?> CompleteValue(string paramName,
-                                                       string paramValue,
+    public Collection<CompletionResult?> CompleteValue(ReadOnlySpan<char> paramName,
+                                                       ReadOnlySpan<char> paramValue,
                                                        int position,
                                                        string indicator,
                                                        string prefix = "")
     {
+        Collection<CompletionResult?> results = [];
+
         if (Arguments.Length > 0)
         {
-            var values = string.IsNullOrEmpty(paramValue)
-                ? Arguments
-                : Arguments.Where(v => v.StartsWith(paramValue, StringComparison.OrdinalIgnoreCase));
-            foreach (var value in values)
+            foreach (ReadOnlySpan<char> value in Arguments)
             {
-                var text = $"{prefix}{value}";
-                yield return new(text,
-                                 text,
-                                 CompletionResultType.ParameterValue,
-                                 $"[{indicator}{paramName}] {value}");
+                if (!paramValue.IsEmpty || !value.StartsWith(paramValue, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var text = $"{prefix}{value} ";
+                results.Add(new(text, text, CompletionResultType.ParameterValue, $"[{indicator}{paramName}] {value}"));
             }
-        }
-        if (ArgumentCompleter is null)
-            yield break;
 
-        CompletionResult completionResult;
-        foreach (var psobject in ArgumentCompleter.Invoke(paramValue, position))
-        {
-            if (LanguagePrimitives.TryConvertTo<CompletionResult>(psobject, out var result))
+            if (results.Count == 0)
             {
-                completionResult = new($"{prefix}{result.CompletionText}",
-                                       $"{prefix}{result.ListItemText}",
-                                       CompletionResultType.ParameterValue,
-                                       $"[{indicator}{paramName}] {result.ToolTip}");
+                // Prevent fallback to filename completion
+                results.Add(null);
+            }
 
+            return results;
+        }
+
+        bool canFallbackToFilenameCompletion = Type.HasFlag(ArgumentType.File);
+
+        if (ArgumentCompleter is null)
+        {
+            if (canFallbackToFilenameCompletion)
+            {
+                foreach (var result in CompletionCompleters.CompleteFilename($"{paramValue}"))
+                {
+                    results.Add(new($"{prefix}{result.CompletionText}",
+                                     $"{prefix}{result.ListItemText}",
+                                     result.ResultType,
+                                     $"[{indicator}{paramName}] {result.ToolTip}"));
+                }
             }
             else
             {
-                var text = $"{psobject}";
-                completionResult = new($"{prefix}{text}",
-                                       $"{prefix}{text}",
-                                       CompletionResultType.ParameterValue,
-                                       $"[{indicator}{paramName}] {text}");
+                // Prevent fallback to filename completion
+                results.Add(null);
             }
-            yield return completionResult;
+            return results;
         }
+
+        Collection<PSObject?>? invokeResults = null;
+        try
+        {
+            Debug($"[{Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
+            invokeResults = ArgumentCompleter.Invoke($"{paramValue}", position);
+            Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
+        }
+        catch
+        {
+        }
+        if (invokeResults is not null && invokeResults.Count > 0)
+        {
+            foreach (var psobject in invokeResults)
+            {
+                if (psobject is null)
+                {
+                    break;
+                }
+                if (psobject.BaseObject is CompletionResult result
+                    || LanguagePrimitives.TryConvertTo<CompletionResult>(psobject, out result))
+                {
+                    results.Add(new($"{prefix}{result.CompletionText}",
+                                    $"{prefix}{result.ListItemText}",
+                                    CompletionResultType.ParameterValue,
+                                    $"[{indicator}{paramName}] {result.ToolTip}"));
+
+                }
+                else
+                {
+                    var text = $"{psobject}";
+                    results.Add(new($"{prefix}{text}",
+                                    $"{prefix}{text}",
+                                    CompletionResultType.ParameterValue,
+                                    $"[{indicator}{paramName}] {text}"));
+                }
+            }
+        }
+
+        if (results.Count == 0 && !canFallbackToFilenameCompletion)
+        {
+            // Prevent fallback to filename completion
+            results.Add(null);
+        }
+
+        return results;
     }
 }
