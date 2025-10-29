@@ -249,4 +249,25 @@ public class CommandCompleter(string name,
         }
         return results;
     }
+
+    /// <summary>
+    /// Complete remaining argumet's value (non parameter, non parameter value and non subcommand)
+    /// </summary>
+    /// <param name="tokenValue">a token of command line argument</param>
+    /// <param name="cursorPosition">Position of cursor in token</param>.
+    /// <param name="argumentIndex">argument's index which starts 0 without command name</param>
+    public Collection<CompletionResult?> CompleteArgument(string tokenValue, int cursorPosition, int argumentIndex)
+    {
+        if (ArgumentCompleter is null)
+            return [];
+
+        Debug($"CompleterArgument {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
+        Collection<CompletionResult?> results =
+            [.. NativeCompleter.PSObjectsToCompletionResults(ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex))];
+        if (results.Count == 0)
+        {
+            results.Add(null);
+        }
+        return results;
+    }
 }

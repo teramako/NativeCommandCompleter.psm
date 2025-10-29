@@ -218,7 +218,7 @@ internal class CompletionContext
                 return CommandCompleter.CompleteSubCommands(tokenValue);
             }
 
-            return CompleteArgument(tokenValue, cursorPosition);
+            return CommandCompleter.CompleteArgument(tokenValue, cursorPosition, _unboundArguments.Count);
         }
 
         if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
@@ -226,17 +226,6 @@ internal class CompletionContext
             return CommandCompleter.CompleteSubCommands(tokenValue);
         }
 
-        return CompleteArgument(tokenValue, cursorPosition);
-    }
-
-    private IEnumerable<CompletionResult?> CompleteArgument(string tokenValue, int cursorPosition)
-    {
-        if (CommandCompleter.ArgumentCompleter is null)
-            return [];
-
-        var argIndex = _unboundArguments.Count;
-        NativeCompleter.Messages.Add($"=> CompleterArgument: {tokenValue}, {cursorPosition}, {argIndex}");
-        return NativeCompleter.PSObjectsToCompletionResults(
-                CommandCompleter.ArgumentCompleter.Invoke(tokenValue, cursorPosition, argIndex));
+        return CommandCompleter.CompleteArgument(tokenValue, cursorPosition, _unboundArguments.Count);
     }
 }
