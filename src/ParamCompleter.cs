@@ -8,8 +8,9 @@ namespace MT.Comp;
 public enum ArgumentType
 {
     Flag = 1 << 0,
-    File = 1 << 1,
-    OnlyWithValueSperator = 1 << 2,
+    Required = 1 << 1,
+    File = 1 << 2,
+    OnlyWithValueSperator = 1 << 3,
 }
 
 public class ParamCompleter

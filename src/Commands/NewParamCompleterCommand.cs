@@ -49,7 +49,7 @@ public class NewParamCompleterCommand : Cmdlet
             }
             else
             {
-                Type = ArgumentType.File;
+                Type = ArgumentType.Required;
             }
         }
     }
