@@ -215,7 +215,7 @@ internal class CompletionContext
             }
             else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
             {
-                return CompleteSubCommands(tokenValue, cursorPosition);
+                return CommandCompleter.CompleteSubCommands(tokenValue);
             }
 
             return CompleteArgument(tokenValue, cursorPosition);
@@ -223,26 +223,10 @@ internal class CompletionContext
 
         if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
         {
-            return CompleteSubCommands(tokenValue, cursorPosition);
+            return CommandCompleter.CompleteSubCommands(tokenValue);
         }
 
         return CompleteArgument(tokenValue, cursorPosition);
-    }
-
-    private IEnumerable<CompletionResult?> CompleteSubCommands(string tokenValue, int cursorPosition)
-    {
-        var subCommands = string.IsNullOrEmpty(tokenValue)
-            ? CommandCompleter.SubCommands
-            : CommandCompleter.SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
-
-        // Prevent fallback to filename completion
-        if (!subCommands.Any())
-            return [null];
-
-        return subCommands.Select(kv => new CompletionResult(kv.Value.Name,
-                                                             $"{kv.Value.Name} - ({kv.Value.Description})",
-                                                             CompletionResultType.Command,
-                                                             $"{CommandCompleter.Name} {kv.Value.Name} - ({kv.Value.Description})"));
     }
 
     private IEnumerable<CompletionResult?> CompleteArgument(string tokenValue, int cursorPosition)

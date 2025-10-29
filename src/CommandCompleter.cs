@@ -27,6 +27,36 @@ public class CommandCompleter(string name,
     public ScriptBlock? ArgumentCompleter { get; set; }
 
     /// <summary>
+    /// Complete sub command names
+    /// </summary>
+    /// <param name="tokenValue">a token of command line argument</param>
+    public Collection<CompletionResult?> CompleteSubCommands(string tokenValue)
+    {
+        Collection<CompletionResult?> results = [];
+        var subCommands = string.IsNullOrEmpty(tokenValue)
+            ? SubCommands
+            : SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
+
+        foreach (var kv in subCommands)
+        {
+            var text = kv.Value.Name;
+            var desc = string.IsNullOrEmpty(kv.Value.Description) ? string.Empty : $" ({kv.Value.Description})";
+            results.Add(new($"{text} ",
+                            $"{text}{desc}",
+                            CompletionResultType.Command,
+                            $"{Name} {text}{desc}"));
+        }
+
+        if (results.Count == 0)
+        {
+            // Prevent fallback to filename completion
+            results.Add(null);
+        }
+
+        return results;
+    }
+
+    /// <summary>
     /// Complete long parameter, or it's argument
     /// </summary>
     /// <param name="tokenValue">a token of command line argument which starts with <see cref="LongParamIndicator"/></param>
