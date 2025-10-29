@@ -212,7 +212,7 @@ internal class CompletionContext
             }
             else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
-                return CompleteOldStyleOrShortParams(tokenValue, cursorPosition);
+                return CommandCompleter.CompleteOldStyleOrShortParams(tokenValue, cursorPosition);
             }
             else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
             {
@@ -287,49 +287,5 @@ internal class CompletionContext
             ? CommandCompleter.Params.Where(p => p.LongNames.Length > 0)
             : CommandCompleter.Params.Where(p => p.LongNames.Any(n => n.StartsWith(sParamName, comparison)));
         return paramCompleters.SelectMany(p => p.CompleteLongParam(sParamName, position, indicator));
-    }
-
-    private IEnumerable<CompletionResult?> CompleteOldStyleOrShortParams(string tokenValue, int cursorPosition)
-    {
-        var indicator = CommandCompleter.ParamIndicator;
-        var paramName = tokenValue[indicator.Length..];
-        cursorPosition -= indicator.Length;
-        foreach (var result in CommandCompleter.Params.Where(p => p.OldStyleNames.Length > 0)
-                                                      .SelectMany(p => p.CompleteOldStyleParam(paramName, cursorPosition, indicator)))
-        {
-            yield return result;
-        }
-
-        Collection<ParamCompleter> avairableParams = new();
-        foreach (var param in CommandCompleter.Params.Where(p => p.ShortNames.Length > 0))
-        {
-            if (param.IsMatchShortParam(paramName, out char paramChar, out int position))
-            {
-                var key = $"{indicator}{paramChar}";
-                if (param.Type.HasFlag(ArgumentType.Flag))
-                {
-                    continue;
-                }
-                else
-                {
-                    var paramValue = paramName[(position + 1)..];
-                    paramName = paramName[..(position + 1)];
-                    cursorPosition -= position + 1;
-                    foreach (var result in param.CompleteValue($"{paramChar}", paramValue, cursorPosition, indicator, $"{indicator}{paramName}"))
-                    {
-                        yield return result;
-                    }
-                    yield break;
-                }
-            }
-            else
-            {
-                avairableParams.Add(param);
-            }
-        }
-        foreach (var result in avairableParams.SelectMany(p => p.CompleteShortParam(paramName, cursorPosition, indicator)))
-        {
-            yield return result;
-        }
     }
 }
