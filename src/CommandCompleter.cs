@@ -27,6 +27,86 @@ public class CommandCompleter(string name,
     public ScriptBlock? ArgumentCompleter { get; set; }
 
     /// <summary>
+    /// Complete long parameter, or it's argument
+    /// </summary>
+    /// <param name="tokenValue">a token of command line argument which starts with <see cref="LongParamIndicator"/></param>
+    /// <param name="cursorPosition">Position of cursor in token</param>.
+    public Collection<CompletionResult?> CompleteLongParams(ReadOnlySpan<char> tokenValue, int cursorPosition)
+    {
+        const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+        string indicator = LongParamIndicator;
+        ReadOnlySpan<char> paramName = tokenValue[indicator.Length..];
+        string sParamName;
+        int position;
+        int separatorPosition = tokenValue.IndexOf(ValueSeparator);
+
+        Collection<CompletionResult?> results = [];
+
+        //
+        // attempt to complete parameter's value if value separator (like '=') exists
+        //
+        if (separatorPosition > 0 && separatorPosition < cursorPosition)
+        {
+            sParamName = $"{tokenValue[indicator.Length..separatorPosition]}";
+            var param = Params.FirstOrDefault(p => p.LongNames.Any(n => n.Equals(sParamName, comparison)));
+            if (param is not null)
+            {
+                var sParamValue = $"{tokenValue[(separatorPosition + 1)..]}";
+                position = separatorPosition - cursorPosition;
+                results = param.CompleteValue(sParamName,
+                                              sParamValue,
+                                              position,
+                                              indicator,
+                                              $"{tokenValue[..(separatorPosition + 1)]}");
+            }
+            if (results.Count == 0)
+            {
+                results.Add(null);
+            }
+            return results;
+        }
+
+        //
+        // complete parameter names
+        //
+        sParamName = $"{tokenValue[indicator.Length..cursorPosition]}";
+        position = cursorPosition - indicator.Length;
+
+        foreach (var param in Params.Where(p => p.LongNames.Length > 0))
+        {
+            var names = string.IsNullOrEmpty(sParamName)
+                ? param.LongNames
+                : param.LongNames.Where(n => n.StartsWith(sParamName, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (names.Length == 0)
+                continue;
+
+            var desc = string.IsNullOrEmpty(param.Description) ? string.Empty : $" ({param.Description})";
+            var listItemText = $"{string.Join(" ", names.Select(n => $"{indicator}{n}"))}{desc}";
+            var allNames = names.Select(n => $"{indicator}{n}")
+                                .Union(param.ShortNames.Select(c => $"{ParamIndicator}{c}"))
+                                .Union(param.OldStyleNames.Select(n => $"{ParamIndicator}{n}"));
+            var tooltip = $"{string.Join(" ", allNames)}{desc}";
+            var text = $"{LongParamIndicator}{names[0]} ";
+
+            results.Add(new(text, listItemText, CompletionResultType.ParameterName, tooltip));
+            Debug($"CompleteLongParam {{ '{text}', '{listItemText}', '{tooltip}' }}");
+
+            if (param.Type.HasFlag(ArgumentType.OnlyWithValueSperator))
+            {
+                results.Add(new($"{indicator}{names[0]}{ValueSeparator}", listItemText, CompletionResultType.ParameterName, tooltip));
+            }
+        }
+
+        if (results.Count == 0)
+        {
+            // Prevent fallback to filename completion
+            results.Add(null);
+        }
+
+        return results;
+    }
+
+    /// <summary>
     /// Complete old stye parameter, short parameter, or it's argument
     /// </summary>
     /// <param name="tokenValue">a token of command line argument which starts with <see cref="ParamIndicator"/></param>

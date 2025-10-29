@@ -207,8 +207,7 @@ internal class CompletionContext
         {
             if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
             {
-                NativeCompleter.Messages.Add($"Start complete long params: '{tokenValue}', {cursorPosition}");
-                return CompleteLongParams(tokenValue, cursorPosition);
+                return CommandCompleter.CompleteLongParams(tokenValue, cursorPosition);
             }
             else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
@@ -255,37 +254,5 @@ internal class CompletionContext
         NativeCompleter.Messages.Add($"=> CompleterArgument: {tokenValue}, {cursorPosition}, {argIndex}");
         return NativeCompleter.PSObjectsToCompletionResults(
                 CommandCompleter.ArgumentCompleter.Invoke(tokenValue, cursorPosition, argIndex));
-    }
-
-    private IEnumerable<CompletionResult?> CompleteLongParams(ReadOnlySpan<char> tokenValue, int cursorPosition)
-    {
-        const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
-        string indicator = CommandCompleter.LongParamIndicator;
-        ReadOnlySpan<char> paramName = tokenValue[indicator.Length..];
-        string sParamName;
-        int position;
-        int separatorPosition = tokenValue.IndexOf(CommandCompleter.ValueSeparator);
-        if (separatorPosition > 0 && separatorPosition < cursorPosition)
-        {
-            sParamName = $"{tokenValue[indicator.Length..separatorPosition]}";
-            var completer = CommandCompleter.Params.FirstOrDefault(p => p.LongNames.Any(n => n.Equals(sParamName, comparison)));
-            if (completer is not null)
-            {
-                var sParamValue = $"{tokenValue[(separatorPosition + 1)..]}";
-                position = separatorPosition - cursorPosition;
-                return completer.CompleteValue(sParamName,
-                                               sParamValue,
-                                               position,
-                                               indicator,
-                                               $"{tokenValue[..(separatorPosition + 1)]}");
-            }
-            return [];
-        }
-        sParamName = $"{tokenValue[indicator.Length..cursorPosition]}";
-        position = cursorPosition - indicator.Length;
-        var paramCompleters = string.IsNullOrEmpty(sParamName)
-            ? CommandCompleter.Params.Where(p => p.LongNames.Length > 0)
-            : CommandCompleter.Params.Where(p => p.LongNames.Any(n => n.StartsWith(sParamName, comparison)));
-        return paramCompleters.SelectMany(p => p.CompleteLongParam(sParamName, position, indicator));
     }
 }
