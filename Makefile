@@ -18,6 +18,10 @@ build: $(DLL) ## Build C# Projects
 build/zip: build ## Create Zip archived PowerShell module files
 	@$(PWSH) -File build.ps1 -CreateZip
 
+.PHONY: test
+test: build ## Build and Run tests
+	@$(PWSH) -File test/test.ps1
+
 .PHONY: help
 help: ## Display this help
 	@echo "Targets:"
