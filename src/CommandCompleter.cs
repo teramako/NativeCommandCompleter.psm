@@ -82,7 +82,7 @@ public class CommandCompleter(string name,
             if (param is not null)
             {
                 var sParamValue = $"{tokenValue[(separatorPosition + 1)..]}";
-                position = separatorPosition - cursorPosition;
+                position = cursorPosition - separatorPosition - 1;
                 results = param.CompleteValue(sParamName,
                                               sParamValue,
                                               position,
