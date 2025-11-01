@@ -29,10 +29,13 @@ public class CommandCompleter(string name,
     /// <summary>
     /// Complete sub command names
     /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
     /// <param name="tokenValue">a token of command line argument</param>
-    public Collection<CompletionResult?> CompleteSubCommands(string tokenValue)
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CompleteSubCommands(ICollection<CompletionData> results, string tokenValue)
     {
-        Collection<CompletionResult?> results = [];
         var subCommands = string.IsNullOrEmpty(tokenValue)
             ? SubCommands
             : SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
@@ -40,37 +43,30 @@ public class CommandCompleter(string name,
         foreach (var kv in subCommands)
         {
             var text = kv.Value.Name;
-            var desc = string.IsNullOrEmpty(kv.Value.Description) ? string.Empty : $" ({kv.Value.Description})";
-            results.Add(new($"{text} ",
-                            $"{text}{desc}",
-                            CompletionResultType.Command,
-                            $"{Name} {text}{desc}"));
+            results.Add(new CompletionValue(text, kv.Value.Description).SetTooltipPrefix($"[{Name}] "));
         }
 
-        if (results.Count == 0)
-        {
-            // Prevent fallback to filename completion
-            results.Add(null);
-        }
-
-        return results;
+        return true;
     }
 
     /// <summary>
-    /// Complete long parameter, or it's argument
+    /// Complete long parameters, or it's argument
     /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
     /// <param name="tokenValue">a token of command line argument which starts with <see cref="LongParamIndicator"/></param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
-    public Collection<CompletionResult?> CompleteLongParams(ReadOnlySpan<char> tokenValue, int cursorPosition)
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CompleteLongParams(ICollection<CompletionData> results, ReadOnlySpan<char> tokenValue, int cursorPosition)
     {
+        Debug($"Start CompleteLongParams('{tokenValue}', {cursorPosition})");
         const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
         string indicator = LongParamIndicator;
         ReadOnlySpan<char> paramName = tokenValue[indicator.Length..];
         string sParamName;
         int position;
         int separatorPosition = tokenValue.IndexOf(ValueSeparator);
-
-        Collection<CompletionResult?> results = [];
 
         //
         // attempt to complete parameter's value if value separator (like '=') exists
@@ -83,17 +79,9 @@ public class CommandCompleter(string name,
             {
                 var sParamValue = $"{tokenValue[(separatorPosition + 1)..]}";
                 position = cursorPosition - separatorPosition - 1;
-                results = param.CompleteValue(sParamName,
-                                              sParamValue,
-                                              position,
-                                              indicator,
-                                              $"{tokenValue[..(separatorPosition + 1)]}");
+                param.CompleteValue(results, sParamName, sParamValue, position, indicator, $"{tokenValue[..(separatorPosition + 1)]}");
             }
-            if (results.Count == 0)
-            {
-                results.Add(null);
-            }
-            return results;
+            return true;
         }
 
         //
@@ -110,56 +98,61 @@ public class CommandCompleter(string name,
             if (names.Length == 0)
                 continue;
 
-            var desc = string.IsNullOrEmpty(param.Description) ? string.Empty : $" ({param.Description})";
-            var listItemText = $"{string.Join(" ", names.Select(n => $"{indicator}{n}"))}{desc}";
-            var allNames = names.Select(n => $"{indicator}{n}")
-                                .Union(param.ShortNames.Select(c => $"{ParamIndicator}{c}"))
-                                .Union(param.OldStyleNames.Select(n => $"{ParamIndicator}{n}"));
-            var tooltip = $"{string.Join(" ", allNames)}{desc}";
-            var text = $"{LongParamIndicator}{names[0]} ";
-
-            results.Add(new(text, listItemText, CompletionResultType.ParameterName, tooltip));
-            Debug($"CompleteLongParam {{ '{text}', '{listItemText}', '{tooltip}' }}");
-
-            if (param.Type.HasFlag(ArgumentType.OnlyWithValueSperator))
+            var onlyWithValueParameter = param.Type.HasFlag(ArgumentType.OnlyWithValueSperator);
+            foreach (var name in names)
             {
-                results.Add(new($"{indicator}{names[0]}{ValueSeparator}", listItemText, CompletionResultType.ParameterName, tooltip));
+                results.Add(new CompletionParam($"{indicator}{name} ",
+                                                param.Description,
+                                                $"{indicator}{name}",
+                                                $"[{param.Type}] {name}"));
+                if (onlyWithValueParameter)
+                {
+                    results.Add(new CompletionParam($"{indicator}{name}{ValueSeparator}",
+                                                    param.Description,
+                                                    $"{indicator}{name}{ValueSeparator}",
+                                                    $"[{param.Type}] {name}"));
+                }
             }
         }
 
-        if (results.Count == 0)
-        {
-            // Prevent fallback to filename completion
-            results.Add(null);
-        }
-
-        return results;
+        return true;
     }
 
     /// <summary>
-    /// Complete old stye parameter, short parameter, or it's argument
+    /// Complete old-style parameters, short parameters, or their argument.
     /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
     /// <param name="tokenValue">a token of command line argument which starts with <see cref="ParamIndicator"/></param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
-    public Collection<CompletionResult?> CompleteOldStyleOrShortParams(ReadOnlySpan<char> tokenValue, int cursorPosition)
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CompleteOldStyleOrShortParams(ICollection<CompletionData> results, ReadOnlySpan<char> tokenValue, int cursorPosition)
     {
         Debug($"Start CompleteOldStyleOrShortParams('{tokenValue}', {cursorPosition})");
         var paramName = tokenValue[ParamIndicator.Length..];
         cursorPosition -= ParamIndicator.Length;
 
-        Collection<CompletionResult?> results;
         // Old style parameter completion
-        results = CompleteOldStyleParams(paramName.ToString(), cursorPosition);
+        CompleteOldStyleParams(results, paramName.ToString(), cursorPosition);
 
         if (results.Count > 0)
-            return results;
+            return true;
 
-        return CompleteShortParams(paramName, cursorPosition);
+        return CompleteShortParams(results, paramName, cursorPosition);
     }
 
-    private Collection<CompletionResult?> CompleteOldStyleParams(string paramName, int offsetPosition)
+    /// <summary>
+    /// Complete old-style parameters
+    /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
+    /// <param name="paramName">Parameter name to be completed</param>
+    /// <param name="offsetPosition">Position of cursor in <paramref name="paramName"/></param>.
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    private bool CompleteOldStyleParams(ICollection<CompletionData> results, string paramName, int offsetPosition)
     {
-        Collection<CompletionResult?> results = [];
         foreach (var param in Params.Where(p => p.OldStyleNames.Length > 0))
         {
             var names = string.IsNullOrEmpty(paramName)
@@ -168,21 +161,28 @@ public class CommandCompleter(string name,
             if (names.Length == 0)
                 continue;
 
-            var text = $"{ParamIndicator}{names[0]} ";
-            var desc = string.IsNullOrEmpty(param.Description) ? string.Empty : $" ({param.Description})";
-            var listItemText = $"{string.Join(" ", names.Select(n => $"{ParamIndicator}{n}"))}{desc}";
-            var allNames = names.Select(n => $"{ParamIndicator}{n}")
-                                .Union(param.ShortNames.Select(c => $"{ParamIndicator}{c}"))
-                                .Union(param.LongNames.Select(n => $"{LongParamIndicator}{n}"));
-            var tooltip = $"{string.Join(" ", allNames)}{desc}";
-
-            results.Add(new(text, listItemText, CompletionResultType.ParameterName, tooltip));
-            Debug($"CompleteOldStyleParam {{ '{text}', '{listItemText}', '{tooltip}' }}");
+            var desc = string.IsNullOrEmpty(param.Description) ? string.Empty : $"  ({PSStyle.Instance.Italic}{param.Description}{PSStyle.Instance.ItalicOff})";
+            foreach (var name in names)
+            {
+                var text = $"{ParamIndicator}{name} ";
+                var listItemText = $"{ParamIndicator}{name}{desc}";
+                var tooltip = $"[{param.Type}] {name}";
+                results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
+            }
         }
-        return results;
+        return true;
     }
 
-    private Collection<CompletionResult?> CompleteShortParams(ReadOnlySpan<char> tokenValue, int offsetPosition)
+    /// <summary>
+    /// Complete short parameters, their argument
+    /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
+    /// <param name="tokenValue">Parameter name to be completed</param>
+    /// <param name="offsetPosition">Position of cursor in <paramref name="tokenValue"/></param>.
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    private bool CompleteShortParams(ICollection<CompletionData> results, ReadOnlySpan<char> tokenValue, int offsetPosition)
     {
         Collection<ParamCompleter> remainingParams = [];
         //
@@ -198,11 +198,7 @@ public class CommandCompleter(string name,
                     var paramValue = tokenValue[(position + 1)..];
                     var paramName = tokenValue[..(position + 1)];
                     offsetPosition -= position + 1;
-                    return param.CompleteValue($"{paramChar}",
-                                               paramValue,
-                                               offsetPosition,
-                                               ParamIndicator,
-                                               $"{ParamIndicator}{paramName}");
+                    return param.CompleteValue(results, $"{paramChar} ", paramValue, offsetPosition, ParamIndicator, $"{ParamIndicator}{paramName}");
                 }
             }
             else if (offsetPosition == tokenValue.Length)
@@ -224,50 +220,54 @@ public class CommandCompleter(string name,
         //
         // complete parameter names
         //
-        Collection<CompletionResult?> results = [];
         var paramName1 = tokenValue[..offsetPosition];
         var paramName2 = tokenValue[offsetPosition..];
         foreach (var param in remainingParams)
         {
-            var desc = $" ({param.Description})";
-            var names = param.ShortNames.Select(n => $"{ParamIndicator}{n}")
-                                        .Union(param.OldStyleNames.Select(n => $"{ParamIndicator}{n}"))
-                                        .Union(param.LongNames.Select(n => $"{LongParamIndicator}{n}"));
-            var tooltip = $"{string.Join(" ", names)}{desc}";
             foreach (var c in param.ShortNames)
             {
-                var text = $"{ParamIndicator}{paramName1}{c}{paramName2} ";
-                var listItemText = $"{ParamIndicator}{paramName1}{c}{paramName2}{desc}";
-                results.Add(new(text, listItemText, CompletionResultType.ParameterName, tooltip));
-                Debug($"CompleteShortParam {{ '{text}', '{listItemText}', '{tooltip}' }}");
+                var text = $"{ParamIndicator}{paramName1}{c}{paramName2}";
+                var tooltip = $"[{param.Type}] {c}";
+                results.Add(new CompletionParam(text, param.Description, text, tooltip));
             }
         }
-        if (results.Count == 0)
-        {
-            // Prevent fallback to filename completion
-            results.Add(null);
-        }
-        return results;
+
+        return true;
     }
 
     /// <summary>
     /// Complete remaining argumet's value (non parameter, non parameter value and non subcommand)
     /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
     /// <param name="tokenValue">a token of command line argument</param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <param name="argumentIndex">argument's index which starts 0 without command name</param>
-    public Collection<CompletionResult?> CompleteArgument(string tokenValue, int cursorPosition, int argumentIndex)
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CompleteArgument(ICollection<CompletionData> results, string tokenValue, int cursorPosition, int argumentIndex)
     {
         if (ArgumentCompleter is null)
-            return [];
+            return false;
 
         Debug($"CompleterArgument {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
-        Collection<CompletionResult?> results =
-            [.. NativeCompleter.PSObjectsToCompletionResults(ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex))];
-        if (results.Count == 0)
+        Collection<PSObject?>? invokeResults = null;
+        try
         {
-            results.Add(null);
+            Debug($"[{Name}] Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
+            invokeResults = ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex);
+            Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
-        return results;
+        catch
+        {
+        }
+        if (invokeResults is not null && invokeResults.Count > 0)
+        {
+            foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
+            {
+                results.Add(item);
+            }
+        }
+        return false;
     }
 }

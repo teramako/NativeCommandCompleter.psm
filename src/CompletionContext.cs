@@ -189,43 +189,53 @@ internal class CompletionContext
     public IEnumerable<CompletionResult> Complete()
     public IEnumerable<CompletionResult?> Complete()
     {
-        NativeCompleter.Messages.Add($"[{Name}] Start Complete");
+        Debug($"Start Complete");
 
         string tokenValue = CurrentToken?.Value ?? string.Empty;
         int cursorPosition = CurrentToken?.Position ?? 0;
 
+        CompletionDataCollection results = new();
+        bool completed;
+
         if (_pendingParam is not null)
         {
-            NativeCompleter.Messages.Add($"[{Name}] Complete parameter arguments: {_pendingParam.ParamName}");
-            return _pendingParam.Completer.CompleteValue(_pendingParam.ParamName,
-                                                         tokenValue,
-                                                         cursorPosition,
-                                                         _pendingParam.Indicator);
+            completed = _pendingParam.Completer.CompleteValue(results, _pendingParam.ParamName, tokenValue, cursorPosition, _pendingParam.Indicator);
         }
-
-        if (CurrentToken is not null)
+        else if (CurrentToken is not null)
         {
             if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
             {
-                return CommandCompleter.CompleteLongParams(tokenValue, cursorPosition);
+                completed = CommandCompleter.CompleteLongParams(results, tokenValue, cursorPosition);
             }
             else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
-                return CommandCompleter.CompleteOldStyleOrShortParams(tokenValue, cursorPosition);
+                completed = CommandCompleter.CompleteOldStyleOrShortParams(results, tokenValue, cursorPosition);
             }
             else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
             {
-                return CommandCompleter.CompleteSubCommands(tokenValue);
+                completed = CommandCompleter.CompleteSubCommands(results, tokenValue);
             }
-
-            return CommandCompleter.CompleteArgument(tokenValue, cursorPosition, _unboundArguments.Count);
+            else
+            {
+                completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count);
+            }
         }
-
-        if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
+        else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
         {
-            return CommandCompleter.CompleteSubCommands(tokenValue);
+            completed = CommandCompleter.CompleteSubCommands(results, tokenValue);
+        }
+        else
+        {
+            completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count);
         }
 
-        return CommandCompleter.CompleteArgument(tokenValue, cursorPosition, _unboundArguments.Count);
+        Debug($"Completed = {completed}, Count = {results.Count}");
+        if (completed && results.Count == 0)
+        {
+            // Prevent fallback to filename completion
+            return [null];
+        }
+        Debug($"Build completion data");
+        return results.Build();
     }
 }

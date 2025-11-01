@@ -107,32 +107,46 @@ public class ParamCompleter
     /// <summary>
     /// Complete parameter's argument values
     /// </summary>
-    public Collection<CompletionResult?> CompleteValue(ReadOnlySpan<char> paramName,
-                                                       ReadOnlySpan<char> paramValue,
-                                                       int position,
-                                                       string indicator,
-                                                       string prefix = "")
+    /// <param name="results">Completion result data to be stored</param>
+    /// <param name="paramName">Parameter name</param>
+    /// <param name="paramValue">Parameter value to be completed</param>
+    /// <param name="position">Position of cursor in <paramref name="paramValue"/></param>.
+    /// <param name="indicator">
+    /// <see cref="CommandCompleter.LongParamIndicator"/> or <see cref="CommandCompleter.ParamIndicator"/>
+    /// </param>
+    /// <param name="prefix">Prefix string of <paramref name="paramValue"/>.
+    /// <para>
+    /// e.g.)
+    /// <code>"--param-name="</code>
+    /// </para>
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CompleteValue(ICollection<CompletionData> results,
+                              ReadOnlySpan<char> paramName,
+                              ReadOnlySpan<char> paramValue,
+                              int position,
+                              string indicator,
+                              string prefix = "")
     {
-        Collection<CompletionResult?> results = [];
+        string fullParamName = $"{indicator}{paramName}";
 
         if (Arguments.Length > 0)
         {
+            Debug($"CompleteValue[Arguments]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
+
             foreach (ReadOnlySpan<char> value in Arguments)
             {
-                if (!paramValue.IsEmpty || !value.StartsWith(paramValue, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                var text = $"{prefix}{value} ";
-                results.Add(new(text, text, CompletionResultType.ParameterValue, $"[{indicator}{paramName}] {value}"));
+                var data = CompletionValue.Parse(value, null);
+                if (data.IsMatch(paramValue))
+                {
+                    results.Add(data.SetPrefix(prefix));
+                    Debug($"Matched: '{data.CompletionText}', '{data.ListItemText}'");
+                }
             }
 
-            if (results.Count == 0)
-            {
-                // Prevent fallback to filename completion
-                results.Add(null);
-            }
-
-            return results;
+            return true;
         }
 
         bool canFallbackToFilenameCompletion = Type.HasFlag(ArgumentType.File);
@@ -143,18 +157,10 @@ public class ParamCompleter
             {
                 foreach (var result in CompletionCompleters.CompleteFilename($"{paramValue}"))
                 {
-                    results.Add(new($"{prefix}{result.CompletionText}",
-                                     $"{prefix}{result.ListItemText}",
-                                     result.ResultType,
-                                     $"[{indicator}{paramName}] {result.ToolTip}"));
+                    results.Add(CompletionValue.FromCommpletionResult(result, prefix));
                 }
             }
-            else
-            {
-                // Prevent fallback to filename completion
-                results.Add(null);
-            }
-            return results;
+            return !canFallbackToFilenameCompletion;
         }
 
         Collection<PSObject?>? invokeResults = null;
@@ -169,38 +175,18 @@ public class ParamCompleter
         }
         if (invokeResults is not null && invokeResults.Count > 0)
         {
-            foreach (var psobject in invokeResults)
+            foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
             {
-                if (psobject is null)
-                {
-                    break;
-                }
-                if (psobject.BaseObject is CompletionResult result
-                    || LanguagePrimitives.TryConvertTo<CompletionResult>(psobject, out result))
-                {
-                    results.Add(new($"{prefix}{result.CompletionText}",
-                                    $"{prefix}{result.ListItemText}",
-                                    CompletionResultType.ParameterValue,
-                                    $"[{indicator}{paramName}] {result.ToolTip}"));
-
-                }
-                else
-                {
-                    var text = $"{psobject}";
-                    results.Add(new($"{prefix}{text}",
-                                    $"{prefix}{text}",
-                                    CompletionResultType.ParameterValue,
-                                    $"[{indicator}{paramName}] {text}"));
-                }
+                results.Add(item.SetTooltipPrefix($"[{fullParamName}] ").SetPrefix(prefix));
             }
         }
 
         if (results.Count == 0 && !canFallbackToFilenameCompletion)
         {
             // Prevent fallback to filename completion
-            results.Add(null);
+            return true;
         }
 
-        return results;
+        return false;
     }
 }
