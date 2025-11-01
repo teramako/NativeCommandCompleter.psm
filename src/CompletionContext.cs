@@ -36,9 +36,15 @@ internal class CompletionContext
     /// </summary>
     public ReadOnlyCollection<Token> UnboundArguments => _unboundArguments.AsReadOnly();
 
+    /// <summary>
+    /// Dictionary parsed parameters to parameters and their value
+    /// </summary>
+    public ReadOnlyDictionary<string, List<PSObject?>> BoundParameters => _boundParameters.AsReadOnly();
+
     private List<Token> _arguments = [];
     private List<Token> _remainingArguments = [];
     private List<Token> _unboundArguments = [];
+    private Dictionary<string, List<PSObject?>> _boundParameters = [];
 
     private PendingParamCompleter? _pendingParam;
     // private (ParamCompleter? Completer, string ParamName, string Indicator) _pendingParam = (null, string.Empty, string.Empty);
@@ -59,6 +65,7 @@ internal class CompletionContext
             _arguments = parentContext._arguments[(argumentIndex + 1)..];
         }
         _remainingArguments = parentContext._remainingArguments;
+        _boundParameters = parentContext._boundParameters;
         CurrentToken = parentContext.CurrentToken;
     }
 
@@ -98,7 +105,21 @@ internal class CompletionContext
             {
                 indicator = CommandCompleter.LongParamIndicator;
                 var paramName = tokenValue[indicator.Length..];
-                if (!paramName.Contains(CommandCompleter.ValueSeparator))
+                var separatorIndex = tokenValue.IndexOf(CommandCompleter.ValueSeparator);
+                if (separatorIndex > 0)
+                {
+                    var paramValue = tokenValue[(separatorIndex + 1)..];
+                    paramName = tokenValue[indicator.Length..separatorIndex];
+                    foreach (var param in CommandCompleter.Params)
+                    {
+                        if (param.IsMatchLongParam(paramName, out var outParamName))
+                        {
+                            AddBoundParameter(param.Name, $"{paramValue}");
+                            break;
+                        }
+                    }
+                }
+                else
                 {
                     foreach (var param in CommandCompleter.Params)
                     {
@@ -106,11 +127,13 @@ internal class CompletionContext
                         {
                             if (param.Type.HasFlag(ArgumentType.Flag))
                             {
+                                AddBoundParameter(param.Name, true);
                                 break;
                             }
                             else if (argumentIndex < argumentsCount - 1)
                             {
                                 argumentIndex++;
+                                AddBoundParameter(param.Name, Arguments[argumentIndex].Value);
                                 break;
                             }
                             else
@@ -127,18 +150,20 @@ internal class CompletionContext
             {
                 indicator = CommandCompleter.ParamIndicator;
                 var paramName = tokenValue[indicator.Length..];
+                bool found = false;
                 foreach (var param in CommandCompleter.Params)
                 {
-                    if (param.IsMatchOldStyleParam(paramName, out var outParamName))
+                    found = param.IsMatchOldStyleParam(paramName, out var outParamName);
+                    if (found)
                     {
                         if (param.Type.HasFlag(ArgumentType.Flag))
                         {
-                            break;
+                            AddBoundParameter(param.Name, true);
                         }
                         else if (argumentIndex < argumentsCount - 1)
                         {
                             argumentIndex++;
-                            break;
+                            AddBoundParameter(param.Name, Arguments[argumentIndex].Value);
                         }
                         else
                         {
@@ -146,25 +171,42 @@ internal class CompletionContext
                         }
                         break;
                     }
-                    if (param.IsMatchShortParam(paramName, out char paramChar, out int position))
+                }
+
+                if (found)
+                    continue;
+
+                var shortParams = CommandCompleter.Params.Where(p => p.ShortNames.Length > 0);
+                for (var i = 0; i < paramName.Length; i++)
+                {
+                    var c = paramName[i];
+                    var p = shortParams.FirstOrDefault(p => p.ShortNames.Contains(c));
+                    if (p is null)
+                        continue;
+
+                    if (!p.ShortNames.Contains(c))
+                        continue;
+
+                    if (p.Type.HasFlag(ArgumentType.Flag))
                     {
-                        var key = $"{indicator}{paramChar}";
-                        if (param.Type.HasFlag(ArgumentType.Flag))
+                        AddBoundParameter(p.Name, true);
+                    }
+                    else if (i == paramName.Length - 1)
+                    {
+                        if (argumentIndex < argumentsCount - 1)
                         {
-                            break;
+                            argumentIndex++;
+                            AddBoundParameter(p.Name, Arguments[argumentIndex].Value);
                         }
-                        else if (position == paramName.Length - 1) // paramName[^1] == paramChar
+                        else
                         {
-                            if (argumentIndex < argumentsCount - 1)
-                            {
-                                argumentIndex++;
-                            }
-                            else
-                            {
-                                _pendingParam = new(param, $"{paramChar}", indicator);
-                            }
+                            _pendingParam = new(p, $"{c}", indicator);
                         }
                         break;
+                    }
+                    else
+                    {
+                        AddBoundParameter(p.Name, $"{paramName[(i + 1)..]}");
                     }
                 }
             }
@@ -186,7 +228,20 @@ internal class CompletionContext
         return this;
     }
 
-    public IEnumerable<CompletionResult> Complete()
+    private void AddBoundParameter(string name, PSObject? paramValue = null)
+    {
+        if (_boundParameters.TryGetValue(name, out var found))
+        {
+            found.Add(paramValue);
+            Debug($"[BoundParameter]: Added: '{name}', {paramValue}; (Count = {found.Count})");
+        }
+        else
+        {
+            _boundParameters.Add(name, [paramValue]);
+            Debug($"[BoundParameter]: Added: '{name}', {paramValue} (New)");
+        }
+    }
+
     public IEnumerable<CompletionResult?> Complete()
     {
         Debug($"Start Complete");
