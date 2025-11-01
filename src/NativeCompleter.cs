@@ -31,42 +31,6 @@ public static class NativeCompleter
     /// </summary>
     public static ReadOnlyDictionary<string, CommandCompleter> Completers => _completers.AsReadOnly();
 
-    private static (List<Token?> args, int argIndex) ParseCommandElements(CommandAst commandAst, int cursorPosition)
-    {
-        List<Token?> args = new();
-        Token? currentToken = null;
-        int argIndex = 0;
-        foreach (var ast in commandAst.CommandElements)
-        {
-            if (ast.Extent.StartOffset <= cursorPosition && cursorPosition <= ast.Extent.EndOffset)
-            {
-                currentToken = new Token(ast, cursorPosition);
-                args.Add(currentToken);
-                argIndex = args.Count - 1;
-                Debug($"Add Token [{args.Count - 1}] (Current): '{currentToken}'");
-                break;
-            }
-            else
-            {
-                if (ast.Extent.StartOffset > cursorPosition)
-                {
-                    args.Add(null);
-                    argIndex = args.Count - 1;
-                    Debug($"Add Empty Token [{args.Count - 1}]");
-                }
-                var token = new Token(ast);
-                args.Add(token);
-                Debug($"Add Token [{args.Count - 1}]: '{token}'");
-            }
-        }
-        if (argIndex == 0)
-        {
-            args.Add(null);
-            argIndex = args.Count - 1;
-        }
-        return (args, argIndex);
-    }
-
     /// <summary>
     /// Find script file path from completion directories
     /// </summary>
