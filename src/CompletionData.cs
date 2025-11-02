@@ -27,11 +27,16 @@ public abstract class CompletionData
         {
             return itemText;
         }
-        var itemTextWidth = cellWidth - description.Length;
-        return $"{itemText.PadRight(itemTextWidth)}  ({PSStyle.Instance.Italic}{description}{PSStyle.Instance.ItalicOff})";
+        var descWidth = description.Length;
+        var spaceWidth = cellWidth - itemText.Length - descWidth - 5;
+        return spaceWidth < 0
+            ? $"{itemText} {PSStyle.Instance.Foreground.White}({PSStyle.Instance.Foreground.Yellow}{PSStyle.Instance.Italic}{
+                description[0..(descWidth + spaceWidth - 1)]}…{PSStyle.Instance.ItalicOff}{PSStyle.Instance.Foreground.White})"
+            : $"{itemText} {new string(' ', spaceWidth)}{PSStyle.Instance.Foreground.White}({PSStyle.Instance.Foreground.Yellow}{PSStyle.Instance.Italic}{
+                description}{PSStyle.Instance.ItalicOff}{PSStyle.Instance.Foreground.White})";
     }
 
-    internal int ListItemLength => itemText.Length + description.Length;
+    internal int ListItemLength => itemText.Length + description.Length + 5;
 
     protected void SetText(string text)
     {
