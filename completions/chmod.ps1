@@ -13,4 +13,10 @@ Register-NativeCompleter -Name chmod -Parameters @(
     New-ParamCompleter -ShortName R -LongName recursive -Description 'Operate recursively';
     New-ParamCompleter -LongName help -Description 'Display help and exit'
     New-ParamCompleter -LongName version -Description 'Display version and exit';
-)
+) -ArgumentCompleter {
+    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    if ($argIndex -eq 0 -and -not $context.BoundParameters.ContainsKey("reference"))
+    {
+        return $null
+    }
+}
