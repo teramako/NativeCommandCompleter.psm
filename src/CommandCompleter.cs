@@ -270,4 +270,27 @@ public class CommandCompleter(string name,
         }
         return false;
     }
+
+    /// <summary>
+    /// Complete all parameters
+    /// </summary>
+    /// <param name="results">Completion result data to be stored</param>
+    /// <returns>
+    /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CompleteAllParams(ICollection<CompletionData> results)
+    {
+        foreach (var param in Params)
+        {
+            var names = param.ShortNames.Select(n => $"{ParamIndicator}{n}")
+                                        .Union(param.OldStyleNames.Select(n => $"{ParamIndicator}{n}"))
+                                        .Union(param.LongNames.Select(n => $"{LongParamIndicator}{n}"));
+            var text = names.First();
+            var listItemText = string.Join(' ', names);
+            var tooltip = $"[{param.Type}] {listItemText}";
+            results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
+            Debug($"CompleteAllParams {{ '{text}', '{listItemText}', '{tooltip}' }}");
+        }
+        return true;
+    }
 }

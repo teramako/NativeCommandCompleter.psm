@@ -264,7 +264,9 @@ internal class CompletionContext
             }
             else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
-                completed = CommandCompleter.CompleteOldStyleOrShortParams(results, tokenValue, cursorPosition);
+                completed = tokenValue.Length == CommandCompleter.ParamIndicator.Length
+                    ? CommandCompleter.CompleteAllParams(results)
+                    : CommandCompleter.CompleteOldStyleOrShortParams(results, tokenValue, cursorPosition);
             }
             else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
             {
