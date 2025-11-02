@@ -30,10 +30,8 @@ public abstract class CompletionData
         var descWidth = description.Length;
         var spaceWidth = cellWidth - itemText.Length - descWidth - 5;
         return spaceWidth < 0
-            ? $"{itemText} {PSStyle.Instance.Foreground.White}({PSStyle.Instance.Foreground.Yellow}{PSStyle.Instance.Italic}{
-                description[0..(descWidth + spaceWidth - 1)]}…{PSStyle.Instance.ItalicOff}{PSStyle.Instance.Foreground.White})"
-            : $"{itemText} {new string(' ', spaceWidth)}{PSStyle.Instance.Foreground.White}({PSStyle.Instance.Foreground.Yellow}{PSStyle.Instance.Italic}{
-                description}{PSStyle.Instance.ItalicOff}{PSStyle.Instance.Foreground.White})";
+            ? $"{itemText} {Config.ListItemDescriptionStart}{description[0..(descWidth + spaceWidth - 1)]}…{Config.ListItemDescriptionEnd}"
+            : $"{itemText} {new string(' ', spaceWidth)}{Config.ListItemDescriptionStart}{description}{Config.ListItemDescriptionEnd}";
     }
 
     internal int ListItemLength => itemText.Length + description.Length + 5;
