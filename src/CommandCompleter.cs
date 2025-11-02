@@ -268,6 +268,7 @@ public class CommandCompleter(string name,
             {
                 results.Add(item);
             }
+            return true;
         }
         return false;
     }
