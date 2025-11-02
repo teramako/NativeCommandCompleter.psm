@@ -7,7 +7,7 @@ namespace MT.Comp;
 
 internal record PendingParamCompleter(ParamCompleter Completer, string ParamName, string Indicator);
 
-internal class CompletionContext
+public sealed class CompletionContext
 {
     [Conditional("DEBUG")]
     private void Debug(string msg)
@@ -47,7 +47,6 @@ internal class CompletionContext
     private Dictionary<string, List<PSObject?>> _boundParameters = [];
 
     private PendingParamCompleter? _pendingParam;
-    // private (ParamCompleter? Completer, string ParamName, string Indicator) _pendingParam = (null, string.Empty, string.Empty);
     private CompletionContext? _parent = null;
 
     private CompletionContext(CommandCompleter commandCompleter)
@@ -274,7 +273,7 @@ internal class CompletionContext
             }
             else
             {
-                completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count);
+                completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count, this);
             }
         }
         else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
@@ -283,7 +282,7 @@ internal class CompletionContext
         }
         else
         {
-            completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count);
+            completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count, this);
         }
 
         Debug($"Completed = {completed}, Count = {results.Count}");

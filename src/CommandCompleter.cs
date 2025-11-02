@@ -242,10 +242,11 @@ public class CommandCompleter(string name,
     /// <param name="tokenValue">a token of command line argument</param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <param name="argumentIndex">argument's index which starts 0 without command name</param>
+    /// <param name="context">Completion context</param>
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    public bool CompleteArgument(ICollection<CompletionData> results, string tokenValue, int cursorPosition, int argumentIndex)
+    public bool CompleteArgument(ICollection<CompletionData> results, string tokenValue, int cursorPosition, int argumentIndex, CompletionContext context)
     {
         if (ArgumentCompleter is null)
             return false;
@@ -255,7 +256,7 @@ public class CommandCompleter(string name,
         try
         {
             Debug($"[{Name}] Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
-            invokeResults = ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex);
+            invokeResults = ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex, context);
             Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
