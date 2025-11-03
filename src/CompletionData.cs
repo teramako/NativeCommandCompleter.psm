@@ -124,6 +124,18 @@ public class CompletionValue : CompletionData, ISpanParsable<CompletionValue>
         this.description = description;
         this.resultType = CompletionResultType.ParameterValue;
     }
+    public CompletionValue(string text,
+                           string description,
+                           string listItem,
+                           string tooltip,
+                           CompletionResultType resultType = CompletionResultType.ParameterValue)
+    {
+        this.text = text;
+        this.description = description;
+        this.itemText = listItem;
+        this.tooltip = tooltip;
+        this.resultType = resultType;
+    }
 
     public string Text { get => text; set => SetText(value); }
     public string Description { get => description; set => description = value; }
