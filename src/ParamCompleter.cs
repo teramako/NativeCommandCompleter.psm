@@ -149,18 +149,41 @@ public class ParamCompleter
             return true;
         }
 
-        bool canFallbackToFilenameCompletion = Type.HasFlag(ArgumentType.File);
+        bool useFilenameCompletion = Type.HasFlag(ArgumentType.File);
 
         if (ArgumentCompleter is null)
         {
-            if (canFallbackToFilenameCompletion)
+            if (useFilenameCompletion)
             {
-                foreach (var result in CompletionCompleters.CompleteFilename($"{paramValue}"))
+                Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
+                try
                 {
-                    results.Add(CompletionValue.FromCommpletionResult(result, prefix));
+                    var path = paramValue.IsEmpty ? $".{Path.PathSeparator}" : paramValue.ToString();
+                    // FIXME: Should use `CompletionCompleters.CompleteFilename(string)`
+                    //        but the methods throws `NullReferenceException` on powershell 7.6.0-preview.5
+                    // See: https://github.com/PowerShell/PowerShell/pull/26291
+                    //
+                    // So, use `CommandCompletion.CompleteInput()` as a workaround.
+                    var commandCompletion = CommandCompletion.CompleteInput(path, path.Length, []);
+                    foreach (var result in commandCompletion.CompletionMatches)
+                    {
+                        var completionData = CompletionValue.FromCommpletionResult(result, prefix);
+                        completionData.Description = result.ResultType switch
+                        {
+                            CompletionResultType.ProviderItem => "File",
+                            CompletionResultType.ProviderContainer => "Directory",
+                            _ => string.Empty
+                        };
+                        Debug($"CompleteValue[Filename]: Data: {{ {completionData.ListItemText} }}");
+                        results.Add(completionData);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug($"CompleteValue[Filename]: [{e.GetType().Name}] {e.Message} }}");
                 }
             }
-            return !canFallbackToFilenameCompletion;
+            return true;
         }
 
         Collection<PSObject?>? invokeResults = null;
@@ -181,7 +204,7 @@ public class ParamCompleter
             }
         }
 
-        if (results.Count == 0 && !canFallbackToFilenameCompletion)
+        if (results.Count == 0 && !useFilenameCompletion)
         {
             // Prevent fallback to filename completion
             return true;
