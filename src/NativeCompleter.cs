@@ -84,21 +84,21 @@ public static class NativeCompleter
     /// Get completion results from <paramref name="commandLine"/>
     /// </summary>
     /// <seealso cref="Complete(string, CommandAst, int)"/>
-    public static IEnumerable<CompletionResult?> Complete(string commandLine, int cursorPosition)
+    public static IEnumerable<CompletionResult?> Complete(string commandLine, int cursorPosition, PathInfo cwd)
     {
         var ast = Parser.ParseInput(commandLine, out _, out _);
         var commandAst = ast.Find(a => a is CommandAst, false) as CommandAst;
         if (commandAst is null)
             return [];
 
-        return Complete(string.Empty, commandAst, cursorPosition);
+        return Complete(string.Empty, commandAst, cursorPosition, cwd);
     }
 
     /// <summary>
     /// Get completion results from <paramref name="commandAst"/>.
     /// It is assumed to be called from ScriptBlock registered with <c>Register-ArgumentCompleter</c> cmdlet.
     /// </summary>
-    public static IEnumerable<CompletionResult?> Complete(string wordToComplete, CommandAst commandAst, int cursorPosition)
+    public static IEnumerable<CompletionResult?> Complete(string wordToComplete, CommandAst commandAst, int cursorPosition, PathInfo cwd)
     {
         var fullName = commandAst.GetCommandName();
         var cmdName = Path.GetFileName(fullName);
@@ -119,7 +119,7 @@ public static class NativeCompleter
 
         if (commandCompleter is not null)
         {
-            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition);
+            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition, cwd);
             return context.Complete();
         }
 

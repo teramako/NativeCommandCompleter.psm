@@ -29,6 +29,11 @@ public sealed class CompletionContext
     public int CursorPosition { get; }
 
     /// <summary>
+    /// Current directory
+    /// </summary>
+    public PathInfo CurrentDirectory { get; }
+
+    /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
     public ReadOnlyCollection<Token> Arguments => _arguments.AsReadOnly();
@@ -59,12 +64,13 @@ public sealed class CompletionContext
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
 
-    private CompletionContext(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition)
+    private CompletionContext(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
         CommandAst = ast;
         CursorPosition = cursorPosition;
+        CurrentDirectory = cwd;
     }
     private CompletionContext(CommandCompleter commandCompleter, CompletionContext parentContext, int argumentIndex)
     {
@@ -72,6 +78,7 @@ public sealed class CompletionContext
         CommandCompleter = commandCompleter;
         CommandAst = parentContext.CommandAst;
         CursorPosition = parentContext.CursorPosition;
+        CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
         if (argumentIndex < parentContext.Arguments.Count - 1)
         {
@@ -82,9 +89,9 @@ public sealed class CompletionContext
         CurrentToken = parentContext.CurrentToken;
     }
 
-    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition)
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, ast, cursorPosition);
+        CompletionContext context = new(commandCompleter, ast, cursorPosition, cwd);
         NativeCompleter.Messages.Add($"[{context.Name}] Create CompletionContext");
         for (var i = 1; i < ast.CommandElements.Count; i++)
         {
