@@ -255,9 +255,9 @@ public class CommandCompleter(string name,
         Collection<PSObject?>? invokeResults = null;
         try
         {
-            Debug($"[{Name}] Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
+            Debug($"Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
             invokeResults = ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex, context);
-            Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
+            Debug($"ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
         {
