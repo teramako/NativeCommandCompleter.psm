@@ -19,6 +19,16 @@ public sealed class CompletionContext
     public CommandCompleter CommandCompleter { get; }
 
     /// <summary>
+    /// Abstract Syntax Tree of the command
+    /// </summary>
+    public CommandAst CommandAst { get; }
+
+    /// <summary>
+    /// Cursor position in the command line
+    /// </summary>
+    public int CursorPosition { get; }
+
+    /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
     public ReadOnlyCollection<Token> Arguments => _arguments.AsReadOnly();
@@ -49,15 +59,19 @@ public sealed class CompletionContext
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
 
-    private CompletionContext(CommandCompleter commandCompleter)
+    private CompletionContext(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
+        CommandAst = ast;
+        CursorPosition = cursorPosition;
     }
     private CompletionContext(CommandCompleter commandCompleter, CompletionContext parentContext, int argumentIndex)
     {
         Name = $"{parentContext.Name}-{commandCompleter.Name}";
         CommandCompleter = commandCompleter;
+        CommandAst = parentContext.CommandAst;
+        CursorPosition = parentContext.CursorPosition;
         _parent = parentContext;
         if (argumentIndex < parentContext.Arguments.Count - 1)
         {
@@ -70,7 +84,7 @@ public sealed class CompletionContext
 
     public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition)
     {
-        CompletionContext context = new(commandCompleter);
+        CompletionContext context = new(commandCompleter, ast, cursorPosition);
         NativeCompleter.Messages.Add($"[{context.Name}] Create CompletionContext");
         for (var i = 1; i < ast.CommandElements.Count; i++)
         {
