@@ -147,6 +147,9 @@ public static class NativeCompleter
                 case CompletionResult result:
                     yield return CompletionValue.FromCommpletionResult(result);
                     break;
+                case CompletionData completionData:
+                    yield return completionData;
+                    break;
                 default:
                     var text = $"{pso}";
                     if (string.IsNullOrEmpty(text))
