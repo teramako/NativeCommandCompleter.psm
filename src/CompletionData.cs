@@ -193,7 +193,7 @@ public class CompletionValue : CompletionData, ISpanParsable<CompletionValue>
         cv.text = result.CompletionText;
         cv.itemText = result.ListItemText;
         cv.resultType = result.ResultType;
-        cv.tooltip = $"[{result.ResultType}] {result.ToolTip}";
+        cv.tooltip = result.ToolTip;
         return cv;
     }
 }
