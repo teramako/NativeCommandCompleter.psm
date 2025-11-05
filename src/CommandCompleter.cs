@@ -98,14 +98,14 @@ public class CommandCompleter(string name,
             if (names.Length == 0)
                 continue;
 
-            var onlyWithValueParameter = param.Type.HasFlag(ArgumentType.OnlyWithValueSperator);
+            var flagOrValue = param.Type.HasFlag(ArgumentType.FlagOrValue);
             foreach (var name in names)
             {
                 results.Add(new CompletionParam($"{indicator}{name} ",
                                                 param.Description,
                                                 $"{indicator}{name}",
                                                 $"[{param.Type}] {name}"));
-                if (onlyWithValueParameter)
+                if (flagOrValue)
                 {
                     results.Add(new CompletionParam($"{indicator}{name}{ValueSeparator}",
                                                     param.Description,

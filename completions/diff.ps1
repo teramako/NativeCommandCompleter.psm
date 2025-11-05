@@ -52,7 +52,7 @@ Register-NativeCompleter -Name diff -Parameters @(
     New-ParamCompleter -ShortName d -LongName minimal -Description "Try to find a smaller set of changes"
     New-ParamCompleter -LongName horizon-lines -Description "Keep NUM lines of the common prefix and suffix" -Type Required
     New-ParamCompleter -LongName speed-large-files -Description "Assume large files and many scattered small changes"
-    New-ParamCompleter -LongName color -Description "Colorize the output" -Type Flag,OnlyWithValueSperator -Arguments 'never','always','auto'
+    New-ParamCompleter -LongName color -Description "Colorize the output" -Type FlagOrValue -Arguments 'never','always','auto'
     New-ParamCompleter -LongName palette -Description "The colors to use when --color is active" -Type Required
     New-ParamCompleter -LongName help -Description "Display help and exit"
     New-ParamCompleter -ShortName v -LongName version -Description "Display version and exit"

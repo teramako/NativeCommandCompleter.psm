@@ -11,7 +11,7 @@ if ($IsLinux)
         New-ParamCompleter -ShortName e -LongName expression -Description 'Evaluate expression' -Type Required
         New-ParamCompleter -ShortName f -LongName file -Description 'Evaluate file' -Type File
         New-ParamCompleter -LongName follow-symlinks -Description 'Follow symlinks when processing in place'
-        New-ParamCompleter -ShortName i -LongName in-place -Description 'Edit files in place' -Type Flag,OnlyWithValueSperator
+        New-ParamCompleter -ShortName i -LongName in-place -Description 'Edit files in place' -Type FlagOrValue
         New-ParamCompleter -ShortName l -LongName line-length -Description "Specify line-length" -Type Required
         New-ParamCompleter -LongName posix -Description 'Disable all GNU extensions'
         New-ParamCompleter -ShortName E,r -LongName regexp-extended -Description 'Use extended regexp'

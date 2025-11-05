@@ -40,7 +40,7 @@ if ($IsLinux)
         New-ParamCompleter -LongName no-preserve -Description "Don't preserve ATTRIBUTES" -Arguments 'mode','ownership','timestamps','links','all'
         New-ParamCompleter -LongName parents -Description "Use full source file name under DIRECTORY"
         New-ParamCompleter -ShortName r,R -LongName recursive -Description "Copy directories recursively"
-        New-ParamCompleter -LongName reflink -Description "Control clone/CoW copies" -Type Flag,OnlyWithValueSperator -Arguments 'always','auto','never'
+        New-ParamCompleter -LongName reflink -Description "Control clone/CoW copies" -Type FlagOrValue -Arguments 'always','auto','never'
         New-ParamCompleter -LongName remove-destination -Description "First remove existing destination files"
         New-ParamCompleter -LongName sparse -Description "Control creation of sparse files" -Arguments 'always','auto','never'
         New-ParamCompleter -ShortName s -LongName symbolic-link -Description "Make symbolic links instead of copying"

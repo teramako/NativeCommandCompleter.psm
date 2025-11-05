@@ -7,10 +7,22 @@ namespace MT.Comp;
 [Flags]
 public enum ArgumentType
 {
+    /// <summary>
+    /// Flag parameters that do not require argument values
+    /// </summary>
     Flag = 1 << 0,
+    /// <summary>
+    /// Parameter for which argument values are required
+    /// </summary>
     Required = 1 << 1,
-    File = 1 << 2,
-    OnlyWithValueSperator = 1 << 3,
+    /// <summary>
+    /// like `nargs='?'`, e.g. `sed -i[.bk]`
+    /// </summary>
+    FlagOrValue = Flag | 1 << 2,
+    /// <summary>
+    /// Parameter for which file or directory argument are required
+    /// </summary>
+    File = Required | 1 << 3,
 }
 
 public class ParamCompleter

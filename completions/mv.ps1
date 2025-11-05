@@ -24,7 +24,7 @@ if ($IsLinux)
         New-ParamCompleter -ShortName S -LongName suffix -Description "Override default backup suffix" -Type Required
         New-ParamCompleter -ShortName t -LongName target-Descriptionirectory -Description "Move all source args into DIR" -Type File
         New-ParamCompleter -ShortName T -LongName no-target-Descriptionirectory -Description "Treat DEST as a normal file"
-        New-ParamCompleter -LongName update -Description "Control which existing files are updated" -Type Flag,OnlyWithValueSperator -Arguments @(
+        New-ParamCompleter -LongName update -Description "Control which existing files are updated" -Type FlagOrValue -Arguments @(
             "all `tAll existing files in the destination being replaced."
             "none `tSimilar to the --no-clobber option, in that no files in the destination are replaced, but also skipped files do not induce a failure."
             "older `t(default) Files being replaced if they're older than the corresponding source file."

@@ -10,7 +10,7 @@ Register-NativeCompleter -Name grep -Parameters @(
     New-ParamCompleter -ShortName C -LongName context -Description 'Print NUM lines of context' -Type Required
     New-ParamCompleter -ShortName b -LongName byte-offset -Description 'Print byte offset of matches'
     New-ParamCompleter -LongName binary-files -Description 'Assume data type for binary files' -Arguments "binnary`tBinary format", "text`tText format"
-    New-ParamCompleter -LongName color,colour -Description 'Color output' -Type Flag,OnlyWithValueSperator -Arguments 'never','always','auto'
+    New-ParamCompleter -LongName color,colour -Description 'Color output' -Type FlagOrValue -Arguments 'never','always','auto'
     New-ParamCompleter -ShortName c -LongName count -Description 'Only print number of matches'
     New-ParamCompleter -ShortName D -LongName devices -Description 'Action for devices' -Arguments 'read', 'skip'
     New-ParamCompleter -ShortName d -LongName directories -Description 'Action for directories' -Arguments 'read', 'skip', 'recurse'
