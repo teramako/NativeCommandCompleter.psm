@@ -193,7 +193,8 @@ public class CommandCompleter(string name,
             if (param.IsMatchShortParam(tokenValue, out char paramChar, out int position))
             {
                 if (position < offsetPosition
-                    && !param.Type.HasFlag(ArgumentType.Flag))
+                    && (param.Type.HasFlag(ArgumentType.Required)
+                        || param.Type.HasFlag(ArgumentType.FlagOrValue)))
                 {
                     var paramValue = tokenValue[(position + 1)..];
                     var paramName = tokenValue[..(position + 1)];

@@ -207,7 +207,13 @@ public sealed class CompletionContext
                     if (!p.ShortNames.Contains(c))
                         continue;
 
-                    if (p.Type.HasFlag(ArgumentType.Flag))
+                    if (p.Type.HasFlag(ArgumentType.FlagOrValue))
+                    {
+                        // e.g. `sed -i[.bk]`
+                        AddBoundParameter(p.Name, $"{paramName[(i + 1)..]}");
+                        break;
+                    }
+                    else if (p.Type.HasFlag(ArgumentType.Flag))
                     {
                         AddBoundParameter(p.Name, true);
                     }
@@ -227,6 +233,7 @@ public sealed class CompletionContext
                     else
                     {
                         AddBoundParameter(p.Name, $"{paramName[(i + 1)..]}");
+                        break;
                     }
                 }
             }
