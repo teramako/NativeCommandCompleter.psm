@@ -161,11 +161,10 @@ public class CommandCompleter(string name,
             if (names.Length == 0)
                 continue;
 
-            var desc = string.IsNullOrEmpty(param.Description) ? string.Empty : $"  ({PSStyle.Instance.Italic}{param.Description}{PSStyle.Instance.ItalicOff})";
             foreach (var name in names)
             {
                 var text = $"{ParamIndicator}{name} ";
-                var listItemText = $"{ParamIndicator}{name}{desc}";
+                var listItemText = $"{ParamIndicator}{name}";
                 var tooltip = $"[{param.Type}] {name}";
                 results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
             }
