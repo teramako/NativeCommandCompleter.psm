@@ -291,36 +291,41 @@ public sealed class CompletionContext
 
         if (_pendingParam is not null)
         {
-            completed = _pendingParam.Completer.CompleteValue(results, _pendingParam.ParamName, tokenValue, cursorPosition, _pendingParam.Indicator);
+            completed = _pendingParam.Completer.CompleteValue(results,
+                                                              this,
+                                                              _pendingParam.ParamName,
+                                                              tokenValue,
+                                                              cursorPosition,
+                                                              _pendingParam.Indicator);
         }
         else if (CurrentToken is not null)
         {
             if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
             {
-                completed = CommandCompleter.CompleteLongParams(results, tokenValue, cursorPosition);
+                completed = CommandCompleter.CompleteLongParams(results, this, tokenValue, cursorPosition);
             }
             else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
             {
                 completed = tokenValue.Length == CommandCompleter.ParamIndicator.Length
-                    ? CommandCompleter.CompleteAllParams(results)
-                    : CommandCompleter.CompleteOldStyleOrShortParams(results, tokenValue, cursorPosition);
+                    ? CommandCompleter.CompleteAllParams(results, this)
+                    : CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
             }
             else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
             {
-                completed = CommandCompleter.CompleteSubCommands(results, tokenValue);
+                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
             }
             else
             {
-                completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count, this);
+                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
             }
         }
         else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
         {
-            completed = CommandCompleter.CompleteSubCommands(results, tokenValue);
+            completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
         }
         else
         {
-            completed = CommandCompleter.CompleteArgument(results, tokenValue, cursorPosition, _unboundArguments.Count, this);
+            completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
         }
 
         Debug($"Completed = {completed}, Count = {results.Count}");

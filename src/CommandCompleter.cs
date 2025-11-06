@@ -30,11 +30,14 @@ public class CommandCompleter(string name,
     /// Complete sub command names
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <param name="tokenValue">a token of command line argument</param>
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    public bool CompleteSubCommands(ICollection<CompletionData> results, string tokenValue)
+    public bool CompleteSubCommands(ICollection<CompletionData> results,
+                                    CompletionContext context,
+                                    string tokenValue)
     {
         var subCommands = string.IsNullOrEmpty(tokenValue)
             ? SubCommands
@@ -53,12 +56,16 @@ public class CommandCompleter(string name,
     /// Complete long parameters, or it's argument
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>.
     /// <param name="tokenValue">a token of command line argument which starts with <see cref="LongParamIndicator"/></param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    public bool CompleteLongParams(ICollection<CompletionData> results, ReadOnlySpan<char> tokenValue, int cursorPosition)
+    public bool CompleteLongParams(ICollection<CompletionData> results,
+                                   CompletionContext context,
+                                   ReadOnlySpan<char> tokenValue,
+                                   int cursorPosition)
     {
         Debug($"Start CompleteLongParams('{tokenValue}', {cursorPosition})");
         const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
@@ -79,7 +86,13 @@ public class CommandCompleter(string name,
             {
                 var sParamValue = $"{tokenValue[(separatorPosition + 1)..]}";
                 position = cursorPosition - separatorPosition - 1;
-                param.CompleteValue(results, sParamName, sParamValue, position, indicator, $"{tokenValue[..(separatorPosition + 1)]}");
+                param.CompleteValue(results,
+                                    context,
+                                    sParamName,
+                                    sParamValue,
+                                    position,
+                                    indicator,
+                                    $"{tokenValue[..(separatorPosition + 1)]}");
             }
             return true;
         }
@@ -122,36 +135,44 @@ public class CommandCompleter(string name,
     /// Complete old-style parameters, short parameters, or their argument.
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <param name="tokenValue">a token of command line argument which starts with <see cref="ParamIndicator"/></param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    public bool CompleteOldStyleOrShortParams(ICollection<CompletionData> results, ReadOnlySpan<char> tokenValue, int cursorPosition)
+    public bool CompleteOldStyleOrShortParams(ICollection<CompletionData> results,
+                                              CompletionContext context,
+                                              ReadOnlySpan<char> tokenValue,
+                                              int cursorPosition)
     {
         Debug($"Start CompleteOldStyleOrShortParams('{tokenValue}', {cursorPosition})");
         var paramName = tokenValue[ParamIndicator.Length..];
         cursorPosition -= ParamIndicator.Length;
 
         // Old style parameter completion
-        CompleteOldStyleParams(results, paramName.ToString(), cursorPosition);
+        CompleteOldStyleParams(results, context, paramName.ToString(), cursorPosition);
 
         if (results.Count > 0)
             return true;
 
-        return CompleteShortParams(results, paramName, cursorPosition);
+        return CompleteShortParams(results, context, paramName, cursorPosition);
     }
 
     /// <summary>
     /// Complete old-style parameters
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <param name="paramName">Parameter name to be completed</param>
     /// <param name="offsetPosition">Position of cursor in <paramref name="paramName"/></param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    private bool CompleteOldStyleParams(ICollection<CompletionData> results, string paramName, int offsetPosition)
+    private bool CompleteOldStyleParams(ICollection<CompletionData> results,
+                                        CompletionContext context,
+                                        string paramName,
+                                        int offsetPosition)
     {
         foreach (var param in Params.Where(p => p.OldStyleNames.Length > 0))
         {
@@ -176,12 +197,16 @@ public class CommandCompleter(string name,
     /// Complete short parameters, their argument
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <param name="tokenValue">Parameter name to be completed</param>
     /// <param name="offsetPosition">Position of cursor in <paramref name="tokenValue"/></param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    private bool CompleteShortParams(ICollection<CompletionData> results, ReadOnlySpan<char> tokenValue, int offsetPosition)
+    private bool CompleteShortParams(ICollection<CompletionData> results,
+                                     CompletionContext context,
+                                     ReadOnlySpan<char> tokenValue,
+                                     int offsetPosition)
     {
         Collection<ParamCompleter> remainingParams = [];
         //
@@ -198,7 +223,13 @@ public class CommandCompleter(string name,
                     var paramValue = tokenValue[(position + 1)..];
                     var paramName = tokenValue[..(position + 1)];
                     offsetPosition -= position + 1;
-                    return param.CompleteValue(results, $"{paramChar} ", paramValue, offsetPosition, ParamIndicator, $"{ParamIndicator}{paramName}");
+                    return param.CompleteValue(results,
+                                               context,
+                                               $"{paramChar} ",
+                                               paramValue,
+                                               offsetPosition,
+                                               ParamIndicator,
+                                               $"{ParamIndicator}{paramName}");
                 }
             }
             else if (offsetPosition == tokenValue.Length)
@@ -239,14 +270,18 @@ public class CommandCompleter(string name,
     /// Complete remaining argumet's value (non parameter, non parameter value and non subcommand)
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <param name="tokenValue">a token of command line argument</param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <param name="argumentIndex">argument's index which starts 0 without command name</param>
-    /// <param name="context">Completion context</param>
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    public bool CompleteArgument(ICollection<CompletionData> results, string tokenValue, int cursorPosition, int argumentIndex, CompletionContext context)
+    public bool CompleteArgument(ICollection<CompletionData> results,
+                                 CompletionContext context,
+                                 string tokenValue,
+                                 int cursorPosition,
+                                 int argumentIndex)
     {
         if (ArgumentCompleter is null)
             return false;
@@ -277,10 +312,12 @@ public class CommandCompleter(string name,
     /// Complete all parameters
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
-    public bool CompleteAllParams(ICollection<CompletionData> results)
+    public bool CompleteAllParams(ICollection<CompletionData> results,
+                                  CompletionContext context)
     {
         foreach (var param in Params)
         {

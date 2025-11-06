@@ -120,6 +120,7 @@ public class ParamCompleter
     /// Complete parameter's argument values
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
+    /// <param name="context">Completion context</param>
     /// <param name="paramName">Parameter name</param>
     /// <param name="paramValue">Parameter value to be completed</param>
     /// <param name="position">Position of cursor in <paramref name="paramValue"/></param>.
@@ -136,6 +137,7 @@ public class ParamCompleter
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
     public bool CompleteValue(ICollection<CompletionData> results,
+                              CompletionContext context,
                               ReadOnlySpan<char> paramName,
                               ReadOnlySpan<char> paramValue,
                               int position,
@@ -202,7 +204,7 @@ public class ParamCompleter
         try
         {
             Debug($"[{Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
-            invokeResults = ArgumentCompleter.Invoke($"{paramValue}", position);
+            invokeResults = ArgumentCompleter.Invoke($"{paramValue}", position, context);
             Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
