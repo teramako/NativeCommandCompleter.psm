@@ -93,21 +93,31 @@ public sealed class CompletionContext
     {
         CompletionContext context = new(commandCompleter, ast, cursorPosition, cwd);
         NativeCompleter.Messages.Add($"[{context.Name}] Create CompletionContext");
+        int prevEndOffset = -1;
+        Token? prevToken = null;
         for (var i = 1; i < ast.CommandElements.Count; i++)
         {
             var elm = ast.CommandElements[i];
-            if (elm.Extent.EndOffset < cursorPosition)
+            var token = new Token(elm, cursorPosition);
+            if (elm.Extent.StartOffset == prevEndOffset && prevToken is not null)
             {
-                context._arguments.Add(new Token(elm));
+                token = prevToken;
+                token.Append(elm, cursorPosition);
             }
-            else if (elm.Extent.StartOffset <= cursorPosition && cursorPosition <= elm.Extent.EndOffset)
+            else if (elm.Extent.EndOffset < cursorPosition)
             {
-                context.CurrentToken = new Token(elm, cursorPosition);
+                context._arguments.Add(token);
+            }
+            else if (token.IsTarget)
+            {
+                context.CurrentToken = token;
             }
             else
             {
-                context._remainingArguments.Add(new Token(elm));
+                context._remainingArguments.Add(token);
             }
+            prevEndOffset = elm.Extent.EndOffset;
+            prevToken = token;
         }
         return context.Build();
     }
