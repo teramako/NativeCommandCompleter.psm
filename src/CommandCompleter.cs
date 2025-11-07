@@ -46,7 +46,7 @@ public class CommandCompleter(string name,
         foreach (var kv in subCommands)
         {
             var text = kv.Value.Name;
-            results.Add(new CompletionValue(text, kv.Value.Description).SetTooltipPrefix($"[{Name}] "));
+            results.Add(new CompletionValue(text, kv.Value.Description).SetTooltipPrefix($"[{context.Name}] "));
         }
 
         return true;
