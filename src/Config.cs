@@ -11,7 +11,8 @@ public static class Config
     public static int MinimumCompletionMenuDivisons
     {
         get => _minimumCompletionMenuDivisions;
-        set {
+        set
+        {
             ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
             _minimumCompletionMenuDivisions = value;
         }

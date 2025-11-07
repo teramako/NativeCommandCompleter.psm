@@ -14,7 +14,7 @@ public class Token
             offset = stringAst.StringConstantType switch
             {
                 StringConstantType.SingleQuoted or StringConstantType.DoubleQuoted => 1,
-                StringConstantType.SingleQuotedHereString or StringConstantType.DoubleQuotedHereString=> 2,
+                StringConstantType.SingleQuotedHereString or StringConstantType.DoubleQuotedHereString => 2,
                 _ => 0
             };
         }
@@ -53,7 +53,7 @@ public class Token
             offset = stringAst.StringConstantType switch
             {
                 StringConstantType.SingleQuoted or StringConstantType.DoubleQuoted => 1,
-                StringConstantType.SingleQuotedHereString or StringConstantType.DoubleQuotedHereString=> 2,
+                StringConstantType.SingleQuotedHereString or StringConstantType.DoubleQuotedHereString => 2,
                 _ => 0
             };
         }

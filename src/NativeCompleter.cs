@@ -189,7 +189,6 @@ public static class NativeCompleter
             var psd1File = new FileInfo(Path.Combine(moduleDir, @"NativeCommandCompleter.psm.psd1"));
             Debug($"psd1 path: {psd1File}");
             initialSessionState.ImportPSModule(psd1File.FullName);
-            
         }
         var runspace = RunspaceFactory.CreateRunspace(initialSessionState);
         runspace.Name = assembly.GetName().Name;
