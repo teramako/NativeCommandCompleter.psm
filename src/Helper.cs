@@ -69,6 +69,7 @@ public static class Helper
         var opts = new EnumerationOptions()
         {
             AttributesToSkip = FileAttributes.System | (includeHidden ? FileAttributes.None : FileAttributes.Hidden),
+            MatchCasing = MatchCasing.CaseInsensitive,
             IgnoreInaccessible = true,
             RecurseSubdirectories = false
         };
