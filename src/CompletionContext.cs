@@ -287,7 +287,7 @@ public sealed class CompletionContext
         int cursorPosition = CurrentToken?.Position ?? 0;
 
         CompletionDataCollection results = new();
-        bool completed;
+        bool completed = false;
 
         if (_pendingParam is not null)
         {
@@ -310,22 +310,24 @@ public sealed class CompletionContext
                     ? CommandCompleter.CompleteAllParams(results, this)
                     : CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
             }
-            else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
-            {
-                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
-            }
             else
             {
-                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
+                if (CommandCompleter.SubCommands.Count > 0)
+                {
+                    completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+                }
+                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
+                            || completed;
             }
-        }
-        else if (CommandCompleter.SubCommands.Count > 0 && _unboundArguments.Count == 0)
-        {
-            completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
         }
         else
         {
-            completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
+            if (CommandCompleter.SubCommands.Count > 0)
+            {
+                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+            }
+            completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
+                        || completed;
         }
 
         Debug($"Completed = {completed}, Count = {results.Count}");
