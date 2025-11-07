@@ -78,6 +78,33 @@ $dotnetCompleteScript = {
     $cmdline = $context.CommandAst.ToString()
     dotnet complete "$cmdLine"
 }
+$projectCompleter = {
+    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    if ($argIndex -eq 0)
+    {
+        [MT.Comp.Helper]::CompleteFilename($context, $false, $false, { param([System.IO.FileInfo]$f)
+            $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.\w+proj$'
+        });
+    }
+}
+$solutionCompleter = {
+    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    if ($argIndex -eq 0)
+    {
+        [MT.Comp.Helper]::CompleteFilename($context, $false, $false, { param([System.IO.FileInfo]$f)
+            $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.slnx?$'
+        });
+    }
+}
+$solutionOrProjectCompleter = {
+    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    if ($argIndex -eq 0)
+    {
+        [MT.Comp.Helper]::CompleteFilename($context, $false, $false, { param([System.IO.FileInfo]$f)
+            $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.(?:slnx?|\w+proj)$'
+        });
+    }
+}
 
 Register-NativeCompleter -Name dotnet -Parameters @(
     New-ParamCompleter -OldStyleName d -LongName diagnostics -Description 'Enable diagnostic output.'
@@ -104,7 +131,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $interactiveParam
             $helpParam
         )
-    )
+    ) -ArgumentCompleter $projectCompleter
     New-CommandCompleter -Name build -Description 'Build a .NET project.' -Parameters @(
         $useCurrentRuntimeParam
         $targetFrameworkParam
@@ -126,7 +153,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $targetOsParam
         $disableBuildServersParam
         $helpParam
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name build-server -Description 'Interact with servers started by a build.' -Parameters @(
         $helpParam
     ) -SubCommands @(
@@ -148,7 +175,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $nologoParam
         $disableBuildServersParam
         $helpParam
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name format -Description 'Apply style preferences to a project or solution.' -Parameters @(
         New-ParamCompleter -OldStyleName ?,h -LongName help -Description 'Show help and usage information'
         New-ParamCompleter -LongName version -Description 'Show version information'
@@ -167,7 +194,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         New-CommandCompleter -Name whitespace -Description 'Run whitespace formatting.' -Parameters @()
         New-CommandCompleter -Name style -Description 'Run code style analyzers and apply fixes.' -Parameters @()
         New-CommandCompleter -Name analyzers -Description 'Run 3rd party analyzers and apply fixes.' -Parameters @()
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name help -Description 'Show command line help.' -Parameters $helpParam
     New-CommandCompleter -Name list -Description 'List project references of a .NET project.' -Parameters @(
         $helpParam
@@ -190,11 +217,11 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $helpParam
         )
         New-CommandCompleter -Name reference -Description 'List all project-to-project references of the project.' -Parameters $helpParam
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name msbuild -Description 'Run Microsoft Build Engine (MSBuild) commands.' -Parameters @(
         # TBD
         $helpParam
-    )
+    ) -ArgumentCompleter $projectCompleter
     New-CommandCompleter -Name new -Description 'Create a new .NET project or file.' -Parameters @(
         $outputDirParam
         New-ParamCompleter -OldStyleName n -LongName name -Description 'The name for the output being created.' -Type Required
@@ -442,7 +469,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $disableBuildServersParam
         $useCurrentRuntimeParam
         $helpParam
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name publish -Description 'Publish a .NET project for deployment.' -Parameters @(
         $useCurrentRuntimeParam
         $outputDirParam
@@ -463,11 +490,11 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $targetOsParam
         $disableBuildServersParam
         $helpParam
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name remove -Description 'Remove a package or reference from a .NET project.' -Parameters $helpParam -SubCommands @(
         New-CommandCompleter -Name package -Description 'Remove a NuGet package reference from the project.' -Parameters $interactiveParam, $helpParam
         New-CommandCompleter -Name reference -Description 'Remove a project-to-project reference from the project.' -Parameters $targetFrameworkParam, $helpParam
-    )
+    ) -ArgumentCompleter $projectCompleter
     New-CommandCompleter -Name restore -Description 'Restore dependencies specified in a .NET project.' -Parameters @(
         $disableBuildServersParam
         New-ParamCompleter -OldStyleName s -LongName source -Description 'The NuGet package source to use for the restore.' -Type Required
@@ -488,12 +515,17 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         New-ParamCompleter -LongName force-evaluate -Description 'Forces restore to reevaluate all dependencies even if a lock file already exists.'
         $targetArchParam
         $helpParam
-    )
+    ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name run -Description 'Build and run a .NET project output.' -Parameters @(
         $buildConfigurationParam
         $targetFrameworkParam
         $targetRuntimeParam
-        New-ParamCompleter -LongName project -Description 'The path to the project file to run' -Type File
+        New-ParamCompleter -LongName project -Description 'The path to the project file to run' -Type File -ArgumentCompleter {
+            param([string] $value, [int] $position, [MT.Comp.CompletionContext] $context)
+            [MT.Comp.Helper]::CompleteFilename($value, $context.CurrentDirectory, $false, $false, { param([System.IO.FileInfo]$f)
+                $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.\w+proj$'
+            });
+        }
         New-ParamCompleter -OldStyleName p -LongName property -Description 'Properties to be passed to MSBuild.' -Type Required
         New-ParamCompleter -OldStyleName lp -LongName launch-profile -Description 'The name of the launch profile' -Type Required
         New-ParamCompleter -LongName no-launch-profile -Description 'Do not attempt to use launchSettings.json to configure the application.'
@@ -516,13 +548,13 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             New-ParamCompleter -LongName in-root -Description 'Place project in root of the solution, rather than creating a solution folder.'
             New-ParamCompleter -OldStyleName s -LongName solution-folder -Description 'The destination solution folder path to add the projects to.' -Type File
             $helpParam
-        )
+        ) -ArgumentCompleter $projectCompleter
         New-CommandCompleter -Name list -Description 'List all projects in a solution file.' -Parameters @(
             New-ParamCompleter -LongName in-root -Description 'Display solution folder paths.'
             $helpParam
         )
-        New-CommandCompleter -Name remove -Description 'Remove one or more projects from a solution file.' -Parameters $helpParam
-    )
+        New-CommandCompleter -Name remove -Description 'Remove one or more projects from a solution file.' -Parameters $helpParam -ArgumentCompleter $projectCompleter
+    ) -ArgumentCompleter $solutionCompleter
     New-CommandCompleter -Name store -Description 'Store the specified assemblies in the runtime package store.' -Parameters @(
         New-ParamCompleter -OldStyleName m -LongName manifest -Description 'The XML file that contains the list of packages to be stored.' -Type File
         New-ParamCompleter -LongName framework-version -Description 'The Microsoft.NETCore.App package version that will be used to run the assemblies.' -Type Required
