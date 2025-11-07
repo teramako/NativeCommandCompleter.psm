@@ -172,24 +172,9 @@ public class ParamCompleter
                 Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
                 try
                 {
-                    var path = paramValue.IsEmpty ? $".{Path.PathSeparator}" : paramValue.ToString();
-                    // FIXME: Should use `CompletionCompleters.CompleteFilename(string)`
-                    //        but the methods throws `NullReferenceException` on powershell 7.6.0-preview.5
-                    // See: https://github.com/PowerShell/PowerShell/pull/26291
-                    //
-                    // So, use `CommandCompletion.CompleteInput()` as a workaround.
-                    var commandCompletion = CommandCompletion.CompleteInput(path, path.Length, []);
-                    foreach (var result in commandCompletion.CompletionMatches)
+                    foreach (var result in Helper.CompleteFilename(context, true))
                     {
-                        var completionData = CompletionValue.FromCommpletionResult(result, prefix);
-                        completionData.Description = result.ResultType switch
-                        {
-                            CompletionResultType.ProviderItem => "File",
-                            CompletionResultType.ProviderContainer => "Directory",
-                            _ => string.Empty
-                        };
-                        Debug($"CompleteValue[Filename]: Data: {{ {completionData.ListItemText} }}");
-                        results.Add(completionData);
+                        results.Add(result);
                     }
                 }
                 catch (Exception e)
