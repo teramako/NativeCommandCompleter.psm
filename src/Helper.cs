@@ -1,28 +1,108 @@
+using System.Collections.ObjectModel;
 using System.Management.Automation;
 
 namespace MT.Comp;
 
 public static class Helper
 {
-    public static IEnumerable<CompletionData> CompleteFilename(string wordToComplete, PathInfo cwd)
+    /// <param name="context">Completion context</param>
+    /// <inheritdoc cref="CompleteFilename(string, string, bool, bool, Func{FileInfo, bool}?)"/>
+    public static Collection<CompletionData> CompleteFilename(CompletionContext context,
+                                                              bool includeHidden = false,
+                                                              bool onlyDirectory = false,
+                                                              Func<FileInfo, bool>? filter = null)
     {
-        bool isAbsolutePath = Path.IsPathFullyQualified(wordToComplete) || wordToComplete.StartsWith('~');
-        if (string.IsNullOrEmpty(wordToComplete))
-            wordToComplete = $".{Path.DirectorySeparatorChar}";
+        string pathToComplete = context.CurrentToken?.Value ?? string.Empty;
+        string cwd = context.CurrentDirectory.Path;
+        return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter);
+    }
 
-        string path = isAbsolutePath
-            ? wordToComplete
-            : Path.Combine(cwd.Path, wordToComplete);
-
-        foreach (var result in CompletionCompleters.CompleteFilename($"FileSystem::{path}"))
+    /// <summary>
+    /// Generate a completion list for a file or directory paths
+    /// </summary>
+    /// <param name="pathToComplete">
+    /// Path string for completion. Can use wildcards <c>*</c> for the filename part at the end.
+    /// </param>
+    /// <param name="cwd">Current working directory</param>
+    /// <param name="includeHidden">Complete hidden files or directories</param>
+    /// <param name="onlyDirectory">Complete only directories</param>
+    /// <param name="filter">Addtional fileter function</param>
+    /// <returns>Completion candidates</returns>
+    public static Collection<CompletionData> CompleteFilename(string pathToComplete,
+                                                              string cwd,
+                                                              bool includeHidden = false,
+                                                              bool onlyDirectory = false,
+                                                              Func<FileInfo, bool>? filter = null)
+    {
+        bool isStartsWithTilde = false;
+        bool isAbsolutePath = Path.IsPathFullyQualified(pathToComplete);
+        string homeDir = string.Empty;
+        if (string.IsNullOrEmpty(pathToComplete))
         {
-            var text = result.ToolTip;
+            pathToComplete = $".{Path.DirectorySeparatorChar}";
+        }
+        else if (pathToComplete[0] is '~')
+        {
+            if (pathToComplete.Length == 1)
+                return [];
+
+            if (pathToComplete[1] != Path.DirectorySeparatorChar)
+            {
+                // Expansion of '~username' is not supported.
+                return [];
+            }
+            isAbsolutePath = true;
+            isStartsWithTilde = true;
+            homeDir = Environment.GetEnvironmentVariable(@"HOME") ?? "~";
+            pathToComplete = $"{homeDir}{pathToComplete[1..]}";
+        }
+
+        string absPath = isAbsolutePath
+            ? pathToComplete
+            : Path.Join(cwd, pathToComplete);
+
+        var targetDir = Path.GetDirectoryName(absPath);
+        if (!Directory.Exists(targetDir))
+        {
+            return [];
+        }
+        var opts = new EnumerationOptions()
+        {
+            AttributesToSkip = FileAttributes.System | (includeHidden ? FileAttributes.None : FileAttributes.Hidden),
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = false
+        };
+        var wordToComplete = $"{Path.GetFileName(absPath)}*";
+        Collection<CompletionData> results = [];
+        var directoryEnumerator = onlyDirectory
+            ? Directory.EnumerateDirectories(targetDir, wordToComplete, opts)
+            : Directory.EnumerateFileSystemEntries(targetDir, wordToComplete, opts);
+        foreach (string path in directoryEnumerator)
+        {
+            var file = new FileInfo(path);
+            bool filtered = false;
+            if (filter is not null)
+            {
+                try
+                {
+                    filtered = !filter.Invoke(file);
+                }
+                catch
+                {
+                    filtered = true;
+                }
+            }
+            if (filtered)
+            {
+                continue;
+            }
+            string text;
             if (!isAbsolutePath)
             {
-                var relativePath = Path.GetRelativePath(cwd.Path, text);
+                var relativePath = Path.GetRelativePath(cwd, path);
                 if (relativePath == ".")
                 {
-                    text = $"..{Path.DirectorySeparatorChar}{result.ListItemText}";
+                    text = $"..{Path.DirectorySeparatorChar}{file.Name}";
                 }
                 else if (relativePath.StartsWith("..", StringComparison.Ordinal))
                 {
@@ -33,19 +113,31 @@ public static class Helper
                     text = $".{Path.DirectorySeparatorChar}{relativePath}";
                 }
             }
-            var desc = result.ResultType switch
+            else if (isStartsWithTilde)
             {
-                CompletionResultType.ProviderItem => "File",
-                CompletionResultType.ProviderContainer => "Directory",
-                _ => string.Empty
-            };
+                text = $"~{path.Substring(homeDir.Length)}";
+            }
+            else
+            {
+                text = file.FullName;
+            }
 
             if (text.Contains(' '))
             {
                 text = $"'{text}'";
             }
-            
-            yield return new CompletionValue(text, desc, result.ListItemText, result.ToolTip, result.ResultType);
+
+            if (file.Attributes.HasFlag(FileAttributes.Directory))
+            {
+                results.Add(new CompletionValue(text, "Directory", $"{file.Name}{Path.DirectorySeparatorChar}",
+                                                file.FullName, CompletionResultType.ProviderContainer));
+            }
+            else
+            {
+                results.Add(new CompletionValue(text, "File", file.Name,
+                                                file.FullName, CompletionResultType.ProviderItem));
+            }
         }
+        return results;
     }
 }
