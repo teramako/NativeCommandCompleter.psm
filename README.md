@@ -53,3 +53,14 @@ Import-Module -Name NativeCommandCompleter.psm
 >     Selection = $PSStyle.Reverse;
 > }
 > ```
+
+## ⚙️ Settings
+
+### Environement Variable: `PS_COMPLETE_PATH`
+
+Path(s) of the directory where the completion scripts for each command are located.
+(The path separator is `;` on Windows and `:` on Unix-like OS)
+The target file (`{command-name}.ps1`) is searched and read during completion dymanically.
+Once loaded and registered, the completion code is cached and will not be reloaded until it is unregistered.
+
+If not specified, the `{module directory}/completions` directory is set automatically.
