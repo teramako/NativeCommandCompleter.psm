@@ -28,13 +28,22 @@ public abstract class CompletionData
             return itemText;
         }
         var descWidth = description.Length;
-        var spaceWidth = cellWidth - itemText.Length - descWidth - 5;
-        return spaceWidth < 0
-            ? $"{itemText} {Config.ListItemDescriptionStart}{description[0..(descWidth + spaceWidth - 1)]}…{Config.ListItemDescriptionEnd}"
-            : $"{itemText} {new string(' ', spaceWidth)}{Config.ListItemDescriptionStart}{description}{Config.ListItemDescriptionEnd}";
+        var spaceWidth = cellWidth - ListItemLength;
+        if (spaceWidth >= 0)
+        {
+            return $"{itemText} {new string(' ', spaceWidth)}{Config.ListItemDescriptionStart}{description}{Config.ListItemDescriptionEnd}";
+        }
+        else if (descWidth + spaceWidth - 1 > 0)
+        {
+            return $"{itemText} {Config.ListItemDescriptionStart}{description[0..(descWidth + spaceWidth - 1)]}…{Config.ListItemDescriptionEnd}";
+        }
+        else
+        {
+            return itemText;
+        }
     }
 
-    internal int ListItemLength => itemText.Length + description.Length + 5;
+    internal int ListItemLength => itemText.Length + description.Length + /* space & paren */ 3 + /* mergin */ 2;
     internal int ListItemRawLength => itemText.Length + /* margin */ 2;
 
     protected void SetText(string text)
