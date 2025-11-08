@@ -13,8 +13,16 @@ internal class CompletionDataCollection : Collection<CompletionData>
     /// </summary>
     public IEnumerable<CompletionResult> Build()
     {
-        var maxLength = Math.Min(this.Max(c => c.ListItemLength),
-                                 Console.BufferWidth / Config.MinimumCompletionMenuDivisons);
+        var maxHeight = Console.BufferHeight - 3;
+        int divison = 1;
+        if (Count > maxHeight)
+        {
+            divison = Math.Max((int)Math.Ceiling(1.0 * Count / maxHeight),
+                               Config.MinimumCompletionMenuDivisons);
+        }
+        var maxLength = Math.Max(this.Max(c => c.ListItemRawLength),
+                                 Math.Min(this.Max(c => c.ListItemLength),
+                                          Console.BufferWidth / divison));
         foreach (var d in this)
         {
             yield return d.Build(maxLength);

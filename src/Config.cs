@@ -18,7 +18,7 @@ public static class Config
         }
     }
     /// <inheritdoc cref="MinimumCompletionMenuDivisons"/>
-    private static int _minimumCompletionMenuDivisions = 2;
+    private static int _minimumCompletionMenuDivisions = 1;
 
     /// <summary>
     /// Decoration start of the description part in the complementary menu item

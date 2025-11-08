@@ -35,6 +35,7 @@ public abstract class CompletionData
     }
 
     internal int ListItemLength => itemText.Length + description.Length + 5;
+    internal int ListItemRawLength => itemText.Length + /* margin */ 2;
 
     protected void SetText(string text)
     {
