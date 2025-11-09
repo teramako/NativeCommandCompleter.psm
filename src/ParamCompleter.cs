@@ -189,7 +189,9 @@ public class ParamCompleter
         try
         {
             Debug($"[{Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
-            invokeResults = ArgumentCompleter.Invoke($"{paramValue}", position, context);
+            invokeResults = ArgumentCompleter.InvokeWithContext(null,
+                                                                [new("_", $"{paramValue}"), new("this", context)],
+                                                                position);
             Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch

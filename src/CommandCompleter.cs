@@ -291,7 +291,10 @@ public class CommandCompleter(string name,
         try
         {
             Debug($"Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
-            invokeResults = ArgumentCompleter.Invoke(tokenValue, cursorPosition, argumentIndex, context);
+            invokeResults = ArgumentCompleter.InvokeWithContext(null,
+                                                                [new("_", tokenValue), new("this", context)],
+                                                                cursorPosition,
+                                                                argumentIndex);
             Debug($"ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
