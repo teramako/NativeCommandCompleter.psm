@@ -319,8 +319,11 @@ public sealed class CompletionContext
                 completed = CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
             }
 
-            completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
-                        || completed;
+            if (string.IsNullOrEmpty(tokenValue) || results.Count == 0)
+            {
+                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
+                            || completed;
+            }
         }
 
         Debug($"Completed = {completed}, Count = {results.Count}");
