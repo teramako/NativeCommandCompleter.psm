@@ -10,7 +10,7 @@ public static class Helper
     public static Collection<CompletionData> CompleteFilename(CompletionContext context,
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
-                                                              Func<FileInfo, bool>? filter = null)
+                                                              ScriptBlock? filter = null)
     {
         string pathToComplete = context.CurrentToken?.Value ?? string.Empty;
         string cwd = context.CurrentDirectory.Path;
@@ -32,7 +32,7 @@ public static class Helper
                                                               string cwd,
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
-                                                              Func<FileInfo, bool>? filter = null)
+                                                              ScriptBlock? filter = null)
     {
         bool isStartsWithTilde = false;
         bool isAbsolutePath = Path.IsPathFullyQualified(pathToComplete);
@@ -86,7 +86,11 @@ public static class Helper
             {
                 try
                 {
-                    filtered = !filter.Invoke(file);
+                    var filterReults = filter.InvokeWithContext(null, [new("_", file)]);
+                    filtered = filterReults.Count > 0
+                               && LanguagePrimitives.TryConvertTo<bool>(filterReults[0], out var filterResult)
+                        ? !filterResult
+                        : true;
                 }
                 catch
                 {
