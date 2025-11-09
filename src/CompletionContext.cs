@@ -131,6 +131,16 @@ public sealed class CompletionContext
             Token token = Arguments[argumentIndex];
             ReadOnlySpan<char> tokenValue = token.Value;
             string indicator;
+
+            if (CommandCompleter.SubCommands.Count > 0)
+            {
+                if (CommandCompleter.SubCommands.TryGetValue($"{tokenValue}", out var subCmd))
+                {
+                    var subContext = new CompletionContext(subCmd, this, argumentIndex);
+                    return subContext.Build();
+                }
+            }
+
             if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
             {
                 indicator = CommandCompleter.LongParamIndicator;
@@ -247,16 +257,6 @@ public sealed class CompletionContext
                     }
                 }
             }
-            else if (CommandCompleter.SubCommands.Count > 0)
-            {
-                if (CommandCompleter.SubCommands.TryGetValue($"{tokenValue}", out var subCmd))
-                {
-                    var subContext = new CompletionContext(subCmd, this, argumentIndex);
-                    return subContext.Build();
-                }
-
-                _unboundArguments.Add(token);
-            }
             else
             {
                 _unboundArguments.Add(token);
@@ -298,34 +298,27 @@ public sealed class CompletionContext
                                                               cursorPosition,
                                                               _pendingParam.Indicator);
         }
-        else if (CurrentToken is not null)
-        {
-            if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
-            {
-                completed = CommandCompleter.CompleteLongParams(results, this, tokenValue, cursorPosition);
-            }
-            else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
-            {
-                completed = tokenValue.Length == CommandCompleter.ParamIndicator.Length
-                    ? CommandCompleter.CompleteAllParams(results, this)
-                    : CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
-            }
-            else
-            {
-                if (CommandCompleter.SubCommands.Count > 0)
-                {
-                    completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
-                }
-                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
-                            || completed;
-            }
-        }
         else
         {
             if (CommandCompleter.SubCommands.Count > 0)
             {
                 completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
             }
+
+            if (string.IsNullOrEmpty(tokenValue)
+                || tokenValue.Equals(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
+            {
+                completed = CommandCompleter.CompleteAllParams(results, this);
+            }
+            else if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
+            {
+                completed = CommandCompleter.CompleteLongParams(results, this, tokenValue, cursorPosition);
+            }
+            else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
+            {
+                completed = CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
+            }
+
             completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
                         || completed;
         }
