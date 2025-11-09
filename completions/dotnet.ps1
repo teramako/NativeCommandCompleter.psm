@@ -27,6 +27,11 @@ $buildVersionSuffixParam = New-ParamCompleter -LongName version-suffix -Descript
 $disableBuildServersParam = New-ParamCompleter -LongName disable-build-servers -Description "Force the command to ignore any persistent build servers."
 $useCurrentRuntimeParam = New-ParamCompleter -LongName ucr, use-current-runtime -Description 'Use current runtime as the target runtime.'
 
+$newNameParam = New-ParamCompleter -OldStyleName n -LongName name -Description 'The name for the output being created.' -Type Required
+$newDryRunParam = New-ParamCompleter -LongName dry-run -Description 'Displays a summary of what would happen if the given command line were run if it would result in a template creation.'
+$newForceParam = New-ParamCompleter -LongName force -Description 'Forces content to be generated even if it would change existing files.'
+$newNoUpdateCheckParam = New-ParamCompleter -LongName no-update-check -Description 'Disables checking for the template package updates when instantiating a template.'
+$newProjectParam = New-ParamCompleter -LongName project -Description 'The project that should be used for context evaluation.' -Type File
 $newAddSourceParam = New-ParamCompleter -LongName add-source, nuget-source -Description "Specifies a NuGet source to use." -Type Required
 $newAuthorFilterParam = New-ParamCompleter -LongName author -Description "Filters the templates based on the template author." -Type Required
 $newLanguageFilterParam = New-ParamCompleter -OldStyleName lang -LongName language -Description "Filters templates based on language." -Type Required
@@ -124,7 +129,14 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $interactiveParam
             New-ParamCompleter -LongName prerelease -Description 'Allows prerelease packages to be installed.'
             $helpParam
-        ) -ArgumentCompleter $dotnetCompleteScript
+        ) -ArgumentCompleter {
+            param([int] $position, [int] $argumentIndex)
+            if ($argumentIndex -eq 0 -and -not [string]::IsNullOrEmpty($_))
+            {
+                $cmdline = $this.CommandAst.ToString();
+                dotnet complete "$cmdline"
+            }
+        }
         New-CommandCompleter -Name reference -Description 'Add a project-to-project reference to the project.' -Parameters @(
             $targetFrameworkParam
             $interactiveParam
@@ -223,16 +235,29 @@ Register-NativeCompleter -Name dotnet -Parameters @(
     ) -ArgumentCompleter $projectCompleter
     New-CommandCompleter -Name new -Description 'Create a new .NET project or file.' -Parameters @(
         $outputDirParam
-        New-ParamCompleter -OldStyleName n -LongName name -Description 'The name for the output being created.' -Type Required
-        New-ParamCompleter -LongName dry-run -Description 'Displays a summary of what would happen if the given command line were run if it would result in a template creation.'
-        New-ParamCompleter -LongName force -Description 'Forces content to be generated even if it would change existing files.'
-        New-ParamCompleter -LongName no-update-check -Description 'Disables checking for the template package updates when instantiating a template.'
-        New-ParamCompleter -LongName project -Description 'The project that should be used for context evaluation.' -Type Required
+        $newNameParam
+        $newDryRunParam
+        $newForceParam
+        $newNoUpdateCheckParam
+        $newProjectParam
         $verbosityParam
         $newDiagnosticsParam
         $helpParam
     ) -SubCommands @(
-        New-CommandCompleter -Name create -Description "Instantiates a template with given short name. An alias of 'dotnet new <template name>'."
+        New-CommandCompleter -Name create -Description "Instantiates a template with given short name. An alias of 'dotnet new <template name>'." -Parameters @(
+            $outputDirParam
+            $newNameParam
+            $newDryRunParam
+            $newForceParam
+            $newNoUpdateCheckParam
+            $newProjectParam
+            $verbosityParam
+            $newDiagnosticsParam
+            $helpParam
+        ) -ArgumentCompleter {
+            $cmdline = $this.CommandAst.ToString()
+            dotnet complete "$cmdLine" | Where-Object { -not ($_ -match '^[-/]') } | ForEach-Object { "$_`tTemplate" }
+        }
         New-CommandCompleter -Name install -Description "Installs a template package." -Parameters @(
             $interactiveParam
             $newAddSourceParam
@@ -284,7 +309,12 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $newDiagnosticsParam
             $helpParam
         )
-    ) -ArgumentCompleter $dotnetCompleteScript
+    ) -ArgumentCompleter {
+        $cmdline = $this.CommandAst.ToString()
+        dotnet complete "$cmdLine" |
+            Where-Object { -not ($_ -match '^(?:[-/]|(?:create|(?:un)?install|update|search|list|details)$)') } |
+            ForEach-Object { "$_`tTemplate" }
+    }
     New-CommandCompleter -Name nuget -Description 'Provides additional NuGet commands.' -Parameters @(
         $helpParam
         New-ParamCompleter -LongName version -Description 'Show version information'
