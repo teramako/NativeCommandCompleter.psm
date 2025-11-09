@@ -74,34 +74,33 @@ $workloadTempDirParam = New-ParamCompleter -LongName temp-dir -Description 'Spec
 $workloadSkipManifestUpdateParam = New-ParamCompleter -LongName skip-manifest-update -Description 'Skip updating the workload manifests.'
 
 $dotnetCompleteScript = {
-    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
-    $cmdline = $context.CommandAst.ToString()
+    $cmdline = $this.CommandAst.ToString()
     dotnet complete "$cmdLine"
 }
 $projectCompleter = {
-    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    param([int] $position, [int] $argIndex)
     if ($argIndex -eq 0)
     {
-        [MT.Comp.Helper]::CompleteFilename($context, $false, $false, { param([System.IO.FileInfo]$f)
-            $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.\w+proj$'
+        [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
+            $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $_.Extension -match '\.\w+proj$'
         });
     }
 }
 $solutionCompleter = {
-    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    param([int] $position, [int] $argIndex)
     if ($argIndex -eq 0)
     {
-        [MT.Comp.Helper]::CompleteFilename($context, $false, $false, { param([System.IO.FileInfo]$f)
-            $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.slnx?$'
+        [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
+            $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $_.Extension -match '\.slnx?$'
         });
     }
 }
 $solutionOrProjectCompleter = {
-    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
+    param([int] $position, [int] $argIndex)
     if ($argIndex -eq 0)
     {
-        [MT.Comp.Helper]::CompleteFilename($context, $false, $false, { param([System.IO.FileInfo]$f)
-            $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.(?:slnx?|\w+proj)$'
+        [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
+            $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $_.Extension -match '\.(?:slnx?|\w+proj)$'
         });
     }
 }
@@ -340,12 +339,8 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             New-ParamCompleter -OldStyleName c -LongName clear -Description 'Clear the selected local resources or cache location(s).'
             New-ParamCompleter -OldStyleName l -LongName list -Description 'List the selected local resources or cache location(s).'
         ) -ArgumentCompleter {
-            param([string] $wordToComplete, [int] $position, [int] $argIndex)
-            switch -Wildcard ('all', 'http-cache', 'global-packages', 'temp')
-            {
-                "$wordToComplete*" { $_ }
-                default { $null; break; }
-            }
+            $wordToComplete = "$_*";
+            'all', 'http-cache', 'global-packages', 'temp' | Where-Object { $_ -like $wordToComplete }
         }
         New-CommandCompleter -Name push -Description 'Pushes a package to the server and publishes it.' -Parameters @(
             $helpParam
