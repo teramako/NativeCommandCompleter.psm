@@ -54,10 +54,10 @@ Register-NativeCompleter -Name grep -Parameters @(
     New-ParamCompleter -LongName group-separator -Description 'Set a group separator' -Type Required
     New-ParamCompleter -LongName no-group-separator -Description 'Use empty string as a group separator'
 ) -ArgumentCompleter {
-    param([string] $wordToComplete, [int] $position, [int] $argIndex, [MT.Comp.CompletionContext] $context)
-    if ($argIndex -eq 0 -and -not $context.BoundParameters.ContainsKey("regexp"))
+    param([int] $position, [int] $argIndex)
+    if ($argIndex -eq 0 -and -not $this.BoundParameters.ContainsKey("regexp"))
     {
-        if ([string]::IsNullOrEmpty($wordToComplete))
+        if ([string]::IsNullOrEmpty($_))
         {
             "pattern`tSpecify a pattern"
         }
