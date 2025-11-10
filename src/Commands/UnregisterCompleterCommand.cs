@@ -3,6 +3,7 @@ using System.Management.Automation;
 namespace MT.Comp.Commands;
 
 [Cmdlet(VerbsLifecycle.Unregister, "NativeCompleter")]
+[OutputType(typeof(void))]
 public class UnregisterCompleterCommand : Cmdlet
 {
     [Parameter(Mandatory = true, Position = 0)]
