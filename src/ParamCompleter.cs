@@ -23,6 +23,10 @@ public enum ArgumentType
     /// Parameter for which file or directory argument are required
     /// </summary>
     File = Required | 1 << 3,
+    /// <summary>
+    /// Parameter for which directory argument are required
+    /// </summary>
+    Directory = Required | 1 << 4,
 }
 
 public class ParamCompleter
@@ -163,16 +167,18 @@ public class ParamCompleter
             return true;
         }
 
-        bool useFilenameCompletion = Type.HasFlag(ArgumentType.File);
+        bool useFilenameCompletion = Type.HasFlag(ArgumentType.File)
+                                     || Type.HasFlag(ArgumentType.Directory);
 
         if (ArgumentCompleter is null)
         {
             if (useFilenameCompletion)
             {
                 Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
+                bool onlyDirectory = Type.HasFlag(ArgumentType.Directory);
                 try
                 {
-                    foreach (var result in Helper.CompleteFilename(context, true))
+                    foreach (var result in Helper.CompleteFilename(context, true, onlyDirectory))
                     {
                         results.Add(result);
                     }
