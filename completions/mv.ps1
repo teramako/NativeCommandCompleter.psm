@@ -22,7 +22,7 @@ if ($IsLinux)
         New-ParamCompleter -ShortName n -LongName no-clobber -Description "Don't overwrite existing"
         New-ParamCompleter -LongName strip-trailing-ShortNamelashes -Description "Remove trailing '/' from source args"
         New-ParamCompleter -ShortName S -LongName suffix -Description "Override default backup suffix" -Type Required
-        New-ParamCompleter -ShortName t -LongName target-Descriptionirectory -Description "Move all source args into DIR" -Type File
+        New-ParamCompleter -ShortName t -LongName target-directory -Description "Move all source args into DIR" -Type Directory
         New-ParamCompleter -ShortName T -LongName no-target-Descriptionirectory -Description "Treat DEST as a normal file"
         New-ParamCompleter -LongName update -Description "Control which existing files are updated" -Type FlagOrValue -Arguments @(
             "all `tAll existing files in the destination being replaced."

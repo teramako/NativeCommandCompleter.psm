@@ -27,7 +27,7 @@ if ($IsLinux)
         New-ParamCompleter -ShortName l -LongName link -Description "Link files instead of copying"
         New-ParamCompleter -LongName strip-trailing-ShortNamelashes -Description "Remove trailing slashes from source"
         New-ParamCompleter -ShortName S -LongName suffix -Description "Backup suffix" -Type Required
-        New-ParamCompleter -ShortName t -LongName target-directory -Description "Target directory" -Type File
+        New-ParamCompleter -ShortName t -LongName target-directory -Description "Target directory" -Type Directory
         New-ParamCompleter -ShortName u -LongName update -Description "Do not overwrite newer files"
         New-ParamCompleter -ShortName v -LongName verbose -Description "Verbose mode"
         New-ParamCompleter -LongName help -Description "Display help and exit"
