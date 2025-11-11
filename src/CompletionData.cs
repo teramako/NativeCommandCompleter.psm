@@ -27,7 +27,7 @@ public abstract class CompletionData
         {
             return itemText;
         }
-        var descWidth = description.Length;
+        var descWidth = description.LengthInBufferCells();
         var spaceWidth = cellWidth - ListItemLength;
         if (spaceWidth >= 0)
         {
@@ -35,7 +35,10 @@ public abstract class CompletionData
         }
         else if (descWidth + spaceWidth - 1 > 0)
         {
-            return $"{itemText} {Config.ListItemDescriptionStart}{description[0..(descWidth + spaceWidth - 1)]}…{Config.ListItemDescriptionEnd}";
+            var descCellLength = descWidth + spaceWidth - 1;
+            var desc = description.CropToCellLength(0, descCellLength, out var actualLength);
+            var spaces = new string(' ', 1 + descCellLength - actualLength);
+            return $"{itemText}{spaces}{Config.ListItemDescriptionStart}{desc}…{Config.ListItemDescriptionEnd}";
         }
         else
         {
@@ -43,8 +46,8 @@ public abstract class CompletionData
         }
     }
 
-    internal int ListItemLength => itemText.Length + description.Length + /* space & paren */ 3 + /* mergin */ 2;
-    internal int ListItemRawLength => itemText.Length + /* margin */ 2;
+    internal int ListItemLength => itemText.LengthInBufferCells() + description.LengthInBufferCells() + /* space & paren */ 3 + /* mergin */ 2;
+    internal int ListItemRawLength => itemText.LengthInBufferCells() + /* margin */ 2;
 
     protected void SetText(string text)
     {
