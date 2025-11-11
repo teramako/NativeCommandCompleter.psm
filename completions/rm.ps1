@@ -3,14 +3,26 @@
  #>
 Import-Module NativeCommandCompleter.psm
 
+$msg = data { ConvertFrom-StringData @'
+    directory       = Unlink directories
+    force           = Never prompt for removal
+    interactive     = Prompt for removal
+    prompt-if-many  = Prompt to remove >3 files
+    recursive       = Recursively remove subdirs
+    verbose         = Explain what is done
+    help            = Display help
+    version         = Display rm version
+'@ }
+Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
+foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+
 Register-NativeCompleter -Name rm -Parameters @(
-    New-ParamCompleter -ShortName d -LongName directory -Description 'Unlink directories'
-    New-ParamCompleter -ShortName f -LongName force -Description 'Never prompt for removal'
-    New-ParamCompleter -ShortName i -LongName interactive -Description 'Prompt for removal'
-    New-ParamCompleter -ShortName I -Description 'Prompt to remove >3 files'
-    New-ParamCompleter -ShortName r -LongName recursive -Description 'Recursively remove subdirs'
-    New-ParamCompleter -ShortName R -Description 'Recursively remove subdirs'
-    New-ParamCompleter -ShortName v -LongName verbose -Description 'Explain what is done'
-    New-ParamCompleter -ShortName h -LongName help -Description 'Display help'
-    New-ParamCompleter -LongName version -Description 'Display rm version';
+    New-ParamCompleter -ShortName d -LongName directory -Description $msg."directory"
+    New-ParamCompleter -ShortName f -LongName force -Description $msg."force"
+    New-ParamCompleter -ShortName i -LongName interactive -Description $msg."interactive"
+    New-ParamCompleter -ShortName I -Description $msg."prompt-if-many"
+    New-ParamCompleter -ShortName r,R -LongName recursive -Description $msg."recursive"
+    New-ParamCompleter -ShortName v -LongName verbose -Description $msg."verbose"
+    New-ParamCompleter -ShortName h -LongName help -Description $msg."help"
+    New-ParamCompleter -LongName version -Description $msg."version"
 )
