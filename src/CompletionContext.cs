@@ -5,7 +5,7 @@ using System.Management.Automation.Language;
 
 namespace MT.Comp;
 
-internal record PendingParamCompleter(ParamCompleter Completer, string ParamName, string Indicator);
+internal record PendingParamCompleter(ParamCompleter Completer, string ParamName, string OptionPrefix);
 
 public sealed class CompletionContext
 {
@@ -130,7 +130,7 @@ public sealed class CompletionContext
         {
             Token token = Arguments[argumentIndex];
             ReadOnlySpan<char> tokenValue = token.Value;
-            string indicator;
+            string optionPrefix;
 
             if (CommandCompleter.SubCommands.Count > 0)
             {
@@ -141,15 +141,15 @@ public sealed class CompletionContext
                 }
             }
 
-            if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
+            if (tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
             {
-                indicator = CommandCompleter.LongParamIndicator;
-                var paramName = tokenValue[indicator.Length..];
+                optionPrefix = CommandCompleter.LongOptionPrefix;
+                var paramName = tokenValue[optionPrefix.Length..];
                 var separatorIndex = tokenValue.IndexOf(CommandCompleter.ValueSeparator);
                 if (separatorIndex > 0)
                 {
                     var paramValue = tokenValue[(separatorIndex + 1)..];
-                    paramName = tokenValue[indicator.Length..separatorIndex];
+                    paramName = tokenValue[optionPrefix.Length..separatorIndex];
                     foreach (var param in CommandCompleter.Params)
                     {
                         if (param.IsMatchLongParam(paramName, out var outParamName))
@@ -179,17 +179,17 @@ public sealed class CompletionContext
                             else
                             {
                                 Debug($"Set pending: {tokenValue}");
-                                _pendingParam = new(param, $"{outParamName}", indicator);
+                                _pendingParam = new(param, $"{outParamName}", optionPrefix);
                             }
                             break;
                         }
                     }
                 }
             }
-            else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
+            else if (tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
             {
-                indicator = CommandCompleter.ParamIndicator;
-                var paramName = tokenValue[indicator.Length..];
+                optionPrefix = CommandCompleter.ShortOptionPrefix;
+                var paramName = tokenValue[optionPrefix.Length..];
                 bool found = false;
                 foreach (var param in CommandCompleter.Params)
                 {
@@ -207,7 +207,7 @@ public sealed class CompletionContext
                         }
                         else
                         {
-                            _pendingParam = new(param, $"{outParamName}", indicator);
+                            _pendingParam = new(param, $"{outParamName}", optionPrefix);
                         }
                         break;
                     }
@@ -246,7 +246,7 @@ public sealed class CompletionContext
                         }
                         else
                         {
-                            _pendingParam = new(p, $"{c}", indicator);
+                            _pendingParam = new(p, $"{c}", optionPrefix);
                         }
                         break;
                     }
@@ -296,7 +296,7 @@ public sealed class CompletionContext
                                                               _pendingParam.ParamName,
                                                               tokenValue,
                                                               cursorPosition,
-                                                              _pendingParam.Indicator);
+                                                              _pendingParam.OptionPrefix);
         }
         else
         {
@@ -306,15 +306,15 @@ public sealed class CompletionContext
             }
 
             if (string.IsNullOrEmpty(tokenValue)
-                || tokenValue.Equals(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
+                || tokenValue.Equals(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
             {
                 completed = CommandCompleter.CompleteAllParams(results, this);
             }
-            else if (tokenValue.StartsWith(CommandCompleter.LongParamIndicator, StringComparison.Ordinal))
+            else if (tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
             {
                 completed = CommandCompleter.CompleteLongParams(results, this, tokenValue, cursorPosition);
             }
-            else if (tokenValue.StartsWith(CommandCompleter.ParamIndicator, StringComparison.Ordinal))
+            else if (tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
             {
                 completed = CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
             }

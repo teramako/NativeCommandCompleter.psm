@@ -6,8 +6,8 @@ namespace MT.Comp;
 
 public class CommandCompleter(string name,
                               string description = "",
-                              string longParamIndicator = "--",
-                              string paramIndicator = "-",
+                              string longOptionPrefix = "--",
+                              string shortOptionPrefix = "-",
                               char valueSeparator = '=')
 {
     [Conditional("DEBUG")]
@@ -16,8 +16,8 @@ public class CommandCompleter(string name,
         NativeCompleter.Messages.Add($"[{Name}]: {msg}");
     }
 
-    internal readonly string LongParamIndicator = longParamIndicator;
-    internal readonly string ParamIndicator = paramIndicator;
+    internal readonly string LongOptionPrefix = longOptionPrefix;
+    internal readonly string ShortOptionPrefix = shortOptionPrefix;
     internal readonly char ValueSeparator = valueSeparator;
 
     public string Name { get; } = name;
@@ -57,7 +57,7 @@ public class CommandCompleter(string name,
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>.
-    /// <param name="tokenValue">a token of command line argument which starts with <see cref="LongParamIndicator"/></param>
+    /// <param name="tokenValue">a token of command line argument which starts with <see cref="LongOptionPrefix"/></param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
@@ -69,9 +69,8 @@ public class CommandCompleter(string name,
     {
         Debug($"Start CompleteLongParams('{tokenValue}', {cursorPosition})");
         const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
-        string indicator = LongParamIndicator;
-        ReadOnlySpan<char> paramName = tokenValue[indicator.Length..];
-        string sParamName;
+        string optionPrefix = LongOptionPrefix;
+        string paramName;
         int position;
         int separatorPosition = tokenValue.IndexOf(ValueSeparator);
 
@@ -80,18 +79,18 @@ public class CommandCompleter(string name,
         //
         if (separatorPosition > 0 && separatorPosition < cursorPosition)
         {
-            sParamName = $"{tokenValue[indicator.Length..separatorPosition]}";
-            var param = Params.FirstOrDefault(p => p.LongNames.Any(n => n.Equals(sParamName, comparison)));
+            paramName = $"{tokenValue[optionPrefix.Length..separatorPosition]}";
+            var param = Params.FirstOrDefault(p => p.LongNames.Any(n => n.Equals(paramName, comparison)));
             if (param is not null)
             {
-                var sParamValue = $"{tokenValue[(separatorPosition + 1)..]}";
+                var paramValue = $"{tokenValue[(separatorPosition + 1)..]}";
                 position = cursorPosition - separatorPosition - 1;
                 param.CompleteValue(results,
                                     context,
-                                    sParamName,
-                                    sParamValue,
+                                    paramName,
+                                    paramValue,
                                     position,
-                                    indicator,
+                                    optionPrefix,
                                     $"{tokenValue[..(separatorPosition + 1)]}");
             }
             return true;
@@ -100,29 +99,29 @@ public class CommandCompleter(string name,
         //
         // complete parameter names
         //
-        sParamName = $"{tokenValue[indicator.Length..cursorPosition]}";
-        position = cursorPosition - indicator.Length;
+        paramName = $"{tokenValue[optionPrefix.Length..cursorPosition]}";
+        position = cursorPosition - optionPrefix.Length;
 
         foreach (var param in Params.Where(p => p.LongNames.Length > 0))
         {
-            var names = string.IsNullOrEmpty(sParamName)
+            var names = string.IsNullOrEmpty(paramName)
                 ? param.LongNames
-                : param.LongNames.Where(n => n.StartsWith(sParamName, StringComparison.OrdinalIgnoreCase)).ToArray();
+                : param.LongNames.Where(n => n.StartsWith(paramName, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (names.Length == 0)
                 continue;
 
             var flagOrValue = param.Type.HasFlag(ArgumentType.FlagOrValue);
             foreach (var name in names)
             {
-                results.Add(new CompletionParam($"{indicator}{name} ",
+                results.Add(new CompletionParam($"{optionPrefix}{name} ",
                                                 param.Description,
-                                                $"{indicator}{name}",
+                                                $"{optionPrefix}{name}",
                                                 $"[{param.Type}] {name}"));
                 if (flagOrValue)
                 {
-                    results.Add(new CompletionParam($"{indicator}{name}{ValueSeparator}",
+                    results.Add(new CompletionParam($"{optionPrefix}{name}{ValueSeparator}",
                                                     param.Description,
-                                                    $"{indicator}{name}{ValueSeparator}",
+                                                    $"{optionPrefix}{name}{ValueSeparator}",
                                                     $"[{param.Type}] {name}"));
                 }
             }
@@ -136,7 +135,7 @@ public class CommandCompleter(string name,
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>
-    /// <param name="tokenValue">a token of command line argument which starts with <see cref="ParamIndicator"/></param>
+    /// <param name="tokenValue">a token of command line argument which starts with <see cref="ShortOptionPrefix"/></param>
     /// <param name="cursorPosition">Position of cursor in token</param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
@@ -147,8 +146,8 @@ public class CommandCompleter(string name,
                                               int cursorPosition)
     {
         Debug($"Start CompleteOldStyleOrShortParams('{tokenValue}', {cursorPosition})");
-        var paramName = tokenValue[ParamIndicator.Length..];
-        cursorPosition -= ParamIndicator.Length;
+        var paramName = tokenValue[ShortOptionPrefix.Length..];
+        cursorPosition -= ShortOptionPrefix.Length;
 
         // Old style parameter completion
         CompleteOldStyleParams(results, context, paramName.ToString(), cursorPosition);
@@ -184,8 +183,8 @@ public class CommandCompleter(string name,
 
             foreach (var name in names)
             {
-                var text = $"{ParamIndicator}{name} ";
-                var listItemText = $"{ParamIndicator}{name}";
+                var text = $"{ShortOptionPrefix}{name} ";
+                var listItemText = $"{ShortOptionPrefix}{name}";
                 var tooltip = $"[{param.Type}] {name}";
                 results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
             }
@@ -228,8 +227,8 @@ public class CommandCompleter(string name,
                                                $"{paramChar} ",
                                                paramValue,
                                                offsetPosition,
-                                               ParamIndicator,
-                                               $"{ParamIndicator}{paramName}");
+                                               ShortOptionPrefix,
+                                               $"{ShortOptionPrefix}{paramName}");
                 }
             }
             else if (offsetPosition == tokenValue.Length)
@@ -251,13 +250,13 @@ public class CommandCompleter(string name,
         //
         // complete parameter names
         //
-        var paramName1 = tokenValue[..offsetPosition];
-        var paramName2 = tokenValue[offsetPosition..];
+        var paramPrefix = tokenValue[..offsetPosition];
+        var paramSuffix = tokenValue[offsetPosition..];
         foreach (var param in remainingParams)
         {
             foreach (var c in param.ShortNames)
             {
-                var text = $"{ParamIndicator}{paramName1}{c}{paramName2}";
+                var text = $"{ShortOptionPrefix}{paramPrefix}{c}{paramSuffix}";
                 var tooltip = $"[{param.Type}] {c}";
                 results.Add(new CompletionParam(text, param.Description, text, tooltip));
             }
@@ -324,9 +323,9 @@ public class CommandCompleter(string name,
     {
         foreach (var param in Params)
         {
-            var names = param.ShortNames.Select(n => $"{ParamIndicator}{n}")
-                                        .Union(param.OldStyleNames.Select(n => $"{ParamIndicator}{n}"))
-                                        .Union(param.LongNames.Select(n => $"{LongParamIndicator}{n}"));
+            var names = param.ShortNames.Select(n => $"{ShortOptionPrefix}{n}")
+                                        .Union(param.OldStyleNames.Select(n => $"{ShortOptionPrefix}{n}"))
+                                        .Union(param.LongNames.Select(n => $"{LongOptionPrefix}{n}"));
             var text = names.First();
             var listItemText = string.Join(' ', names);
             var tooltip = $"[{param.Type}] {listItemText}";

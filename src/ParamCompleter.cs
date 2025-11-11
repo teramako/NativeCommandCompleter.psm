@@ -128,8 +128,8 @@ public class ParamCompleter
     /// <param name="paramName">Parameter name</param>
     /// <param name="paramValue">Parameter value to be completed</param>
     /// <param name="position">Position of cursor in <paramref name="paramValue"/></param>.
-    /// <param name="indicator">
-    /// <see cref="CommandCompleter.LongParamIndicator"/> or <see cref="CommandCompleter.ParamIndicator"/>
+    /// <param name="optionPrefix">
+    /// <see cref="CommandCompleter.LongOptionPrefix"/> or <see cref="CommandCompleter.ShortOptionPrefix"/>
     /// </param>
     /// <param name="prefix">Prefix string of <paramref name="paramValue"/>.
     /// <para>
@@ -145,10 +145,10 @@ public class ParamCompleter
                               ReadOnlySpan<char> paramName,
                               ReadOnlySpan<char> paramValue,
                               int position,
-                              string indicator,
+                              string optionPrefix,
                               string prefix = "")
     {
-        string fullParamName = $"{indicator}{paramName}";
+        string fullParamName = $"{optionPrefix}{paramName}";
 
         if (Arguments.Length > 0)
         {
