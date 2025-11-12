@@ -10,7 +10,12 @@ public enum ArgumentType
     /// <summary>
     /// Flag parameters that do not require argument values
     /// </summary>
-    Flag = 1 << 0,
+    Flag = 0,
+
+    /// <summary>
+    /// like `nargs='?'`, e.g. `sed -i[.bk]`
+    /// </summary>
+    FlagOrValue = 1 << 0,
 
     /// <summary>
     /// Parameter for which argument values are required
@@ -18,24 +23,19 @@ public enum ArgumentType
     Required = 1 << 1,
 
     /// <summary>
-    /// like `nargs='?'`, e.g. `sed -i[.bk]`
-    /// </summary>
-    FlagOrValue = Flag | 1 << 2,
-
-    /// <summary>
     /// Parameter for which file or directory argument are required
     /// </summary>
-    File = Required | 1 << 3,
+    File = 1 << 2,
 
     /// <summary>
     /// Parameter for which directory argument are required
     /// </summary>
-    Directory = Required | 1 << 4,
+    Directory = 1 << 3,
 
     /// <summary>
     /// Parameters that require comma-separated value(s)
     /// </summary>
-    List = Required | 1 << 5,
+    List = 1 << 4,
 }
 
 public class ParamCompleter
@@ -50,6 +50,10 @@ public class ParamCompleter
     {
         Name = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
+        if (type > 0 && !type.HasFlag(ArgumentType.FlagOrValue))
+        {
+            type |= ArgumentType.Required;
+        }
         Type = type;
         LongNames = longNames;
         OldStyleNames = oldStyleNames;
@@ -207,7 +211,7 @@ public class ParamCompleter
             if (useFilenameCompletion)
             {
                 Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
-                bool onlyDirectory = Type.HasFlag(ArgumentType.Directory);
+                bool onlyDirectory = !Type.HasFlag(ArgumentType.File);
                 try
                 {
                     foreach (var result in Helper.CompleteFilename(context, true, onlyDirectory))

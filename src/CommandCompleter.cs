@@ -216,8 +216,7 @@ public class CommandCompleter(string name,
             if (param.IsMatchShortParam(tokenValue, out char paramChar, out int position))
             {
                 if (position < offsetPosition
-                    && (param.Type.HasFlag(ArgumentType.Required)
-                        || param.Type.HasFlag(ArgumentType.FlagOrValue)))
+                    && param.Type != ArgumentType.Flag)
                 {
                     var paramValue = tokenValue[(position + 1)..];
                     var paramName = tokenValue[..(position + 1)];
@@ -238,7 +237,7 @@ public class CommandCompleter(string name,
                 // If the cursor position is at the end, add the parameter even if it is not a Flag type
                 remainingParams.Add(param);
             }
-            else if (param.Type.HasFlag(ArgumentType.Flag))
+            else if (param.Type == ArgumentType.Flag)
             {
                 // -aP|c
                 //   ^ target

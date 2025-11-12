@@ -25,7 +25,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     [Parameter()]
     [Alias("t")]
-    public ArgumentType Type { get; set; }
+    public ArgumentType Type { get; set; } = ArgumentType.Flag;
 
     [Parameter(ParameterSetName = "WithArguments", Mandatory = true)]
     [Alias("a")]
@@ -41,16 +41,10 @@ public class NewParamCompleterCommand : Cmdlet
         _name = LongName.Union(OldStyleName).Union(ShortName.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
 
-        if (Type is 0)
+        if (Type == ArgumentType.Flag
+            && (Arguments.Length != 0 || ArgumentCompleter is not null))
         {
-            if (Arguments.Length == 0 && ArgumentCompleter is null)
-            {
-                Type = ArgumentType.Flag;
-            }
-            else
-            {
-                Type = ArgumentType.Required;
-            }
+            Type = ArgumentType.Required;
         }
     }
 

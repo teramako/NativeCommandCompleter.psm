@@ -165,7 +165,7 @@ public sealed class CompletionContext
                     {
                         if (param.IsMatchLongParam(paramName, out var outParamName))
                         {
-                            if (param.Type.HasFlag(ArgumentType.Flag))
+                            if (param.Type == ArgumentType.Flag)
                             {
                                 AddBoundParameter(param.Name, true);
                                 break;
@@ -196,7 +196,7 @@ public sealed class CompletionContext
                     found = param.IsMatchOldStyleParam(paramName, out var outParamName);
                     if (found)
                     {
-                        if (param.Type.HasFlag(ArgumentType.Flag))
+                        if (param.Type == ArgumentType.Flag)
                         {
                             AddBoundParameter(param.Name, true);
                         }
@@ -233,7 +233,7 @@ public sealed class CompletionContext
                         AddBoundParameter(p.Name, $"{paramName[(i + 1)..]}");
                         break;
                     }
-                    else if (p.Type.HasFlag(ArgumentType.Flag))
+                    else if (p.Type == ArgumentType.Flag)
                     {
                         AddBoundParameter(p.Name, true);
                     }
