@@ -13,10 +13,24 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-Register-NativeCompleter -Name mkdir -Parameters @(
-    New-ParamCompleter -ShortName m -LongName mode -Description $msg.mode -Type Required
-    New-ParamCompleter -ShortName p -LongName parents -Description $msg.parents
-    New-ParamCompleter -ShortName v -LongName verbose -Description $msg.verbose
-    New-ParamCompleter -LongName version -Description $msg.version
-    New-ParamCompleter -LongName help -Description $msg.help
-)
+# check whether GNU mkdir
+mkdir --version 2>/dev/null >/dev/null
+if ($LASTEXITCODE -eq 0) # GNU mkdir
+{
+    Register-NativeCompleter -Name mkdir -Parameters @(
+        New-ParamCompleter -ShortName m -LongName mode -Description $msg.mode -Type Required
+        New-ParamCompleter -ShortName p -LongName parents -Description $msg.parents
+        New-ParamCompleter -ShortName v -LongName verbose -Description $msg.verbose
+        New-ParamCompleter -LongName version -Description $msg.version
+        New-ParamCompleter -LongName help -Description $msg.help
+    )
+}
+else
+{
+    Register-NativeCompleter -Name mkdir -Parameters @(
+        New-ParamCompleter -ShortName m -Description $msg.mode -Type Required
+        New-ParamCompleter -ShortName p -Description $msg.parents
+        New-ParamCompleter -ShortName v -Description $msg.verbose
+    )
+}
+
