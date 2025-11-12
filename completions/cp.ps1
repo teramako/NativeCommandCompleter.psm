@@ -41,6 +41,13 @@ $msg = data { ConvertFrom-StringData @'
     gnu.one-file-system        = Stay on this file system
     gnu.short_Z                = Set SELinux context of copy to default type
     gnu.context                = Set SELinux context of copy to CONTEXT
+    gnu.attr_list.mode         = Permissions (including any ACL and xattr permissions)
+    gnu.attr_list.ownership    = User and group
+    gnu.attr_list.timestamps   = File timestamps
+    gnu.attr_list.links        = Hard links
+    gnu.attr_list.context      = Security context
+    gnu.attr_list.xattr        = Extended attributes
+    gnu.attr_list.all          = All attributes
     macos.recursive            = Copy directories recursively
     macos.follow-symlink       = -R: Follow symlink arguments
     macos.follow-all-symlink   = -R: Follow all symlinks
@@ -63,6 +70,15 @@ foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 cp --version 2>/dev/null >/dev/null # GNU cp
 if ($LASTEXITCODE -eq 0)
 {
+    $attr_list_arguments = @(
+        "mode`t{0}" -f $msg."gnu.attr_list.mode"
+        "ownership`t{0}" -f $msg."gnu.attr_list.ownership"
+        "timestamps`t{0}" -f $msg."gnu.attr_list.timestamps"
+        "links`t{0}" -f $msg."gnu.attr_list.links"
+        "context`t{0}" -f $msg."gnu.attr_list.context"
+        "xattr`t{0}" -f $msg."gnu.attr_list.xattr"
+        "all`t{0}" -f $msg."gnu.attr_list.all"
+    )
     Register-NativeCompleter -Name cp -Parameters @(
         New-ParamCompleter -ShortName a -LongName archive -Description $msg."gnu.archive"
         New-ParamCompleter -LongName attributes-only -Description $msg."gnu.attributes-only"
@@ -94,8 +110,8 @@ if ($LASTEXITCODE -eq 0)
         New-ParamCompleter -ShortName n -LongName no-clobber -Description $msg."gnu.no-clobber"
         New-ParamCompleter -ShortName P -LongName no-dereference -Description $msg."gnu.no-dereference"
         New-ParamCompleter -ShortName p -Description $msg."gnu.short_p"
-        New-ParamCompleter -LongName preserve -Description $msg."gnu.preserve" -Arguments 'mode','ownership','timestamps','links','all'
-        New-ParamCompleter -LongName no-preserve -Description $msg."gnu.no-preserve" -Arguments 'mode','ownership','timestamps','links','all'
+        New-ParamCompleter -LongName preserve -Description $msg."gnu.preserve" -Arguments $attr_list_arguments -Type FlagOrValue,List
+        New-ParamCompleter -LongName no-preserve -Description $msg."gnu.no-preserve" -Arguments $attr_list_arguments -Type List
         New-ParamCompleter -LongName parents -Description $msg."gnu.parents"
         New-ParamCompleter -ShortName r,R -LongName recursive -Description $msg."gnu.recursive"
         New-ParamCompleter -LongName reflink -Description $msg."gnu.reflink" -Type FlagOrValue -Arguments 'always','auto','never'
