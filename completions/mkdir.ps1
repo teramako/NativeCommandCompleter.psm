@@ -1,7 +1,7 @@
 <#
  # mkdir completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $msg = data { ConvertFrom-StringData @'
     mode    = Set file mode (as in chmod)

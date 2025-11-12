@@ -1,7 +1,7 @@
 <#
  # diff completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 Register-NativeCompleter -Name diff -Parameters @(
     New-ParamCompleter -LongName normal -Description "Output a normal diff"

@@ -1,7 +1,7 @@
 <#
  # chmod completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 Register-NativeCompleter -Name chmod -Parameters @(
     New-ParamCompleter -ShortName c -LongName changes -Description 'Like -v but report only changes'

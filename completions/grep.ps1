@@ -1,7 +1,7 @@
 <#
  # grep completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 Register-NativeCompleter -Name grep -Parameters @(
     New-ParamCompleter -ShortName A -LongName after-context -Description 'Print NUM lines of trailing context' -Type Required

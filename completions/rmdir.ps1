@@ -1,7 +1,7 @@
 <#
  # rmdir completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 Register-NativeCompleter -Name rmdir -Parameters @(
     New-ParamCompleter -LongName ignore-fail-on-non-empty -Description 'Ignore errors from non-empty directories'

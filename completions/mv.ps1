@@ -1,7 +1,7 @@
 <#
  # mv completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 if ($IsLinux)
 {

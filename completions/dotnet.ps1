@@ -1,7 +1,7 @@
 <#
  # dotnet completion
  #>
-Import-Module NativeCommandCompleter.psm
+Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $helpParam = New-ParamCompleter -OldStyleName 'h','?' -LongName help -Description 'Show command line help.'
 $interactiveParam = New-ParamCompleter -LongName interactive -Description 'Allows the command to stop and wait for user input or action'
