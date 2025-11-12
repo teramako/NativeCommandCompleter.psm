@@ -52,6 +52,9 @@ $msg = data { ConvertFrom-StringData @'
     gnu.update.older           = Files being replaced if they're older than the corresponding source file
     gnu.update.none            = Similar to the --no-clobber option, but no failure
     gnu.update.all             = All existing files in the destination being replaced (default)
+    gnu.reflink.always         = Perform a lightweight copy, where the data blocks are copied only when modified
+    gnu.reflink.auto           = Attempt lightweight copy, if failed, fall back to a standard copy
+    gnu.reflink.never          = Ensure a standard copy is performed
     macos.recursive            = Copy directories recursively
     macos.follow-symlink       = -R: Follow symlink arguments
     macos.follow-all-symlink   = -R: Follow all symlinks
@@ -123,7 +126,11 @@ if ($LASTEXITCODE -eq 0)
         New-ParamCompleter -LongName no-preserve -Description $msg."gnu.no-preserve" -Arguments $attr_list_arguments -Type List
         New-ParamCompleter -LongName parents -Description $msg."gnu.parents"
         New-ParamCompleter -ShortName r,R -LongName recursive -Description $msg."gnu.recursive"
-        New-ParamCompleter -LongName reflink -Description $msg."gnu.reflink" -Type FlagOrValue -Arguments 'always','auto','never'
+        New-ParamCompleter -LongName reflink -Description $msg."gnu.reflink" -Type FlagOrValue -Arguments @(
+            "always `t{0}" -f $msg."gnu.reflink.always" 
+            "auto `t{0}" -f $msg."gnu.reflink.auto"
+            "never `t{0}" -f  $msg."gnu.reflink.never"
+        )
         New-ParamCompleter -LongName remove-destination -Description $msg."gnu.remove-destination"
         New-ParamCompleter -LongName sparse -Description $msg."gnu.sparse" -Arguments 'always','auto','never'
         New-ParamCompleter -ShortName s -LongName symbolic-link -Description $msg."gnu.symbolic-link"
