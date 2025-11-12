@@ -3,36 +3,63 @@
  #>
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
+$msg = data { ConvertFrom-StringData @'
+    backup                 = Backup each existing destination file
+    backup.none            = Never make backups
+    backup.numbered        = Make numbered backups
+    backup.existing        = Numbered backups if any exist, else simple
+    backup.simple          = Make simple backups
+    short_backup           = Backup each existing destination file
+    force                  = Don't prompt to overwrite
+    interactive            = Prompt to overwrite
+    no-clobber             = Don't overwrite existing
+    strip-trailing-slashes = Remove trailing '/' from source args
+    suffix                 = Override default backup suffix
+    target-directory       = Move all source args into DIR
+    no-target-directory    = Treat DEST as a normal file
+    update                 = Control which existing files are updated
+    update.all             = All existing files in the destination being replaced.
+    update.none            = Similar to the --no-clobber option, in that no files in the destination are replaced, but also skipped files do not induce a failure.
+    update.older           = (default) Files being replaced if they're older than the corresponding source file.
+    short_update-older     = Equivalent to --update[=older], files being replaced if they're older than the corresponding source file.
+    verbose                = Print filenames as it goes
+    context                = Set SELinux context to default
+    help                   = Print help and exit
+    version                = Print version and exit
+'@ }
+Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
+foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+
 if ($IsLinux)
 {
     Register-NativeCompleter -Name mv -Parameters @(
-        New-ParamCompleter -LongName backup -Description "Backup each existing destination file" -Arguments @(
-            "none `tNever make backups"
-            "off `tNever make backups"
-            "numbered `tMake numbered backups"
-            "t `tMake numbered backups"
-            "existing `tNumbered backups if any exist, else simple"
-            "nil `tNumbered backups if any exist, else simple"
-            "simple `tMake simple backups"
-            "never `tMake simple backups"
+        New-ParamCompleter -LongName backup -Description $msg."backup" -Arguments @(
+            "none `t{0}" -f $msg."backup.none"
+            "off `t{0}" -f $msg."backup.none"
+            "numbered `t{0}" -f $msg."backup.numbered"
+            "t `t{0}" -f $msg."backup.numbered"
+            "existing `t{0}" -f $msg."backup.existing"
+            "nil `t{0}" -f $msg."backup.existing"
+            "simple `t{0}" -f $msg."backup.simple"
+            "never `t{0}" -f $msg."backup.simple"
         )
-        New-ParamCompleter -ShortName b -Description "Backup each existing destination file"
-        New-ParamCompleter -ShortName f -LongName force -Description "Don't prompt to overwrite"
-        New-ParamCompleter -ShortName i -LongName interactive -Description "Prompt to overwrite"
-        New-ParamCompleter -ShortName n -LongName no-clobber -Description "Don't overwrite existing"
-        New-ParamCompleter -LongName strip-trailing-slashes -Description "Remove trailing '/' from source args"
-        New-ParamCompleter -ShortName S -LongName suffix -Description "Override default backup suffix" -Type Required
-        New-ParamCompleter -ShortName t -LongName target-directory -Description "Move all source args into DIR" -Type Directory
-        New-ParamCompleter -ShortName T -LongName no-target-directory -Description "Treat DEST as a normal file"
-        New-ParamCompleter -LongName update -Description "Control which existing files are updated" -Type FlagOrValue -Arguments @(
-            "all `tAll existing files in the destination being replaced."
-            "none `tSimilar to the --no-clobber option, in that no files in the destination are replaced, but also skipped files do not induce a failure."
-            "older `t(default) Files being replaced if they're older than the corresponding source file."
+        New-ParamCompleter -ShortName b -Description $msg."short_backup"
+        New-ParamCompleter -ShortName f -LongName force -Description $msg."force"
+        New-ParamCompleter -ShortName i -LongName interactive -Description $msg."interactive"
+        New-ParamCompleter -ShortName n -LongName no-clobber -Description $msg."no-clobber"
+        New-ParamCompleter -LongName strip-trailing-slashes -Description $msg."strip-trailing-slashes"
+        New-ParamCompleter -ShortName S -LongName suffix -Type Required -Description $msg."suffix"
+        New-ParamCompleter -ShortName t -LongName target-directory -Type Directory -Description $msg."target-directory"
+        New-ParamCompleter -ShortName T -LongName no-target-directory -Description $msg."no-target-directory"
+        New-ParamCompleter -LongName update -Description $msg."update" -Type FlagOrValue -Arguments @(
+            "all `t{0}" -f $msg."update.all"
+            "none `t{0}" -f $msg."update.none"
+            "older `t{0}" -f $msg."update.older"
         )
-        New-ParamCompleter -ShortName u -Description "Equivalent to --update[=older], files being replaced if they're older than the corresponding source file."
-        New-ParamCompleter -ShortName v -LongName verbose -Description "Print filenames as it goes"
-        New-ParamCompleter -ShortName Z -LongName context -Description "Set SELinux context to default"
-        New-ParamCompleter -LongName help -Description "Print help and exit"
-        New-ParamCompleter -LongName version -Description "Print version and exit"
+        New-ParamCompleter -ShortName u -Description $msg."short_update-older"
+        New-ParamCompleter -ShortName v -LongName verbose -Description $msg."verbose"
+        New-ParamCompleter -ShortName Z -LongName context -Description $msg."context"
+        New-ParamCompleter -LongName help -Description $msg."help"
+        New-ParamCompleter -LongName version -Description $msg."version"
     )
 }
