@@ -13,7 +13,7 @@ $msg = data { ConvertFrom-StringData @'
     gnu.backup.simple          = Make simple backups
     gnu.short_backup           = Make backup of each existing destination file
     gnu.copy-contents          = Copy contents of special files when recursive
-    gnu.short_d                = Same as --no-dereference --preserve=link
+    gnu.short_d                = Same as --no-dereference --preserve=links
     gnu.force                  = Do not prompt before overwriting
     gnu.interactive            = Prompt before overwrite
     gnu.short_H                = Follow command-line symbolic links
