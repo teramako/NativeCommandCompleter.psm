@@ -21,6 +21,7 @@ $msg = data { ConvertFrom-StringData @'
     gnu.strip-trailing-slashes = Remove trailing slashes from source
     gnu.suffix                 = Backup suffix
     gnu.target-directory       = Target directory
+    gnu.short_update           = Equivalent to --update[=older]
     gnu.update                 = Do not overwrite newer files
     gnu.verbose                = Verbose mode
     gnu.help                   = Display help and exit
@@ -48,6 +49,9 @@ $msg = data { ConvertFrom-StringData @'
     gnu.attr_list.context      = Security context
     gnu.attr_list.xattr        = Extended attributes
     gnu.attr_list.all          = All attributes
+    gnu.update.older           = Files being replaced if they're older than the corresponding source file
+    gnu.update.none            = Similar to the --no-clobber option, but no failure
+    gnu.update.all             = All existing files in the destination being replaced (default)
     macos.recursive            = Copy directories recursively
     macos.follow-symlink       = -R: Follow symlink arguments
     macos.follow-all-symlink   = -R: Follow all symlinks
@@ -102,7 +106,12 @@ if ($LASTEXITCODE -eq 0)
         New-ParamCompleter -LongName strip-trailing-slashes -Description $msg."gnu.strip-trailing-slashes"
         New-ParamCompleter -ShortName S -LongName suffix -Description $msg."gnu.suffix" -Type Required
         New-ParamCompleter -ShortName t -LongName target-directory -Description $msg."gnu.target-directory" -Type Directory
-        New-ParamCompleter -ShortName u -LongName update -Description $msg."gnu.update"
+        New-ParamCompleter -ShortName u -Description $msg."gnu.short_update"
+        New-ParamCompleter -LongName update -Description $msg."gnu.update" -Type FlagOrValue -Arguments @(
+            "older `t{0}" -f $msg."gnu.update.older"
+            "none `t{0}" -f $msg."gnu.update.none"
+            "all `t{0}" -f $msg."gnu.update.all"
+        )
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg."gnu.verbose"
         New-ParamCompleter -LongName help -Description $msg."gnu.help"
         New-ParamCompleter -LongName version -Description $msg."gnu.version"
