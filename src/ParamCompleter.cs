@@ -11,22 +11,31 @@ public enum ArgumentType
     /// Flag parameters that do not require argument values
     /// </summary>
     Flag = 1 << 0,
+
     /// <summary>
     /// Parameter for which argument values are required
     /// </summary>
     Required = 1 << 1,
+
     /// <summary>
     /// like `nargs='?'`, e.g. `sed -i[.bk]`
     /// </summary>
     FlagOrValue = Flag | 1 << 2,
+
     /// <summary>
     /// Parameter for which file or directory argument are required
     /// </summary>
     File = Required | 1 << 3,
+
     /// <summary>
     /// Parameter for which directory argument are required
     /// </summary>
     Directory = Required | 1 << 4,
+
+    /// <summary>
+    /// Parameters that require comma-separated value(s)
+    /// </summary>
+    List = Required | 1 << 5,
 }
 
 public class ParamCompleter
@@ -149,6 +158,29 @@ public class ParamCompleter
                               string prefix = "")
     {
         string fullParamName = $"{optionPrefix}{paramName}";
+
+        if (Type.HasFlag(ArgumentType.List))
+        {
+            Debug($"CompleteValue[List]: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
+            var commaCount = paramValue.Count(',');
+            if (commaCount > 0)
+            {
+                Span<Range> ranges = new Range[commaCount + 1];
+                paramValue.Split(ranges, ',', StringSplitOptions.None);
+                for (var i = 0; i <= commaCount; i++)
+                {
+                    var r = ranges[i];
+                    if (position <= r.End.Value)
+                    {
+                        paramValue = paramValue[r];
+                        position = position - r.Start.Value;
+                        prefix = string.Empty;
+                        break;
+                    }
+                }
+            }
+            Debug($"CompleteValue[List]: result = {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
+        }
 
         if (Arguments.Length > 0)
         {
