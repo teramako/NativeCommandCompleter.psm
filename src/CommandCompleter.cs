@@ -218,6 +218,10 @@ public class CommandCompleter(string name,
                 if (position < offsetPosition
                     && param.Type != ArgumentType.Flag)
                 {
+                    // -ab|Value
+                    //   ^ found parameter
+                    // If the cursor position is after the parameter found and the parameter can take arguments,
+                    // perform parameter argument completion.
                     var paramValue = tokenValue[(position + 1)..];
                     var paramName = tokenValue[..(position + 1)];
                     offsetPosition -= position + 1;
@@ -232,16 +236,16 @@ public class CommandCompleter(string name,
             }
             else if (offsetPosition == tokenValue.Length)
             {
-                // -aPc|
-                //   ^ target
+                // -ab|
+                //    ^ cursor
                 // If the cursor position is at the end, add the parameter even if it is not a Flag type
                 remainingParams.Add(param);
             }
             else if (param.Type == ArgumentType.Flag)
             {
-                // -aP|c
-                //   ^ target
-                // Add only the parameter type is Flag
+                // -a|b
+                //   ^ cursor
+                // If the cursor position is not at the end, add only the parameter type is Flag
                 remainingParams.Add(param);
             }
         }

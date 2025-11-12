@@ -148,6 +148,8 @@ public sealed class CompletionContext
                 var separatorIndex = tokenValue.IndexOf(CommandCompleter.ValueSeparator);
                 if (separatorIndex > 0)
                 {
+                    // In case the token contains both parameter name and value,
+                    // like `--longParam=Value`.
                     var paramValue = tokenValue[(separatorIndex + 1)..];
                     paramName = tokenValue[optionPrefix.Length..separatorIndex];
                     foreach (var param in CommandCompleter.Params)
@@ -172,12 +174,16 @@ public sealed class CompletionContext
                             }
                             else if (argumentIndex < argumentsCount - 1)
                             {
+                                // `--longParam value ...|`
+                                //                       ^ cursor
                                 argumentIndex++;
                                 AddBoundParameter(param.Name, Arguments[argumentIndex].Value);
                                 break;
                             }
                             else
                             {
+                                // `--longParam |`
+                                //              ^ cursor
                                 Debug($"Set pending: {tokenValue}");
                                 _pendingParam = new(param, $"{outParamName}", optionPrefix);
                             }
@@ -202,11 +208,15 @@ public sealed class CompletionContext
                         }
                         else if (argumentIndex < argumentsCount - 1)
                         {
+                            // `-oldStyleParam value ...|`
+                            //                          ^ cursor
                             argumentIndex++;
                             AddBoundParameter(param.Name, Arguments[argumentIndex].Value);
                         }
                         else
                         {
+                            // `-oldStyleParam |`
+                            //                 ^ cursor
                             _pendingParam = new(param, $"{outParamName}", optionPrefix);
                         }
                         break;
@@ -241,11 +251,19 @@ public sealed class CompletionContext
                     {
                         if (argumentIndex < argumentsCount - 1)
                         {
+                            // `-abc Value ... |`
+                            //      \          ^ cursor 
+                            //       i
+                            // the argument of `c` param is supplied
                             argumentIndex++;
                             AddBoundParameter(p.Name, Arguments[argumentIndex].Value);
                         }
                         else
                         {
+                            // `-abc  |`
+                            //      \ ^ cursor 
+                            //       i
+                            // the argument of `c` param is NOT supplied
                             _pendingParam = new(p, $"{c}", optionPrefix);
                         }
                         break;
