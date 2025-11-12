@@ -55,6 +55,9 @@ $msg = data { ConvertFrom-StringData @'
     gnu.reflink.always         = Perform a lightweight copy, where the data blocks are copied only when modified
     gnu.reflink.auto           = Attempt lightweight copy, if failed, fall back to a standard copy
     gnu.reflink.never          = Ensure a standard copy is performed
+    gnu.sparse.always          = Create a sparse DEST file whenever the SOURCE file contains a long enough sequence of zero bytes
+    gnu.sparse.auto            = Detected by a crude heuristic and the corresponding DEST file is made sparse as well
+    gnu.sparse.never           = Inhibit creation of sparse files
     macos.recursive            = Copy directories recursively
     macos.follow-symlink       = -R: Follow symlink arguments
     macos.follow-all-symlink   = -R: Follow all symlinks
@@ -132,7 +135,11 @@ if ($LASTEXITCODE -eq 0)
             "never `t{0}" -f  $msg."gnu.reflink.never"
         )
         New-ParamCompleter -LongName remove-destination -Description $msg."gnu.remove-destination"
-        New-ParamCompleter -LongName sparse -Description $msg."gnu.sparse" -Arguments 'always','auto','never'
+        New-ParamCompleter -LongName sparse -Description $msg."gnu.sparse" -Arguments @(
+            "always `t{0}" -f $msg."gnu.sparse.always" 
+            "auto `t{0}" -f $msg."gnu.sparse.auto"
+            "never `t{0}" -f  $msg."gnu.sparse.never"
+        )
         New-ParamCompleter -ShortName s -LongName symbolic-link -Description $msg."gnu.symbolic-link"
         New-ParamCompleter -ShortName T -LongName no-target-directory -Description $msg."gnu.no-target-directory"
         New-ParamCompleter -ShortName x -LongName one-file-system -Description $msg."gnu.one-file-system"
