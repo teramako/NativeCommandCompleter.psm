@@ -167,7 +167,8 @@ public sealed class CompletionContext
                     {
                         if (param.IsMatchLongParam(paramName, out var outParamName))
                         {
-                            if (param.Type == ArgumentType.Flag)
+                            if (param.Type == ArgumentType.Flag
+                                || param.Type.HasFlag(ArgumentType.FlagOrValue))
                             {
                                 AddBoundParameter(param.Name, true);
                                 break;
