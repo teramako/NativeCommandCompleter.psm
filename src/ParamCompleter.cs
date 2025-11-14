@@ -214,9 +214,9 @@ public class ParamCompleter
                 bool onlyDirectory = !Type.HasFlag(ArgumentType.File);
                 try
                 {
-                    foreach (var result in Helper.CompleteFilename(context, true, onlyDirectory))
+                    foreach (var result in Helper.CompleteFilename($"{paramValue}", context.CurrentDirectory.Path, true, onlyDirectory))
                     {
-                        results.Add(result);
+                        results.Add(result.SetPrefix(prefix));
                     }
                 }
                 catch (Exception e)
