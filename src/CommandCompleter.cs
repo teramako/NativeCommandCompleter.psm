@@ -208,30 +208,32 @@ public class CommandCompleter(string name,
                                      int offsetPosition)
     {
         Collection<ParamCompleter> remainingParams = [];
+        (ParamCompleter? Completer, char ParamChar, int Position) pending = (null, default, 0);
         //
         // attempt to complete parameter's value, and store parameter as candidates when not matched
         //
+        Debug($"ShortParam {{ tokenValue='{tokenValue}', position={offsetPosition} }}");
         foreach (var param in Params.Where(p => p.ShortNames.Length > 0))
         {
             if (param.IsMatchShortParam(tokenValue, out char paramChar, out int position))
             {
+                Debug($"ShortParam Matched {{ '{paramChar}', {position} }}");
                 if (position < offsetPosition
                     && param.Type != ArgumentType.Flag)
                 {
                     // -ab|Value
                     //   ^ found parameter
                     // If the cursor position is after the parameter found and the parameter can take arguments,
-                    // perform parameter argument completion.
-                    var paramValue = tokenValue[(position + 1)..];
-                    var paramName = tokenValue[..(position + 1)];
-                    offsetPosition -= position + 1;
-                    return param.CompleteValue(results,
-                                               context,
-                                               $"{paramChar} ",
-                                               paramValue,
-                                               offsetPosition,
-                                               ShortOptionPrefix,
-                                               $"{ShortOptionPrefix}{paramName}");
+                    if (pending.Completer is null)
+                    {
+                        pending = (param, paramChar, position + 1);
+                        continue;
+                    }
+
+                    if (pending.Position > position + 1)
+                    {
+                        pending = (param, paramChar, position + 1);
+                    }
                 }
             }
             else if (offsetPosition == tokenValue.Length)
@@ -248,6 +250,16 @@ public class CommandCompleter(string name,
                 // If the cursor position is not at the end, add only the parameter type is Flag
                 remainingParams.Add(param);
             }
+        }
+        if (pending.Completer is not null)
+        {
+            return pending.Completer.CompleteValue(results,
+                                                   context,
+                                                   $"{pending.ParamChar}",
+                                                   tokenValue[pending.Position..],
+                                                   offsetPosition - pending.Position,
+                                                   ShortOptionPrefix,
+                                                   $"{ShortOptionPrefix}{tokenValue[..pending.Position]}");
         }
 
         //
