@@ -35,6 +35,12 @@ public static class Helper
                                                               ScriptBlock? filter = null)
     {
         bool isStartsWithTilde = false;
+        char quote = default;
+        if (!string.IsNullOrEmpty(pathToComplete) && pathToComplete[0] is '\'' or '"')
+        {
+            quote = pathToComplete[0];
+            pathToComplete = pathToComplete.Replace($"{quote}", string.Empty);
+        }
         bool isAbsolutePath = Path.IsPathFullyQualified(pathToComplete);
         string homeDir = string.Empty;
         if (string.IsNullOrEmpty(pathToComplete))
@@ -127,7 +133,11 @@ public static class Helper
                 text = file.FullName;
             }
 
-            if (text.Contains(' '))
+            if (quote > 0)
+            {
+                text = $"{quote}{text}{quote}";
+            }
+            else if (text.Contains(' '))
             {
                 text = $"'{text}'";
             }
