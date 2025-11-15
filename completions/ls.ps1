@@ -78,7 +78,7 @@ Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyCon
 foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 # check whether GNU ls
-ls --version 2>/dev/null >/dev/null
+ls --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU ls
 {
     $when_arguments = "always", "auto", "never"

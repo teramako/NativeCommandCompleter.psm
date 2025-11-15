@@ -14,7 +14,7 @@ Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyCon
 foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 # check whether GNU mkdir
-mkdir --version 2>/dev/null >/dev/null
+mkdir --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU mkdir
 {
     Register-NativeCompleter -Name mkdir -Parameters @(

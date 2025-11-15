@@ -77,7 +77,7 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-cp --version 2>/dev/null >/dev/null # GNU cp
+cp --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0)
 {
     $attr_list_arguments = @(

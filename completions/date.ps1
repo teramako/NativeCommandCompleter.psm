@@ -27,7 +27,7 @@ Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyCon
 foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 # check whether GNU mkdir
-date --version 2>/dev/null >/dev/null
+date --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU mkdir
 {
     Register-NativeCompleter -Name date -Description 'display or set date and time' -Parameters @(
