@@ -203,6 +203,27 @@ public class ParamCompleter
             return true;
         }
 
+        // | tokenValue  | WordToComplete | prefix | paramValue | Note
+        // |:------------|:---------------|:-------|:-----------|:-------------------------------------------------
+        // | `-f`        | `-f`           | `-f`   | ``         |
+        // | `-f./`      | `./`           | `-f`   | `./`       | WordToComplete is set incorrectly
+        // | `-fFoo.txt` | `.txt`         | `-f`   | `Foo.txt`  | WordToComplete is set incorrectly
+        // | `-f'./'`    | `-f./`         | `-f`   | `'./'`     |
+        //
+        // Leading hyphen(`-`) and contains dot(`.`) value is splitted to two token, and words to be completed is set incorrectly.
+        // See: https://github.com/PowerShell/PowerShell/issues/6291
+        //
+        // Quoting completion text for proper handling.
+        bool shouldBeQuoted = !string.IsNullOrEmpty(prefix) && optionPrefix == "-";
+        if (shouldBeQuoted && !context.WordToComplete.StartsWith('-'))
+        {
+            // As a workaround, fix to quoted value
+            var cv = new CompletionValue($"{paramValue}", "Fix to quoted");
+            cv.QuoteText();
+            results.Add(cv);
+            return true;
+        }
+
         bool useFilenameCompletion = Type.HasFlag(ArgumentType.File)
                                      || Type.HasFlag(ArgumentType.Directory);
 
@@ -210,12 +231,16 @@ public class ParamCompleter
         {
             if (useFilenameCompletion)
             {
-                Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
+                Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}, prefix: '{prefix}' }}");
                 bool onlyDirectory = !Type.HasFlag(ArgumentType.File);
                 try
                 {
                     foreach (var result in Helper.CompleteFilename($"{paramValue}", context.CurrentDirectory.Path, true, onlyDirectory))
                     {
+                        if (shouldBeQuoted)
+                        {
+                            result.QuoteText();
+                        }
                         results.Add(result.SetPrefix(prefix));
                     }
                 }
@@ -243,6 +268,10 @@ public class ParamCompleter
         {
             foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
             {
+                if (shouldBeQuoted)
+                {
+                    item.QuoteText();
+                }
                 results.Add(item.SetTooltipPrefix($"[{fullParamName}] ").SetPrefix(prefix));
             }
         }

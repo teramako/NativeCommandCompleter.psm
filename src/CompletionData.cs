@@ -87,6 +87,17 @@ public abstract class CompletionData
 
         return text.AsSpan().StartsWith(value, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
+
+    public void QuoteText(char q = '\'')
+    {
+        var value = text.AsSpan();
+        if (!value.IsEmpty && value[0] is '\'' or '"')
+        {
+            return;
+        }
+        var trimedValue = value.TrimEnd();
+        text = $"{q}{trimedValue}{q}{value[trimedValue.Length..]}";
+    }
 }
 
 /// <summary>
