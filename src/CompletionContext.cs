@@ -101,8 +101,16 @@ public sealed class CompletionContext
             var token = new Token(elm, cursorPosition);
             if (elm.Extent.StartOffset == prevEndOffset && prevToken is not null)
             {
+                // Merge tokens that have been split into separate tokens into a single token.
+                // e.g.) `-i.bk` -> splitted to `-i` and `.bk`
+                // See: https://github.com/PowerShell/PowerShell/issues/6291
                 token = prevToken;
                 token.Append(elm, cursorPosition);
+                if (token.IsTarget)
+                {
+                    context.CurrentToken = token;
+                    context._arguments.RemoveAt(context._arguments.Count - 1);
+                }
             }
             else if (elm.Extent.EndOffset < cursorPosition)
             {
