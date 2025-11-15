@@ -21,7 +21,7 @@ $msg = data { ConvertFrom-StringData @'
     version         = Display version and exit
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 if ($IsLinux)
 {

@@ -14,7 +14,7 @@ $msg = data { ConvertFrom-StringData @'
     version         = Display rm version
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 Register-NativeCompleter -Name rm -Parameters @(
     New-ParamCompleter -ShortName d -LongName directory -Description $msg."directory"

@@ -54,7 +54,7 @@ $msg = data { ConvertFrom-StringData @'
     no-group-separator    = Use empty string as a group separator
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 Register-NativeCompleter -Name grep -Parameters @(
     New-ParamCompleter -ShortName A -LongName after-context -Type Required -Description $msg."after-context"

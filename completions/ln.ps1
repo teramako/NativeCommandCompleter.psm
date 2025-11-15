@@ -26,7 +26,7 @@ $msg = data { ConvertFrom-StringData @'
     version             = Output version information and exit
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 Register-NativeCompleter -Name ln -Description 'make links between files' -Parameters @(
     New-ParamCompleter -LongName backup -Description $msg."backup" -Type FlagOrValue -Arguments @(

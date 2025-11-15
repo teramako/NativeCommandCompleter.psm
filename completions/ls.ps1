@@ -75,7 +75,7 @@ $msg = data { ConvertFrom-StringData @'
     gnu.version                  = Display version and exit
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 # check whether GNU ls
 ls --version 2>&1 | Out-Null

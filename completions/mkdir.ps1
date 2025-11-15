@@ -11,7 +11,7 @@ $msg = data { ConvertFrom-StringData @'
     help    = Display help
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 # check whether GNU mkdir
 mkdir --version 2>&1 | Out-Null

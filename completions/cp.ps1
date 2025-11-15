@@ -75,7 +75,7 @@ $msg = data { ConvertFrom-StringData @'
     macos.symlink              = Symlink instead of copying
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localeMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 cp --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0)
