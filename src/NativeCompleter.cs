@@ -119,7 +119,7 @@ public static class NativeCompleter
 
         if (commandCompleter is not null)
         {
-            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition, cwd);
+            var context = CompletionContext.Create(commandCompleter, wordToComplete, commandAst, cursorPosition, cwd);
             return context.Complete();
         }
 

@@ -19,6 +19,11 @@ public sealed class CompletionContext
     public CommandCompleter CommandCompleter { get; }
 
     /// <summary>
+    /// Completion target words supplied from PowerShell-Core
+    /// </summary>
+    public string WordToComplete { get; }
+
+    /// <summary>
     /// Abstract Syntax Tree of the command
     /// </summary>
     public CommandAst CommandAst { get; }
@@ -64,10 +69,11 @@ public sealed class CompletionContext
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
 
-    private CompletionContext(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
+        WordToComplete = wordToComplete;
         CommandAst = ast;
         CursorPosition = cursorPosition;
         CurrentDirectory = cwd;
@@ -76,6 +82,7 @@ public sealed class CompletionContext
     {
         Name = $"{parentContext.Name}-{commandCompleter.Name}";
         CommandCompleter = commandCompleter;
+        WordToComplete = parentContext.WordToComplete;
         CommandAst = parentContext.CommandAst;
         CursorPosition = parentContext.CursorPosition;
         CurrentDirectory = parentContext.CurrentDirectory;
@@ -89,9 +96,9 @@ public sealed class CompletionContext
         CurrentToken = parentContext.CurrentToken;
     }
 
-    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst ast, int cursorPosition, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, ast, cursorPosition, cwd);
+        CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, cwd);
         NativeCompleter.Messages.Add($"[{context.Name}] Create CompletionContext");
         int prevEndOffset = -1;
         Token? prevToken = null;
