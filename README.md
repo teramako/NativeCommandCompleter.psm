@@ -64,3 +64,21 @@ The target file (`{command-name}.ps1`) is searched and read during completion dy
 Once loaded and registered, the completion code is cached and will not be reloaded until it is unregistered.
 
 If not specified, the `{module directory}/completions` directory is set automatically.
+
+## 📚 Write completion scripts
+
+### Cmdlets
+
+| Cmdlet                       | Description                                    |
+|:-----------------------------|:-----------------------------------------------|
+| [New-CommandCompleter]       | Create a CommandCompleter object.              |
+| [New-ParamCompleter]         | Create a parameter's completer.                |
+| [Register-NativeCompleter]   | Create and register a CommandCompleter object. |
+| [Unregister-NativeCompleter] | Unregister the command completer.              |
+
+[New-CommandCompleter]: docs/NativeCommandCompleter.psm/New-CommandCompleter.md "Cmdlet - New-CommandCompleter"
+[New-ParamCompleter]: docs/NativeCommandCompleter.psm/New-ParamCompleter.md "Cmdlet - New-ParamCompleter"
+[Register-NativeCompleter]: docs/NativeCommandCompleter.psm/Register-NativeCompleter.md "Cmdlet - Register-NativeCompleter"
+[Unregister-NativeCompleter]: docs/NativeCommandCompleter.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
+
+Write the definition of command completion using the Cmdlets above.
