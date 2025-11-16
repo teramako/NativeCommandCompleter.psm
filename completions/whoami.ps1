@@ -24,8 +24,7 @@ foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key
 
 if ($IsWindows)
 {
-    $completer = [MT.Comp.CommandCompleter]::new('whoami', 'Show information for the account currently logged on', '//', '/', ':');
-    $params = @(
+    Register-NativeCompleter -Name whoami -Style TraditionalWindows -Description 'print effective user name' -Parameters @(
         New-ParamCompleter -OldStyleName UPN -Description $msg.upn
         New-ParamCompleter -OldStyleName FQDN -Description $msg.fqdn
         New-ParamCompleter -OldStyleName USER -Description $msg.user
@@ -38,12 +37,6 @@ if ($IsWindows)
         New-ParamCompleter -OldStyleName NH -Description $msg.nh
         New-ParamCompleter -OldStyleName ? -Description $msg.help
     ) 
-    foreach ($param in $params)
-    {
-        $completer.Params.Add($param)
-    }
-
-    $completer | Register-NativeCompleter
 }
 else
 {
