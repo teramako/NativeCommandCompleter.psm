@@ -6,40 +6,44 @@ namespace MT.Comp.Commands;
 [OutputType(typeof(ParamCompleter))]
 public class NewParamCompleterCommand : Cmdlet
 {
-    [Parameter()]
+    private const string MessageBaseName = "MT.Comp.resources.ParamCompleter";
+
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "LongName")]
     [Alias("l")]
     public string[] LongName { get; set; } = [];
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ShortName")]
     [Alias("s")]
     public char[] ShortName { get; set; } = [];
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "OldStyleName")]
     [Alias("o")]
     public string[] OldStyleName { get; set; } = [];
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Description")]
     [Alias("d")]
     [AllowEmptyString]
     public string Description { get; set; } = string.Empty;
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentType")]
     [Alias("t")]
     public ArgumentType Type { get; set; } = ArgumentType.Flag;
 
-    [Parameter(ParameterSetName = "WithArguments", Mandatory = true)]
+    [Parameter(ParameterSetName = "WithArguments", Mandatory = true,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
     [Alias("a")]
     public string[] Arguments { get; set; } = [];
 
-    [Parameter(ParameterSetName = "WithArgumentCompleter", Mandatory = true)]
+    [Parameter(ParameterSetName = "WithArgumentCompleter", Mandatory = true,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
     private string _name = string.Empty;
 
     protected override void BeginProcessing()
     {
-        _name = LongName.Union(OldStyleName).Union(ShortName.Select(c => $"{c}")).First()
-            ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
+        _name = LongName.Union(OldStyleName).Union(ShortName.Select(c => $"{c}")).FirstOrDefault()
+            ?? throw new ArgumentException(GetResourceString(MessageBaseName, "Error.NotSpecifiedAnyParameterNames"));
 
         if (Type == ArgumentType.Flag
             && (Arguments.Length != 0 || ArgumentCompleter is not null))
