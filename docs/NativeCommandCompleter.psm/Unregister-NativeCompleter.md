@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/10/2025
+ms.date: 11/16/2025
 PlatyPS schema version: 2024-05-01
 title: Unregister-NativeCompleter
 ---
@@ -20,8 +20,10 @@ Unregister the command completer.
 ### __AllParameterSets
 
 ```
-Unregister-NativeCompleter [-Name] <string>
+Unregister-NativeCompleter [-Name] <string> [<CommonParameters>]
 ```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -86,4 +88,3 @@ None of output
 ## RELATED LINKS
 
 - [Register-NativeCompleter](./Register-NativeCompleter.md)
-

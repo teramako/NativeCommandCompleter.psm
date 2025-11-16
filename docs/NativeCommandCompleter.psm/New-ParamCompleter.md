@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/10/2025
+ms.date: 11/16/2025
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
 ---
@@ -21,7 +21,7 @@ Create a parameter's completer.
 
 ```
 New-ParamCompleter [-LongName <string[]>] [-ShortName <char[]>] [-OldStyleName <string[]>]
- [-Description <string>] [-Type <ArgumentType>]
+ [-Description <string>] [-Type <ArgumentType>] [<CommonParameters>]
 ```
 
 ### WithArguments
@@ -37,6 +37,8 @@ New-ParamCompleter -Arguments <string[]> [-LongName <string[]>] [-ShortName <cha
 New-ParamCompleter -ArgumentCompleter <scriptblock> [-LongName <string[]>] [-ShortName <char[]>]
  [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>]
 ```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -234,6 +236,7 @@ Parametesr's type for completion.
 - **`Directory`**: Performs directory path completion.
                (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
 
+- **`List`**: Comma-separated value(s) are accepted.
 
 ```yaml
 Type: MT.Comp.ArgumentType
@@ -274,4 +277,3 @@ Created a parameter completer object.
 
 - [Register-NativeCompleter](./Register-NativeCompleter.md)
 - [New-CommandCompleter](./New-CommandCompleter.md)
-

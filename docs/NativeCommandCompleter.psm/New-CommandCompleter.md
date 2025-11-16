@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/10/2025
+ms.date: 11/16/2025
 PlatyPS schema version: 2024-05-01
 title: New-CommandCompleter
 ---
@@ -20,9 +20,11 @@ Create a CommandCompleter object.
 ### __AllParameterSets
 
 ```
-New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Parameters <psobject[]>]
+New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Parameters <ParamCompleter[]>]
  [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>]
 ```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -134,7 +136,7 @@ HelpMessage: ''
 List of parameters that can be used in the command or subcommand.
 
 ```yaml
-Type: System.Management.Automation.PSObject[]
+Type: MT.Comp.ParamCompleter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -194,4 +196,3 @@ Created command completer.
 
 - [Register-NativeCommandCompleter](./Register-NativeCommandCompleter.md)
 - [New-ParamCompleter](./New-ParamCompleter.md)
-
