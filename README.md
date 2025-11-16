@@ -82,3 +82,46 @@ If not specified, the `{module directory}/completions` directory is set automati
 [Unregister-NativeCompleter]: docs/NativeCommandCompleter.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
 
 Write the definition of command completion using the Cmdlets above.
+
+### Examples
+
+#### Example 1. Define basic options
+
+Edit: `${env:PS_COMPLETE_PATH}`/completions/example1.ps1
+
+```powershell
+Register-NativeCompleter -Name example1 -Parameters @(
+    # [-h, --help] -- Flag
+    New-ParamCompleter -ShortName h -LongName help -Description 'Display help'
+
+    # [-v, --version] -- Flag
+    New-ParamCompleter -ShortName v -LongName version -Description 'Display version'
+
+    # [--type {typeA|typeB|typeC}] -- Options that require an argument
+    New-ParamCompleter -LongName type -Description 'Select type' -Arguments @(
+        "typeA `tDescription A",
+        "typeB `tDescription B",
+        "typeC `tDescription C"
+    )
+)
+```
+
+#### Example 2. Define subcommands
+
+Edit: `${env:PS_COMPLETE_PATH}`/completions/example2.ps1
+
+```powershell
+Register-NativeCompleter -Name example2 -SubCommands @(
+    # example2 add ...
+    New-CommandCompleter -Name add -Description -ArgumentCompleter {
+        param([int] $position, [int] $argumentIndex)
+        # ...
+    }
+
+    # example2 list ...
+    New-CommandCompleter -Name list -Description -Parameters @(
+        # [-a, --all] -- Flag
+        New-ParamCompleter -ShortName a -LongName all -Description 'Show all'
+    )
+)
+```
