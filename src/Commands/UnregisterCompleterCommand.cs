@@ -6,7 +6,10 @@ namespace MT.Comp.Commands;
 [OutputType(typeof(void))]
 public class UnregisterCompleterCommand : Cmdlet
 {
-    [Parameter(Mandatory = true, Position = 0)]
+    private const string MessageBaseName = "MT.Comp.resources.CommandCompleter";
+
+    [Parameter(Mandatory = true, Position = 0,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Unregister.Name")]
     [SupportsWildcards]
     public string Name { get; set; } = string.Empty;
 
@@ -18,7 +21,7 @@ public class UnregisterCompleterCommand : Cmdlet
             if (pattern.IsMatch(key))
             {
                 NativeCompleter._completers.Remove(key);
-                WriteVerbose($"Removed: {key}");
+                WriteVerbose(string.Format(GetResourceString(MessageBaseName, "Message.Removed"), key));
             }
         }
     }

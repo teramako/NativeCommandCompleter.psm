@@ -9,27 +9,33 @@ public class RegisterCompleterCommand : CommandCompleterBase
     private const string ParameterSetNew = "New";
     private const string ParameterSetInput = "Input";
 
-    [Parameter(ParameterSetName = ParameterSetNew, Mandatory = true, Position = 0)]
+    [Parameter(ParameterSetName = ParameterSetNew, Mandatory = true, Position = 0,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Register.Name")]
     [Alias("n")]
     public override string Name { get; set; } = string.Empty;
 
-    [Parameter(ParameterSetName = ParameterSetNew, Position = 1)]
+    [Parameter(ParameterSetName = ParameterSetNew, Position = 1,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Description")]
     [Alias("d")]
     public override string Description { get; set; } = string.Empty;
 
-    [Parameter(ParameterSetName = ParameterSetNew)]
+    [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Parameters")]
     [Alias("p")]
     public override PSObject[] Parameters { get; set; } = [];
 
-    [Parameter(ParameterSetName = ParameterSetNew)]
+    [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "SubCommands")]
     [Alias("s")]
     public override CommandCompleter[] SubCommands { get; set; } = [];
 
-    [Parameter(ParameterSetName = ParameterSetNew)]
+    [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
     [Alias("a")]
     public override ScriptBlock? ArgumentCompleter { get; set; }
 
-    [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0)]
+    [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Completer")]
     public CommandCompleter? Completer { get; set; } = null;
 
     [Parameter()]

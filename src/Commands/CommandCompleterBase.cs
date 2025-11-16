@@ -4,6 +4,8 @@ namespace MT.Comp.Commands;
 
 public abstract class CommandCompleterBase : PSCmdlet
 {
+    protected const string MessageBaseName = "MT.Comp.resources.CommandCompleter";
+
     public abstract string Name { get; set; }
 
     public abstract string Description { get; set; }
@@ -46,7 +48,8 @@ public abstract class CommandCompleterBase : PSCmdlet
         }
         else if (!NativeCompleter._completers.TryAdd(Name, completer))
         {
-            throw new InvalidOperationException($"Failed to register completer: {Name}. Maybe it's already registered.");
+            throw new InvalidOperationException(
+                    string.Format(GetResourceString(MessageBaseName, "Error.AlreadyRegistered"), Name));
         }
     }
 }
