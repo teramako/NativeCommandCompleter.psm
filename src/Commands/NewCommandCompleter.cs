@@ -18,7 +18,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
 
     [Parameter()]
     [Alias("p")]
-    public override PSObject[] Parameters { get; set; } = [];
+    public override ParamCompleter[] Parameters { get; set; } = [];
 
     [Parameter()]
     [Alias("s")]

@@ -10,7 +10,7 @@ public abstract class CommandCompleterBase : PSCmdlet
 
     public abstract string Description { get; set; }
 
-    public abstract PSObject[] Parameters { get; set; }
+    public abstract ParamCompleter[] Parameters { get; set; }
 
     public abstract CommandCompleter[] SubCommands { get; set; }
 
@@ -22,16 +22,9 @@ public abstract class CommandCompleterBase : PSCmdlet
         {
             ArgumentCompleter = ArgumentCompleter
         };
-        foreach (var pso in Parameters)
+        foreach (var paramCompleter in Parameters)
         {
-            if (pso.BaseObject is ParamCompleter paramCompleter1)
-            {
-                completer.Params.Add(paramCompleter1);
-            }
-            else if (LanguagePrimitives.TryConvertTo<ParamCompleter>(pso, out var paramCompleter2))
-            {
-                completer.Params.Add(paramCompleter2);
-            }
+            completer.Params.Add(paramCompleter);
         }
         foreach (var subCmd in SubCommands)
         {

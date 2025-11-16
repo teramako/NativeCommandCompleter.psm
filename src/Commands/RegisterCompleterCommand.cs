@@ -22,7 +22,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Parameters")]
     [Alias("p")]
-    public override PSObject[] Parameters { get; set; } = [];
+    public override ParamCompleter[] Parameters { get; set; } = [];
 
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "SubCommands")]
