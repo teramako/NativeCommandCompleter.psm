@@ -4,7 +4,7 @@ namespace MT.Comp.Commands;
 
 [Cmdlet(VerbsLifecycle.Register, "NativeCompleter")]
 [OutputType(typeof(void))]
-public class RegisterCompleterCommand : Cmdlet
+public class RegisterCompleterCommand : PSCmdlet
 {
     private const string ParameterSetNew = "New";
     private const string ParameterSetInput = "Input";
@@ -38,7 +38,7 @@ public class RegisterCompleterCommand : Cmdlet
 
     protected override void ProcessRecord()
     {
-        if (Completer is not null)
+        if (ParameterSetName == ParameterSetInput && Completer is not null)
         {
             if (Force)
             {
@@ -52,6 +52,9 @@ public class RegisterCompleterCommand : Cmdlet
     }
     protected override void EndProcessing()
     {
+        if (ParameterSetName != ParameterSetNew)
+            return;
+
         CommandCompleter completer = new(Name, Description)
         {
             ArgumentCompleter = ArgumentCompleter,
