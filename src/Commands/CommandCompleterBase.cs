@@ -2,6 +2,28 @@ using System.Management.Automation;
 
 namespace MT.Comp.Commands;
 
+public enum CommandParameterStyle
+{
+    /// <summary>
+    /// GNU style.
+    /// <list type="bullet">
+    ///     <item><term>LongOptionPrefix</term><description><c>--</c></description></item>
+    ///     <item><term>ShortOptionPrefix</term><description><c>-</c></description></item>
+    ///     <item><term>ValueSparator</term><description><c>=</c></description></item>
+    /// </list>
+    /// </summary>
+    GNU,
+    /// <summary>
+    /// Traditional Windows OS style.
+    /// <list type="bullet">
+    ///     <item><term>LongOptionPrefix</term><description><c>/</c></description></item>
+    ///     <item><term>ShortOptionPrefix</term><description><c>/</c></description></item>
+    ///     <item><term>ValueSparator</term><description><c>:</c></description></item>
+    /// </list>
+    /// </summary>
+    TraditionalWindows
+}
+
 public abstract class CommandCompleterBase : PSCmdlet
 {
     protected const string MessageBaseName = "MT.Comp.resources.CommandCompleter";
@@ -16,11 +38,14 @@ public abstract class CommandCompleterBase : PSCmdlet
 
     public abstract ScriptBlock? ArgumentCompleter { get; set; }
 
+    public abstract CommandParameterStyle Style { get; set; }
+
     protected CommandCompleter CreateCommandCompleter()
     {
-        CommandCompleter completer = new(Name, Description)
+        CommandCompleter completer = Style switch
         {
-            ArgumentCompleter = ArgumentCompleter
+            CommandParameterStyle.TraditionalWindows => new(Name, Description, "/", "/", ':'),
+            _ => new(Name, Description)
         };
         foreach (var paramCompleter in Parameters)
         {
@@ -30,6 +55,7 @@ public abstract class CommandCompleterBase : PSCmdlet
         {
             completer.SubCommands.Add(subCmd.Name, subCmd);
         }
+        completer.ArgumentCompleter = ArgumentCompleter;
         return completer;
     }
 

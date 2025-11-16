@@ -28,6 +28,10 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("a")]
     public override ScriptBlock? ArgumentCompleter { get; set; }
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
+    [Alias("t")]
+    public override CommandParameterStyle Style { get; set; }
+
     protected override void EndProcessing()
     {
         WriteObject(CreateCommandCompleter(), false);

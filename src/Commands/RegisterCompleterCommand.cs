@@ -34,6 +34,11 @@ public class RegisterCompleterCommand : CommandCompleterBase
     [Alias("a")]
     public override ScriptBlock? ArgumentCompleter { get; set; }
 
+    [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
+    [Alias("t")]
+    public override CommandParameterStyle Style { get; set; }
+
     [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Completer")]
     public CommandCompleter? Completer { get; set; } = null;

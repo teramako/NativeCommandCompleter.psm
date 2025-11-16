@@ -30,6 +30,11 @@
   <data name="ArgumentCompleter" xml:space="preserve">
     <value>ScriptBlock that returns completion candidates for command arguments.</value>
   </data>
+  <data name="CommandParameterStyle" xml:space="preserve">
+    <value>Style of the command parameters.
+Defaults to "GNU", Long option prefix to '--', Short option prefix to '-', and Value sparator to '='.
+"TraditionalWindows" will have the option prefix to '/' and Value separator to ':'.</value>
+  </data>
   <data name="Completer" xml:space="preserve">
     <value>CommandCompleter object to be registered.</value>
   </data>
