@@ -38,7 +38,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Completer")]
     public CommandCompleter? Completer { get; set; } = null;
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Force")]
     [Alias("f")]
     public SwitchParameter Force { get; set; }
 
