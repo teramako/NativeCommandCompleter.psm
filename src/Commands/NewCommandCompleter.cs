@@ -16,15 +16,15 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("d")]
     public override string Description { get; set; } = string.Empty;
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Parameters")]
     [Alias("p")]
     public override ParamCompleter[] Parameters { get; set; } = [];
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "SubCommands")]
     [Alias("s")]
     public override CommandCompleter[] SubCommands { get; set; } = [];
 
-    [Parameter()]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
     [Alias("a")]
     public override ScriptBlock? ArgumentCompleter { get; set; }
 
