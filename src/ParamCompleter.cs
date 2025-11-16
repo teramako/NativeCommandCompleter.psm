@@ -193,7 +193,7 @@ public class ParamCompleter
             foreach (ReadOnlySpan<char> value in Arguments)
             {
                 var data = CompletionValue.Parse(value, null);
-                if (data.IsMatch(paramValue))
+                if (data.IsMatch(paramValue, ignoreCase: true))
                 {
                     results.Add(data.SetPrefix(prefix));
                     Debug($"Matched: '{data.CompletionText}', '{data.ListItemText}'");
