@@ -7,6 +7,10 @@ New-CommandCompleter ... -ArgumentCompleter [ScriptBlock]
 New-ParamCompleter ... -ArgumentCompleter [ScriptBlock]
 ```
 
+`New-CommandCompleter` and `New-ParamCompleter` details, see:
+- [New-CommandCompleter](./NativeCommandCompleter.psm/New-CommandCompleter.md)
+- [New-ParamCompleter](./NativeCommandCompleter.psm/New-ParamCompleter.md)
+
 ## CommandCompleter's ArgumentCompleter
 
 A script that returns a completion list of *command* and *subcommand* arguments.
@@ -25,16 +29,59 @@ A script that returns a completion list of *command* and *subcommand* arguments.
 | 0     | int               | Cursor position in the word to be completed. |
 | 1     | int               | Index of the list of arguments not parsed into parameters.(starting with `0`). |
 
+> [!WARNING]
+> Other variables and functions defined outside of a `ScriptBlock` cannot be referenced.
+> This is because they are kicked in a different context.
+>
+> ```powershell
+> $outsideVariable = 10;
+> New-ParamCompleter ... -ArgumentCompleter {
+>     $outsideVariable # <- cannt reference
+> }
+> ```
+
 ### Outputs
 
-- `MT.Comp.CompletionData`
+Following types are supported:
+
+- `MT.Comp.CompletionValue`
 - `System.Management.Automation.CompletionResult`
-- `string`: A completion string and description delimited by a leading tab (`\t`) or newline (`\n`, `\r`) character.
-- `Array`: Array of completion strings and descriptions.
+- `string`: A completion text and description delimited by a leading tab (`\t`) or newline (`\n`, `\r`) character.
+- `Array`: Array of completion text and descriptions.
+
+#### `MT.Comp.CompletionValue`
+
+The output of the script is eventually converted to this `CompletionValue` object.
+
+#### `string`
+
+The completion text and its description are separated by a tab character (`\t`) or a newline character (`\n`, `\r`).
+If no tab or newline character, everything is a completion text.
+This is probably the easiest format to handle.
+
+```powershell
+@(
+    "itemA`tDescription A",  # => completion text: "itemA", description: "Description A"
+    "itemB`tDescription B",  # => completion text: "itemB", description: "Description B"
+    "itemC"                  # => completion text: "itemC", description: empty
+)
+```
+
+#### `Array`
+
+An array containing the completion text and its description; at least two elements are required, and the third and subsequent elements are ignored.
+
+```powershell
+@(
+    @("itemA", "Description A"),      # => completion text: "itemA", description: "Description A"
+    @("itemB", "Description B", ...), # => completion text: "itemB", description: "Description B"
+    @("itemC")                        # Error
+)
+```
 
 ### Examples
 
-#### Completes the first argument
+#### Example 1. Completes the first argument
 
 ```powershell
 $argumentCompleter = {
@@ -51,7 +98,7 @@ $argumentCompleter = {
 }
 ```
 
-#### Completes filesystem directories only
+#### Example 2. Completes filesystem directories only
 
 ```powershell
 $argumentCompleter = {
@@ -59,7 +106,7 @@ $argumentCompleter = {
 }
 ```
 
-#### Completes filesystem directories or files with ".txt" extension
+#### Example 3. Completes filesystem directories or files with ".txt" extension
 
 > [!TIP]
 > It is a bit tedious, but you need to determine if it is a directory or not.
@@ -76,6 +123,10 @@ $argumentCompleter = {
 ## ParamCompleter's ArgumentCompleter
 
 A script that returns a completion list of command *parameter* arguments.
+
+> [!TIP]
+> If you already know the string you want to complete, consider using `-Arguments [string[]]` instead of `-ArgumentCompleter [ScriptBlock]`.
+> `-Arguments [string[]]` is easier to write.
 
 ### Automatic Variabls
 
