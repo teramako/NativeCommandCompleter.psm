@@ -15,6 +15,7 @@ $msg = data { ConvertFrom-StringData @'
     gnu_retry               = keep trying to open a file even when it is inaccessible; useful with --follow=name
     gnu_sleep_interval      = with -f, sleep for approximately N seconds (default 1.0) between iterations
     gnu_verbose             = always output headers giving file names
+    gnu_zero                = Line delimiter is NUL, not newline
     gnu_help                = display this help and exit
     gnu_version             = output version information and exit
     macos_blocks            = output last K 512 byte blocks
@@ -44,6 +45,7 @@ if ($LASTEXITCODE -eq 0) # GNU
         New-ParamCompleter -LongName retry -Description $msg.gnu_retry
         New-ParamCompleter -ShortName s -LongName sleep-interval -Description $msg.gnu_sleep_interval -Type Required
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg.gnu_verbose
+        New-ParamCompleter -ShortName z -LongName zero-terminated -Description $msg.gnu_zero
         New-ParamCompleter -LongName help -Description $msg.gnu_help
         New-ParamCompleter -LongName version -Description $msg.gnu_version
     )
