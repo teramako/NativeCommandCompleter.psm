@@ -16,7 +16,7 @@ public enum CommandParameterStyle
     /// <summary>
     /// Traditional Windows OS style.
     /// <list type="bullet">
-    ///     <item><term>LongOptionPrefix</term><description><c>/</c></description></item>
+    ///     <item><term>LongOptionPrefix</term><description>disable</description></item>
     ///     <item><term>ShortOptionPrefix</term><description><c>/</c></description></item>
     ///     <item><term>ValueSparator</term><description><c>:</c></description></item>
     /// </list>
@@ -44,7 +44,11 @@ public abstract class CommandCompleterBase : PSCmdlet
     {
         CommandCompleter completer = Style switch
         {
-            CommandParameterStyle.TraditionalWindows => new(Name, Description, "/", "/", ':'),
+            CommandParameterStyle.TraditionalWindows => new(Name,
+                                                            Description,
+                                                            longOptionPrefix: string.Empty,
+                                                            shortOptionPrefix: "/",
+                                                            valueSeparator: ':'),
             _ => new(Name, Description)
         };
         foreach (var paramCompleter in Parameters)

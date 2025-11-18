@@ -141,6 +141,9 @@ public sealed class CompletionContext
     {
         NativeCompleter.Messages.Add($"[{Name}] Build CompletionContext");
         int argumentsCount = Arguments.Count;
+        bool hasLongOptionPrefix = !string.IsNullOrEmpty(CommandCompleter.LongOptionPrefix);
+        bool hasShortOptionPrefix = !string.IsNullOrEmpty(CommandCompleter.ShortOptionPrefix);
+
         for (int argumentIndex = 0; argumentIndex < argumentsCount; argumentIndex++)
         {
             Token token = Arguments[argumentIndex];
@@ -156,7 +159,8 @@ public sealed class CompletionContext
                 }
             }
 
-            if (tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
+            if (hasLongOptionPrefix
+                && tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
             {
                 optionPrefix = CommandCompleter.LongOptionPrefix;
                 var paramName = tokenValue[optionPrefix.Length..];
@@ -208,7 +212,8 @@ public sealed class CompletionContext
                     }
                 }
             }
-            else if (tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
+            else if (hasShortOptionPrefix
+                     && tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
             {
                 optionPrefix = CommandCompleter.ShortOptionPrefix;
                 var paramName = tokenValue[optionPrefix.Length..];
@@ -344,11 +349,13 @@ public sealed class CompletionContext
             {
                 completed = CommandCompleter.CompleteAllParams(results, this);
             }
-            else if (tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
+            else if (!string.IsNullOrEmpty(CommandCompleter.LongOptionPrefix)
+                     && tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
             {
                 completed = CommandCompleter.CompleteLongParams(results, this, tokenValue, cursorPosition);
             }
-            else if (tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
+            else if (!string.IsNullOrEmpty(CommandCompleter.ShortOptionPrefix)
+                     && tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
             {
                 completed = CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
             }
