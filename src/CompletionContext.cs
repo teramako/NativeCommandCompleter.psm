@@ -344,21 +344,7 @@ public sealed class CompletionContext
                 completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
             }
 
-            if (string.IsNullOrEmpty(tokenValue)
-                || tokenValue.Equals(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
-            {
-                completed = CommandCompleter.CompleteAllParams(results, this);
-            }
-            else if (!string.IsNullOrEmpty(CommandCompleter.LongOptionPrefix)
-                     && tokenValue.StartsWith(CommandCompleter.LongOptionPrefix, StringComparison.Ordinal))
-            {
-                completed = CommandCompleter.CompleteLongParams(results, this, tokenValue, cursorPosition);
-            }
-            else if (!string.IsNullOrEmpty(CommandCompleter.ShortOptionPrefix)
-                     && tokenValue.StartsWith(CommandCompleter.ShortOptionPrefix, StringComparison.Ordinal))
-            {
-                completed = CommandCompleter.CompleteOldStyleOrShortParams(results, this, tokenValue, cursorPosition);
-            }
+            completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition);
 
             if (string.IsNullOrEmpty(tokenValue) || results.Count == 0)
             {
