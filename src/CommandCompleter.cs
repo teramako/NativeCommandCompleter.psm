@@ -316,7 +316,8 @@ public class CommandCompleter(string name,
         try
         {
             Debug($"Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
-            invokeResults = ArgumentCompleter.InvokeWithContext(null,
+            invokeResults = ArgumentCompleter.GetNewClosure()
+                                             .InvokeWithContext(null,
                                                                 [new("_", tokenValue), new("this", context)],
                                                                 cursorPosition,
                                                                 argumentIndex);

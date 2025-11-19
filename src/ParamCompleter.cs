@@ -256,7 +256,8 @@ public class ParamCompleter
         try
         {
             Debug($"[{Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
-            invokeResults = ArgumentCompleter.InvokeWithContext(null,
+            invokeResults = ArgumentCompleter.GetNewClosure()
+                                             .InvokeWithContext(null,
                                                                 [new("_", $"{paramValue}"), new("this", context)],
                                                                 position);
             Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
