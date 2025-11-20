@@ -12,32 +12,32 @@ public class RegisterCompleterCommand : CommandCompleterBase
     [Parameter(ParameterSetName = ParameterSetNew, Mandatory = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Register.Name")]
     [Alias("n")]
-    public override string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     [Parameter(ParameterSetName = ParameterSetNew, Position = 1,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Description")]
     [Alias("d")]
-    public override string Description { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Parameters")]
     [Alias("p")]
-    public override ParamCompleter[] Parameters { get; set; } = [];
+    public ParamCompleter[] Parameters { get; set; } = [];
 
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "SubCommands")]
     [Alias("s")]
-    public override CommandCompleter[] SubCommands { get; set; } = [];
+    public CommandCompleter[] SubCommands { get; set; } = [];
 
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
     [Alias("a")]
-    public override ScriptBlock? ArgumentCompleter { get; set; }
+    public ScriptBlock? ArgumentCompleter { get; set; }
 
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
     [Alias("t")]
-    public override CommandParameterStyle Style { get; set; }
+    public CommandParameterStyle Style { get; set; }
 
     [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Completer")]
@@ -59,6 +59,12 @@ public class RegisterCompleterCommand : CommandCompleterBase
         if (ParameterSetName != ParameterSetNew)
             return;
 
-        RegisterCompleter(CreateCommandCompleter(), Force);
+        RegisterCompleter(CreateCommandCompleter(Name,
+                                                 Description,
+                                                 Parameters,
+                                                 SubCommands,
+                                                 ArgumentCompleter,
+                                                 Style),
+                          Force);
     }
 }

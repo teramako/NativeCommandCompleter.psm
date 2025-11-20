@@ -28,51 +28,45 @@ public abstract class CommandCompleterBase : PSCmdlet
 {
     protected const string MessageBaseName = "MT.Comp.resources.CommandCompleter";
 
-    public abstract string Name { get; set; }
-
-    public abstract string Description { get; set; }
-
-    public abstract ParamCompleter[] Parameters { get; set; }
-
-    public abstract CommandCompleter[] SubCommands { get; set; }
-
-    public abstract ScriptBlock? ArgumentCompleter { get; set; }
-
-    public abstract CommandParameterStyle Style { get; set; }
-
-    protected CommandCompleter CreateCommandCompleter()
+    protected CommandCompleter CreateCommandCompleter(string name,
+                                                      string description,
+                                                      ParamCompleter[] paramCompleters,
+                                                      CommandCompleter[] subCommands,
+                                                      ScriptBlock? argumentCompleter = null,
+                                                      CommandParameterStyle style = CommandParameterStyle.GNU)
     {
-        CommandCompleter completer = Style switch
+        CommandCompleter completer = style switch
         {
-            CommandParameterStyle.TraditionalWindows => new(Name,
-                                                            Description,
+            CommandParameterStyle.TraditionalWindows => new(name,
+                                                            description,
                                                             longOptionPrefix: string.Empty,
                                                             shortOptionPrefix: "/",
                                                             valueSeparator: ':'),
-            _ => new(Name, Description)
+            _ => new(name, description)
         };
-        foreach (var paramCompleter in Parameters)
+        foreach (var paramCompleter in paramCompleters)
         {
             completer.Params.Add(paramCompleter);
         }
-        foreach (var subCmd in SubCommands)
+        foreach (var subCmd in subCommands)
         {
             completer.SubCommands.Add(subCmd.Name, subCmd);
         }
-        completer.ArgumentCompleter = ArgumentCompleter;
+        completer.ArgumentCompleter = argumentCompleter;
         return completer;
     }
 
     protected void RegisterCompleter(CommandCompleter completer, bool force = false)
     {
+        var cmdName = completer.Name;
         if (force)
         {
-            NativeCompleter._completers[Name] = completer;
+            NativeCompleter._completers[cmdName] = completer;
         }
-        else if (!NativeCompleter._completers.TryAdd(Name, completer))
+        else if (!NativeCompleter._completers.TryAdd(cmdName, completer))
         {
             throw new InvalidOperationException(
-                    string.Format(GetResourceString(MessageBaseName, "Error.AlreadyRegistered"), Name));
+                    string.Format(GetResourceString(MessageBaseName, "Error.AlreadyRegistered"), cmdName));
         }
     }
 }
