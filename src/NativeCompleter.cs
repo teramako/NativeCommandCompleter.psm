@@ -78,6 +78,37 @@ public static class NativeCompleter
     }
 
     /// <summary>
+    /// Get command completer.
+    /// <para>
+    /// If not registered, find the command completer generation script in the "completions" directory and run it,
+    /// then try again to get the registered completers.
+    /// </para>
+    /// </summary>
+    /// <param name="cmdName">Command name</param>
+    /// <param name="parameters">Arguments to pass to the command completer generation script</param>
+    /// <param name="completer">Command completer obtained</param>
+    /// <param name="loadResults">Return values from running the command completer generation script</param>
+    /// <returns><see langword="true"/> if the completer is found; otherwise, <see langword="false"/>.</returns>
+    public static bool TryGetCommandCompleter(string cmdName,
+                                              IDictionary? parameters,
+                                              [MaybeNullWhen(false)] out CommandCompleter completer,
+                                              out Collection<PSObject> loadResults)
+    {
+        completer = null;
+        loadResults = [];
+        if (_completers.TryGetValue(cmdName, out completer))
+        {
+            return true;
+        }
+        if (TryGetCompleterScript(cmdName, out var completerFile)
+            && TryLoadScript(completerFile, parameters, out loadResults))
+        {
+            return _completers.TryGetValue(cmdName, out completer);
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Get completion results from <paramref name="commandLine"/>
     /// </summary>
     /// <seealso cref="Complete(string, CommandAst, int)"/>
@@ -101,32 +132,19 @@ public static class NativeCompleter
         var cmdName = Path.GetFileName(fullName);
 
         Debug("--------------------------------------");
-        CommandCompleter? commandCompleter;
-        if (!_completers.TryGetValue(cmdName, out commandCompleter))
+        Hashtable scriptParameters = new()
         {
-            Hashtable parameters = new()
-            {
-                ["wordToComplete"] = wordToComplete,
-                ["commandAst"] = commandAst,
-                ["cursorPosition"] = cursorPosition
-            };
-            if (TryGetCompleterScript(cmdName, out var completerFile)
-                && TryLoadScript(completerFile, parameters, out var results))
-            {
-                if (!_completers.TryGetValue(cmdName, out commandCompleter))
-                {
-                    return PSObjectsToCompletionResults(results);
-                }
-            }
-        }
-
-        if (commandCompleter is not null)
+            ["wordToComplete"] = wordToComplete,
+            ["commandAst"] = commandAst,
+            ["cursorPosition"] = cursorPosition
+        };
+        if (TryGetCommandCompleter(cmdName, scriptParameters, out var commandCompleter, out var loadResults))
         {
             var context = CompletionContext.Create(commandCompleter, wordToComplete, commandAst, cursorPosition, cwd);
             return context.Complete();
         }
 
-        return [];
+        return PSObjectsToCompletionResults(loadResults);
     }
 
     internal static IEnumerable<CompletionData> PSObjectsToCompletionData(IEnumerable<PSObject?> psobjects)
