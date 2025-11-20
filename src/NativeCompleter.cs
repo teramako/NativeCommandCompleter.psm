@@ -34,7 +34,7 @@ public static class NativeCompleter
     /// <summary>
     /// Find script file path from completion directories
     /// </summary>
-    public static bool TryGetCompleterScript(string scriptName, [NotNullWhen(true)] out string? scriptPath)
+    public static bool TryGetCompleterScript(string scriptName, [MaybeNullWhen(false)] out string scriptPath)
     {
         var envPath = Environment.GetEnvironmentVariable(ENV_COMPLETER_PATH_NAME);
         if (string.IsNullOrEmpty(envPath))
