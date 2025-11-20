@@ -298,6 +298,14 @@ public sealed class CompletionContext
             }
             else
             {
+                if (_unboundArguments.Count == CommandCompleter.DelegateArgumentIndex)
+                {
+                    var cmdName = Path.GetFileName(tokenValue).ToString();
+                    var nestedContext = NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
+                        ? new CompletionContext(delegatedCompleter, this, argumentIndex)
+                        : new CompletionContext(new(cmdName, "Unknown"), this, argumentIndex);
+                    return nestedContext.Build();
+                }
                 _unboundArguments.Add(token);
             }
         }

@@ -25,6 +25,18 @@ public class CommandCompleter(string name,
     public Collection<ParamCompleter> Params { get; } = [];
     public Dictionary<string, CommandCompleter> SubCommands { get; } = [];
     public ScriptBlock? ArgumentCompleter { get; set; }
+    /// <summary>
+    /// Argument index of a command to delegate completions.
+    /// </summary>
+    /// <remarks>
+    /// To delegate the arguments of `command` to the completer for `command`.
+    /// <para>In cases like:</para>
+    /// <code>
+    /// sudo ... command [args...]
+    /// time ... command [args...]
+    /// </code>
+    /// </remarks>
+    public int DelegateArgumentIndex { get; internal set; } = -1;
 
     /// <summary>
     /// Complete sub command names
