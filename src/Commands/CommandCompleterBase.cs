@@ -69,4 +69,17 @@ public abstract class CommandCompleterBase : PSCmdlet
                     string.Format(GetResourceString(MessageBaseName, "Error.AlreadyRegistered"), cmdName));
         }
     }
+
+    protected void UnregisterCompleter(string name)
+    {
+        var pattern = new WildcardPattern(name);
+        foreach (var key in NativeCompleter._completers.Keys)
+        {
+            if (pattern.IsMatch(key))
+            {
+                NativeCompleter._completers.Remove(key);
+                WriteVerbose(string.Format(GetResourceString(MessageBaseName, "Message.Removed"), key));
+            }
+        }
+    }
 }
