@@ -57,9 +57,13 @@ public static class NativeCompleter
     {
         try
         {
-            results = Shell.AddCommand(scriptPath)
-                           .AddParameters(parameters)
-                           .Invoke();
+            
+            Shell.AddCommand(scriptPath);
+            if (parameters is not null)
+            {
+                Shell.AddParameters(parameters);
+            }
+            results = Shell.Invoke();
             if (Shell.Streams.Error.Count > 0)
             {
                 foreach (var error in Shell.Streams.Error)
