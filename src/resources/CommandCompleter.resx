@@ -35,6 +35,11 @@
 Defaults to "GNU", Long option prefix to '--', Short option prefix to '-', and Value sparator to '='.
 "TraditionalWindows" will have the option prefix to '/' and Value separator to ':'.</value>
   </data>
+  <data name="DelegateArgumentIndex" xml:space="preserve">
+    <value>Argument index of a command to delegate completions.
+e.g.) `sudo {COMMAND} [args...]`, `time {COMMAND} [args...]`
+Specifies the index of the argument that will be "{COMMAND}". (starting from 0)</value>
+  </data>
   <data name="Completer" xml:space="preserve">
     <value>CommandCompleter object to be registered.</value>
   </data>

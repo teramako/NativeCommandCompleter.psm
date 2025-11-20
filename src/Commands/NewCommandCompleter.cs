@@ -32,6 +32,10 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("t")]
     public CommandParameterStyle Style { get; set; }
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "DelegateArgumentIndex")]
+    [ValidateRange(0, int.MaxValue)]
+    public int DelegateArgumentIndex { get; set; } = -1;
+
     protected override void EndProcessing()
     {
         WriteObject(CreateCommandCompleter(Name,
@@ -39,7 +43,8 @@ public class NewCommandCompleterCommand : CommandCompleterBase
                                            Parameters,
                                            SubCommands,
                                            ArgumentCompleter,
-                                           Style),
+                                           Style,
+                                           DelegateArgumentIndex),
                     false);
     }
 }
