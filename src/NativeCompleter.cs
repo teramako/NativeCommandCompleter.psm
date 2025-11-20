@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -51,17 +52,13 @@ public static class NativeCompleter
     }
 
     private static bool TryLoadScript(string scriptPath,
-                                      string wordToComplete,
-                                      CommandAst commandAst,
-                                      int cursorPosition,
+                                      IDictionary? parameters,
                                       out Collection<PSObject> results)
     {
         try
         {
             results = Shell.AddCommand(scriptPath)
-                           .AddParameter("wordToComplete", wordToComplete)
-                           .AddParameter("commandAst", commandAst)
-                           .AddParameter("cursorPosition", cursorPosition)
+                           .AddParameters(parameters)
                            .Invoke();
             if (Shell.Streams.Error.Count > 0)
             {
@@ -107,8 +104,14 @@ public static class NativeCompleter
         CommandCompleter? commandCompleter;
         if (!_completers.TryGetValue(cmdName, out commandCompleter))
         {
+            Hashtable parameters = new()
+            {
+                ["wordToComplete"] = wordToComplete,
+                ["commandAst"] = commandAst,
+                ["cursorPosition"] = cursorPosition
+            };
             if (TryGetCompleterScript(cmdName, out var completerFile)
-                && TryLoadScript(completerFile, wordToComplete, commandAst, cursorPosition, out var results))
+                && TryLoadScript(completerFile, parameters, out var results))
             {
                 if (!_completers.TryGetValue(cmdName, out commandCompleter))
                 {
