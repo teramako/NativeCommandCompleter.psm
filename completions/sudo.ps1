@@ -4,12 +4,12 @@
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $msg = data { ConvertFrom-StringData @'
-    gnu_help = Display help and exit
-    gnu_version = Display version information and exit
-    gnu_askpass = Ask for password via the askpass or $SSH_ASKPASS program
-    gnu_closeall = Close all file descriptors greater or equal to the given number
-    gnu_preserve_env = Preserve environment
-    gnu_home         = Set home
+    gnu_help             = Display help and exit
+    gnu_version          = Display version information and exit
+    gnu_askpass          = Ask for password via the askpass or $SSH_ASKPASS program
+    gnu_closeall         = Close all file descriptors greater or equal to the given number
+    gnu_preserve_env     = Preserve environment
+    gnu_home             = Set home
     gnu_remove_timestamp = Remove the credential timestamp entirely
     gnu_preserve_groups  = Preserve group vector
     gnu_stdin            = Read password from stdin
