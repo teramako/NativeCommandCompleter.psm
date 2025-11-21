@@ -52,6 +52,8 @@ public class CommandCompleter(string name,
                                     string tokenValue)
     {
         bool completed = false;
+        if (SubCommands.Count == 0)
+            return completed;
 
         var subCommands = string.IsNullOrEmpty(tokenValue)
             ? SubCommands
@@ -84,6 +86,9 @@ public class CommandCompleter(string name,
     {
         bool completed = false;
         if (tokenValue.IsEmpty)
+            return completed;
+
+        if (Params.Count == 0)
             return completed;
 
         if (tokenValue.Equals(ShortOptionPrefix, StringComparison.Ordinal))
@@ -363,6 +368,9 @@ public class CommandCompleter(string name,
     private bool CompleteAllParams(ICollection<CompletionData> results,
                                    CompletionContext context)
     {
+        if (Params.Count == 0)
+            return false;
+
         foreach (var param in Params)
         {
             var names = param.ShortNames.Select(n => $"{ShortOptionPrefix}{n}")
