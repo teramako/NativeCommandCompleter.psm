@@ -24,15 +24,63 @@ $msg = data { ConvertFrom-StringData @'
     gnu_shell            = Run the given command in a shell
     gnu_user             = Run command as user
     gnu_validate         = Validate the credentials, extending timeout
+
+# from: https://github.com/microsoft/sudo/blob/main/sudo/Resources/en-US/Sudo.resw
+    win_Base_Help        = Print help
+    win_Base_Version     = Print version
+    win_Run              = Run a command as admin
+    win_Run_CopyEnv      = Pass the current environment variables to the command
+    win_Run_NewWindow    = Use a new window for the command
+    win_Run_DisableInput = Run in the current terminal, with input to the target application disabled
+    win_Run_Inline       = Run in the current terminal
+    win_Run_Chdir        = Change the working directory before running the command
+    win_Config           = Get current configuration information of sudo
+    win_Config_Enable    = Enable configuration
+    win_Help             = Print this message or the help of the given subcommand(s)
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-# check whether GNU sudo
-sudo --version 2>&1 | Out-Null
 if ($IsWindows)
 {
-    # TBD
+    $runPreserveEnvParam = New-ParamCompleter -ShortName E -LongName preserve-env -Description $msg.win_Run_CopyEnv
+    $runNewWindowParam = New-ParamCompleter -ShortName N -LongName new-window -Description $msg.win_Run_NewWindow
+    $runDisableInputParam = New-ParamCompleter -LongName disable-input -Description $msg.win_Run_DisableInput
+    $runInlineParam = New-ParamCompleter -LongName inline -Description $msg.win_Run_Inline
+    $runChdirParam = New-ParamCompleter -ShortName D -LongName chdir -Description $msg.win_Run_Chdir -Type Directory
+    $commandCompleter = {
+        param([int] $position, [int] $argIndex)
+        if ($argIndex -eq 0)
+        {
+            $results = [System.Management.Automation.CompletionCompleters]::CompleteCommand($_, $null, [System.Management.Automation.CommandTypes]::Application);
+            if ($results.Count -gt 0)
+            {
+                $results;
+            }
+            else
+            {
+                [MT.Comp.Helper]::CompleteFilename($this, $false, $false);
+            }
+        }
+    }
+    Register-NativeCompleter -Name sudo -Description 'Sudo for Windows' -DelegateArgumentIndex 0 -SubCommands @(
+        New-CommandCompleter -Name run -Description $msg.win_Run -DelegateArgumentIndex 0 -Parameters @(
+            $runPreserveEnvParam, $runNewWindowParam, $runDisableInputParam, $runInlineParam, $runChdirParam
+        ) -ArgumentCompleter $commandCompleter
+        New-CommandCompleter -Name config -Description $msg.win_Config -Parameters @(
+            New-ParamCompleter -LongName enable -Description $msg.win_Config_Enable -Arguments "disable", "enable", "forceNewWindow", "disableInput", "normal", "default"
+        )
+        New-CommandCompleter -Name help -Description $msg.win_Help -ArgumentCompleter {
+            $arg = $_;
+            $results = "run", "config", "help" | Where-Object { $_.StartsWith($arg, [System.StringComparison]::OrdinalIgnoreCase) }
+            if ($results.Count -eq 0) { return $null }
+            $results
+        }
+    ) -Parameters @(
+        $runPreserveEnvParam, $runNewWindowParam, $runDisableInputParam, $runInlineParam, $runChdirParam
+        New-ParamCompleter -ShortName h -LongName help -Description $msg.win_Base_Help
+        New-ParamCompleter -ShortName V -LongName version -Description $msg.win_Base_Version
+    ) -ArgumentCompleter $commandCompleter
 }
 else
 {
