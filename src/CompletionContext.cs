@@ -360,18 +360,13 @@ public sealed class CompletionContext
         }
         else
         {
-            if (CommandCompleter.SubCommands.Count > 0)
-            {
-                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
-            }
+            completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
 
-            completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition);
+            if (!completed)
+                completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition);
 
-            if (string.IsNullOrEmpty(tokenValue) || results.Count == 0)
-            {
-                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
-                            || completed;
-            }
+            completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
+                        || completed;
         }
 
         Debug($"Completed = {completed}, Count = {results.Count}");
