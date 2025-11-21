@@ -88,18 +88,23 @@ public static class NativeCompleter
     /// then try again to get the registered completers.
     /// </para>
     /// </summary>
-    /// <param name="cmdName">Command name</param>
+    /// <param name="fileName">Command name</param>
     /// <param name="parameters">Arguments to pass to the command completer generation script</param>
     /// <param name="completer">Command completer obtained</param>
     /// <param name="loadResults">Return values from running the command completer generation script</param>
     /// <returns><see langword="true"/> if the completer is found; otherwise, <see langword="false"/>.</returns>
-    public static bool TryGetCommandCompleter(string cmdName,
+    public static bool TryGetCommandCompleter(ReadOnlySpan<char> fileName,
                                               IDictionary? parameters,
                                               [MaybeNullWhen(false)] out CommandCompleter completer,
                                               out Collection<PSObject> loadResults)
     {
         completer = null;
         loadResults = [];
+        var cmdName = Path.GetExtension(fileName) switch
+        {
+            ".exe" or ".EXE" when Platform.IsWindows => Path.GetFileNameWithoutExtension(fileName).ToString(),
+            _ => fileName.ToString()
+        };
         if (_completers.TryGetValue(cmdName, out completer))
         {
             return true;
