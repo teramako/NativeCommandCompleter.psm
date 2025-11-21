@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/16/2025
+ms.date: 11/21/2025
 PlatyPS schema version: 2024-05-01
 title: New-CommandCompleter
 ---
@@ -22,6 +22,7 @@ Create a CommandCompleter object.
 ```
 New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Parameters <ParamCompleter[]>]
  [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>]
+ [-Style <CommandParameterStyle>] [-DelegateArgumentIndex <int>]
 ```
 
 ## ALIASES
@@ -74,6 +75,34 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - a
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -DelegateArgumentIndex
+
+Argument index of a command to delegate completions.
+
+Specifies the index of the argument that will be "{COMMAND}". (starting from 0)
+
+For examples:
+
+ - `sudo {COMMAND} [args...]`
+ - `time {COMMAND} [args...]`
+
+```yaml
+Type: System.Int32
+DefaultValue: -1
+SupportsWildcards: false
+Aliases: []
 ParameterSets:
 - Name: (All)
   Position: Named
@@ -141,6 +170,33 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - p
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Style
+
+Style of the command parameters.
+
+Availables:
+
+- `GNU`: Set long option prefix to `--`, short option prefix to `-` and value spprator to `=`. (Default)
+- `TraditionalWindows`: Set short option prefix to `-` and value spprator to `:`.
+
+```yaml
+Type: MT.Comp.Commands.CommandParameterStyle
+DefaultValue: 'GNU'
+SupportsWildcards: false
+Aliases:
+- t
 ParameterSets:
 - Name: (All)
   Position: Named

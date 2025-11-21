@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/16/2025
+ms.date: 11/21/2025
 PlatyPS schema version: 2024-05-01
 title: Register-NativeCompleter
 ---
@@ -21,7 +21,8 @@ Create and register a CommandCompleter object.
 
 ```
 Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Parameters <ParamCompleter[]>]
- [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>] [-Force]
+ [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>]
+ [-Style <CommandParameterStyle>] [-DelegateArgumentIndex <int>] [-Force]
 ```
 
 ### Input
@@ -111,6 +112,34 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -DelegateArgumentIndex
+
+Argument index of a command to delegate completions.
+
+Specifies the index of the argument that will be "{COMMAND}". (starting from 0)
+
+For examples:
+
+ - `sudo {COMMAND} [args...]`
+ - `time {COMMAND} [args...]`
+
+```yaml
+Type: System.Int32
+DefaultValue: -1
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: New
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Description
 
 Command Description.
@@ -187,6 +216,33 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - p
+ParameterSets:
+- Name: New
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Style
+
+Style of the command parameters.
+
+Availables:
+
+- `GNU`: Set long option prefix to `--`, short option prefix to `-` and value spprator to `=`. (Default)
+- `TraditionalWindows`: Set short option prefix to `-` and value spprator to `:`.
+
+```yaml
+Type: MT.Comp.Commands.CommandParameterStyle
+DefaultValue: 'GNU'
+SupportsWildcards: false
+Aliases:
+- t
 ParameterSets:
 - Name: New
   Position: Named
