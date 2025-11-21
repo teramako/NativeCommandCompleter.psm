@@ -140,6 +140,19 @@ public sealed class CompletionContext
     private CompletionContext Build()
     {
         NativeCompleter.Messages.Add($"[{Name}] Build CompletionContext");
+
+        // Early return if no parameters to analyze
+        if (CommandCompleter.SubCommands.Count == 0
+            && CommandCompleter.Params.Count == 0
+            && CommandCompleter.DelegateArgumentIndex < 0)
+        {
+            foreach (var token in Arguments)
+            {
+                _unboundArguments.Add(token);
+            }
+            return this;
+        }
+
         int argumentsCount = Arguments.Count;
         bool hasLongOptionPrefix = !string.IsNullOrEmpty(CommandCompleter.LongOptionPrefix);
         bool hasShortOptionPrefix = !string.IsNullOrEmpty(CommandCompleter.ShortOptionPrefix);
