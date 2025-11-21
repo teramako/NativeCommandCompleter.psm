@@ -51,6 +51,8 @@ public class CommandCompleter(string name,
                                     CompletionContext context,
                                     string tokenValue)
     {
+        bool completed = false;
+
         var subCommands = string.IsNullOrEmpty(tokenValue)
             ? SubCommands
             : SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
@@ -59,9 +61,10 @@ public class CommandCompleter(string name,
         {
             var text = kv.Value.Name;
             results.Add(new CompletionValue(text, kv.Value.Description).SetTooltipPrefix($"[{context.Name}] "));
+            completed = true;
         }
 
-        return true;
+        return completed;
     }
 
     /// <summary>

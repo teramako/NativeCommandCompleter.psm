@@ -265,6 +265,7 @@ public class ParamCompleter
         catch
         {
         }
+        int completionCount = 0;
         if (invokeResults is not null && invokeResults.Count > 0)
         {
             foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
@@ -274,10 +275,11 @@ public class ParamCompleter
                     item.QuoteText();
                 }
                 results.Add(item.SetTooltipPrefix($"[{fullParamName}] ").SetPrefix(prefix));
+                completionCount++;
             }
         }
 
-        if (results.Count == 0 && !useFilenameCompletion)
+        if (completionCount == 0 && !useFilenameCompletion)
         {
             // Prevent fallback to filename completion
             return true;
