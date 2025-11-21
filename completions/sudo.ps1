@@ -48,25 +48,11 @@ if ($IsWindows)
     $runDisableInputParam = New-ParamCompleter -LongName disable-input -Description $msg.win_Run_DisableInput
     $runInlineParam = New-ParamCompleter -LongName inline -Description $msg.win_Run_Inline
     $runChdirParam = New-ParamCompleter -ShortName D -LongName chdir -Description $msg.win_Run_Chdir -Type Directory
-    $commandCompleter = {
-        param([int] $position, [int] $argIndex)
-        if ($argIndex -eq 0)
-        {
-            $results = [System.Management.Automation.CompletionCompleters]::CompleteCommand($_, $null, [System.Management.Automation.CommandTypes]::Application);
-            if ($results.Count -gt 0)
-            {
-                $results;
-            }
-            else
-            {
-                [MT.Comp.Helper]::CompleteFilename($this, $false, $false);
-            }
-        }
-    }
+
     Register-NativeCompleter -Name sudo -Description 'Sudo for Windows' -DelegateArgumentIndex 0 -SubCommands @(
         New-CommandCompleter -Name run -Description $msg.win_Run -DelegateArgumentIndex 0 -Parameters @(
             $runPreserveEnvParam, $runNewWindowParam, $runDisableInputParam, $runInlineParam, $runChdirParam
-        ) -ArgumentCompleter $commandCompleter
+        )
         New-CommandCompleter -Name config -Description $msg.win_Config -Parameters @(
             New-ParamCompleter -LongName enable -Description $msg.win_Config_Enable -Arguments "disable", "enable", "forceNewWindow", "disableInput", "normal", "default"
         )
@@ -80,7 +66,7 @@ if ($IsWindows)
         $runPreserveEnvParam, $runNewWindowParam, $runDisableInputParam, $runInlineParam, $runChdirParam
         New-ParamCompleter -ShortName h -LongName help -Description $msg.win_Base_Help
         New-ParamCompleter -ShortName V -LongName version -Description $msg.win_Base_Version
-    ) -ArgumentCompleter $commandCompleter
+    )
 }
 else
 {
@@ -105,23 +91,5 @@ else
         New-ParamCompleter -ShortName s -Description $msg.gnu_shell
         New-ParamCompleter -ShortName u -Description $msg.gnu_user -Type Required
         New-ParamCompleter -ShortName v -Description $msg.gnu_validate
-    ) -ArgumentCompleter {
-        param([int] $position, [int] $argIndex)
-        if ($argIndex -eq 0)
-        {
-            # Complete commands in $env:PATH or the path to a command
-            $results = [System.Management.Automation.CompletionCompleters]::CompleteCommand($_, $null, [System.Management.Automation.CommandTypes]::Application);
-            if ($results.Count -gt 0)
-            {
-                $results;
-            }
-            else
-            {
-                [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
-                    $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or
-                    $_.UnixFileMode.HasFlag([System.IO.UnixFileMode]::UserExecute -bor [System.IO.UnixFileMode]::GroupExecute -bor [System.IO.UnixFileMode]::OtherExecute)
-                });
-            }
-        }
-    }
+    )
 }

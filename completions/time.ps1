@@ -25,22 +25,4 @@ Register-NativeCompleter -Name time -DelegateArgumentIndex 0 -Parameters @(
     New-ParamCompleter -ShortName v -LongName verbose -Description $msg.verbose
     New-ParamCompleter -LongName quiet -Description $msg.quiet
     New-ParamCompleter -ShortName V -LongName version -Description $msg.version
-) -ArgumentCompleter {
-    param([int] $position, [int] $argIndex)
-    if ($argIndex -eq 0)
-    {
-        # Complete commands in $env:PATH or the path to a command
-        $results = [System.Management.Automation.CompletionCompleters]::CompleteCommand($_, $null, [System.Management.Automation.CommandTypes]::Application);
-        if ($results.Count -gt 0)
-        {
-            $results;
-        }
-        else
-        {
-            [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
-                $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or
-                $_.UnixFileMode.HasFlag([System.IO.UnixFileMode]::UserExecute -bor [System.IO.UnixFileMode]::GroupExecute -bor [System.IO.UnixFileMode]::OtherExecute)
-            });
-        }
-    }
-}
+)
