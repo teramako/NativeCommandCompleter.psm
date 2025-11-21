@@ -332,23 +332,9 @@ public class CommandCompleter(string name,
         {
             if (argumentIndex == DelegateArgumentIndex)
             {
-                IEnumerable<CompletionResult>? commandsResults
-                    = CompletionCompleters.CompleteCommand(tokenValue, string.Empty, CommandTypes.Application);
-                if (commandsResults is not null)
+                foreach (var compData in Helper.CompleteCommandOrFilename(context))
                 {
-                    Debug($"CompleterArgument[Command] {{ {argumentIndex}, '{tokenValue}' }}");
-                    foreach (var result in commandsResults)
-                    {
-                        results.Add(CompletionValue.FromCommpletionResult(result));
-                    }
-                }
-                else
-                {
-                    Debug($"CompleterArgument[Filename] {{ {argumentIndex}, '{tokenValue}' }}");
-                    foreach (var result in Helper.CompleteFilename(context))
-                    {
-                        results.Add(result);
-                    }
+                    results.Add(compData);
                 }
                 return true;
             }

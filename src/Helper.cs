@@ -155,4 +155,37 @@ public static class Helper
         }
         return results;
     }
+
+    /// <summary>
+    /// Generate a completion list for commands or filename
+    /// </summary>
+    /// <param name="context">Completion context</param>
+    public static IEnumerable<CompletionData> CompleteCommandOrFilename(CompletionContext context)
+    {
+        string tokenValue = context.CurrentToken?.Value ?? string.Empty;
+        IEnumerable<CompletionResult>? commandsResults
+            = CompletionCompleters.CompleteCommand(tokenValue, string.Empty, CommandTypes.Application);
+        if (commandsResults is not null)
+        {
+            string prevCmdName = string.Empty;
+            foreach (var result in commandsResults)
+            {
+                if (result.ListItemText == prevCmdName)
+                    continue;
+
+                yield return new CompletionValue(result.CompletionText,
+                                                 $"{result.ResultType}",
+                                                 result.ListItemText,
+                                                 result.ToolTip);
+                prevCmdName = result.ListItemText;
+            }
+        }
+        else
+        {
+            foreach (var result in CompleteFilename(context, onlyDirectory: false, includeHidden: false))
+            {
+                yield return result;
+            }
+        }
+    }
 }
