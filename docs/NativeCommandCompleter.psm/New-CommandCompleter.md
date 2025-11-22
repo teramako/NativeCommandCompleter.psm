@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/21/2025
+ms.date: 11/22/2025
 PlatyPS schema version: 2024-05-01
 title: New-CommandCompleter
 ---
@@ -21,7 +21,7 @@ Create a CommandCompleter object.
 
 ```
 New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Parameters <ParamCompleter[]>]
- [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>]
+ [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>] [-NoFileCompletions]
  [-Style <CommandParameterStyle>] [-DelegateArgumentIndex <int>]
 ```
 
@@ -160,6 +160,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -NoFileCompletions
+
+No file or directory completion in command argument completion.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: false
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Parameters
 
 List of parameters that can be used in the command or subcommand.
@@ -193,7 +214,7 @@ Availables:
 
 ```yaml
 Type: MT.Comp.Commands.CommandParameterStyle
-DefaultValue: 'GNU'
+DefaultValue: GNU
 SupportsWildcards: false
 Aliases:
 - t
