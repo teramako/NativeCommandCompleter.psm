@@ -36,12 +36,12 @@ if ($IsWindows)
         New-ParamCompleter -OldStyleName FO -Description $msg.fo -Arguments "TABLE", "LIST", "CSV"
         New-ParamCompleter -OldStyleName NH -Description $msg.nh
         New-ParamCompleter -OldStyleName ? -Description $msg.help
-    ) 
+    ) -NoFileCompletions
 }
 else
 {
     Register-NativeCompleter -Name whoami -Description 'print effective user name' -Parameters @(
         New-ParamCompleter -LongName help -Description $msg."gnu.help"
         New-ParamCompleter -LongName version -Description $msg."gnu.version"
-    )
+    ) -NoFileCompletions
 }

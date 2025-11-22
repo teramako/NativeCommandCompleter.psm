@@ -42,9 +42,7 @@ if ($LASTEXITCODE -eq 0) # GNU mkdir
         New-ParamCompleter -ShortName u -LongName utc,universal -Description $msg."gnu.utc"
         New-ParamCompleter -ShortName h -LongName help -Description $msg."gnu.help"
         New-ParamCompleter -ShortName v -LongName version -Description $msg."gnu.version"
-    ) -ArgumentCompleter {
-        $null
-    }
+    ) -NoFileCompletions
 }
 else
 {
@@ -56,7 +54,5 @@ else
         New-ParamCompleter -ShortName R -Description $msg."bsd.rfc-2822"
         New-ParamCompleter -ShortName I -Description $msg."bsd.iso-8601" -Arguments "date","hours","minutes","seconds"
         New-ParamCompleter -ShortName f -Description $msg."bsd.format" -Type Required
-    ) -ArgumentCompleter {
-        $null
-    }
+    ) -NoFileCompletions
 }
