@@ -3,80 +3,361 @@
  #>
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
-$helpParam = New-ParamCompleter -OldStyleName 'h','?' -LongName help -Description 'Show command line help.'
-$interactiveParam = New-ParamCompleter -LongName interactive -Description 'Allows the command to stop and wait for user input or action'
-$nologoParam = New-ParamCompleter -LongName nologo -Description 'Do not display the startup banner or the copyright message.'
-$verbosityParam = New-ParamCompleter -OldStyleName v -LongName verbosity -Description 'Set the MSBuild verbosity level.' -Arguments @(
-    "q`tQuiet", "quiet`tQuiet",
-    "m`tMinimal", "minimal`tMinimal",
-    "n`tNormal", "normal`tNormal",
-    "d`tDetailed", "detailed`tDetailed",
-    "diag`tDiagnostic", "diagnostic`tDiagnostic"
+$msg = data { ConvertFrom-StringData @'
+    _Help                              = Show command line help.
+    _Interactive                       = Allows the command to stop and wait for user input or action
+    _Nologo                            = Do not display the startup banner or the copyright message.
+    _Verbosity                         = Set the MSBuild verbosity level.
+    _Verbosity_Quiet                   = Quiet
+    _Verbosity_Minimal                 = Minimal
+    _Verbosity_Normal                  = Normal
+    _Verbosity_Detailed                = Detailed
+    _Verbosity_Diagnostic              = Diagnostic
+    _Nobuild                           = Do not build the project
+    _OutputDir                         = The output directory
+    _IgnoreFailedSources               = Treat package source failures as warnings.
+    Dotnet_Diagnostics                 = Enable diagnostic output.
+    Dotnet_Info                        = Display .NET information.
+    Dotnet_ListRuntimes                = Display the installed runtimes.
+    Dotnet_ListSdks                    = Display the installed SDKs.
+    Add                                = Add a package or reference to a .NET project.
+    AddPackage                         = Add a NuGet package reference to the project.
+    AddPackage_Version                 = The version of the package to add.
+    AddPackage_NoRestore               = Add the reference without performing restore preview and compatibility check.
+    AddPackage_Source                  = The NuGet package source to use during the restore.
+    AddPackage_Directory               = The directory to restore packages to.
+    AddPackage_Prerelease              = Allows prerelease packages to be installed.
+    AddReference                       = Add a project-to-project reference to the project.
+    Build                              = Build a .NET project.
+    Build_ArtifactsPath                = The artifacts path.
+    Build_TargetFramework              = The target framework
+    Build_TargetRuntime                = The target runtime
+    Build_TargetArch                   = The target architecture.
+    Build_TargetOs                     = The target operating system.
+    Build_NoRestore                    = Do not restore
+    Build_Configuration                = The configuration to use
+    Build_VersionSuffix                = Set the value of the $(VersionSuffix) property to use when building the project.
+    Build_DisableBuildServers          = Force the command to ignore any persistent build servers.
+    Build_UseCurrentRuntime            = Use current runtime as the target runtime.
+    Build_NoIncremental                = Do not use incremental building.
+    Build_NoDependencies               = Do not build project-to-project references and only build the specified project.
+    BuildServer                        = Interact with servers started by a build.
+    BuildServerShutdown                = Shuts down build servers that are started from dotnet. By default, all servers are shut down.
+    BuildServerShutdown_Msbuild        = Shut down the MSBuild build server.
+    BuildServerShutdown_Vbcscompiler   = Shut down the VB/C# compiler build server.
+    BuildServerShutdown_Razor          = Shut down the Razor build server.
+    Clean                              = Clean build outputs of a .NET project.
+    Clean_Output                       = The directory containing the build artifacts to clean.
+    Format                             = Apply style preferences to a project or solution.
+    Format_Help                        = Show help and usage information
+    Format_Version                     = Show version information
+    Format_Diagnostics                 = A space separated list of diagnostic ids to use as a filter when fixing code style or 3rd party issues.
+    Format_ExcludeDiagnostics          = A space separated list of diagnostic ids to ignore when fixing code style or 3rd party issues.
+    Format_Severity                    = The severity of diagnostics to fix.
+    Format_VerifyNoChanges             = Verify no formatting changes would be performed.
+    Format_Include                     = A list of relative file or folder paths to include in formatting.
+    Format_Exclude                     = A list of relative file or folder paths to exclude from formatting.
+    Format_IncludeGenerated            = Format files generated by the SDK.
+    Format_BinaryLog                   = Log all project or solution load information to a binary log file.
+    Format_Report                      = Accepts a file path which if provided will produce a json report in the given directory.
+    FormatWhitespace                   = Run whitespace formatting.
+    FormatStyle                        = Run code style analyzers and apply fixes.
+    FormatAnalyzers                    = Run 3rd party analyzers and apply fixes.
+    Help                               = Show command line help.
+    List                               = List project references of a .NET project.
+    ListPackage                        = List all package references of the project or solution.
+    ListPackage_Outdated               = Lists packages that have newer versions. Cannot be combined with '--deprecated' or '--vulnerable' options.
+    ListPackage_Deprecated             = Lists packages that have been deprecated. Cannot be combined with '--vulnerable' or '--outdated' options.
+    ListPackage_Vulnerable             = Lists packages that have known vulnerabilities. Cannot be combined with '--deprecated' or '--outdated' options.
+    ListPackage_Framework              = Chooses a framework to show its packages. Use the option multiple times for multiple frameworks.
+    ListPackage_IncludeTransitive      = Lists transitive and top-level packages.
+    ListPackage_IncludePrerelease      = Consider packages with prerelease versions when searching for newer packages. Requires the '--outdated' option
+    ListPackage_HighestPatch           = Consider only the packages with a matching major and minor version numbers when searching for newer packages. Requires the '--outdated' option.
+    ListPackage_HighestMinor           = Consider only the packages with a matching major version number when searching for newer packages. Requires the '--outdated' option.
+    ListPackage_Config                 = The path to the NuGet config file to use. Requires the '--outdated', '--deprecated' or '--vulnerable' option.
+    ListPackage_Source                 = The NuGet sources to use when searching for newer packages. Requires the '--outdated', '--deprecated' or '--vulnerable' option.
+    ListPackage_Format                 = Specifies the output format type for the list packages command.
+    ListPackage_OutputVersion          = Specifies the version of machine-readable output. Requires the '--format json' option.
+    ListReference                      = List all project-to-project references of the project.
+    Msbuild                            = Run Microsoft Build Engine (MSBuild) commands.
+    New                                = Create a new .NET project or file.
+    New_Name                           = The name for the output being created.
+    New_DryRun                         = Displays a summary of what would happen if the given command line were run if it would result in a template creation.
+    New_Force                          = Forces content to be generated even if it would change existing files.
+    New_NoUpdateCheck                  = Disables checking for the template package updates when instantiating a template.
+    New_Project                        = The project that should be used for context evaluation.
+    New_AddSource                      = Specifies a NuGet source to use.
+    New_AuthorFilter                   = Filters the templates based on the template author.
+    New_LanguageFilter                 = Filters templates based on language.
+    New_TypeFilter                     = Filters templates based on available types.
+    New_TagFilter                      = Filters the templates based on the tag.
+    New_OutputColumnsAll               = Displays all columns in the output.
+    New_OutputColumns                  = Specifies the columns to display in the output.
+    New_Diagnostics                    = Enables diagnostic output.
+    NewCreate                          = Instantiates a template with given short name. An alias of 'dotnet new <template name>'.
+    NewInstall                         = Installs a template package.
+    NewInstall_Force                   = Allows installing template packages from the specified sources even if they would override a template package from another source.
+    NewUninstall                       = Uninstalls a template package.
+    NewUpdate                          = Checks the currently installed template packages for update, and install the updates.
+    NewUpdate_CheckOnly                = Only checks for updates and display the template packages to be updated without applying update.
+    NewSearch                          = Searches for the templates on NuGet.org.
+    NewSearch_Package                  = Filters the templates based on NuGet package ID.
+    NewList                            = Lists templates containing the specified template name.
+    NewList_IgnoreConstraints          = Disables checking if the template meets the constraints to be run.
+    NewDetails                         = Provides the details for specified template package.
+    Nuget                              = Provides additional NuGet commands.
+    Nuget_CertificatePassword          = Password for the certificate, if needed.
+    Nuget_Configfile                   = The NuGet configuration file.
+    Nuget_StorePassInClearText         = Enables storing password for the certificate by disabling password encryption.
+    Nuget_PackageSource                = Package source name.
+    Nuget_CertificatePath              = Path to certificate file.
+    Nuget_StoreLocation                = Certificate store location.
+    Nuget_StoreName                    = Certificate store name.
+    Nuget_FindBy                       = Search method to find certificate in certificate store.
+    Nuget_FindValue                    = Search the certificate store for the supplied value.
+    Nuget_Force                        = Skip certificate validation.
+    Nuget_Username                     = Username to be used when connecting to an authenticated source.
+    Nuget_Password                     = Password to be used when connecting to an authenticated source.
+    Nuget_ValidAuthTypes               = Comma-separated list of valid authentication types for this source.
+    Nuget_ProtocolVersion              = The NuGet server protocol version to be used.
+    Nuget_ForceEnglishOutput           = Forces the application to run using an invariant, English-based culture.
+    Nuget_Source                       = Package source (URL, UNC/folder path or package source name) to use.
+    Nuget_ApiKey                       = The API key for the server.
+    Nuget_Version                      = Show version information
+    NugetAdd                           = Add a NuGet source.
+    NugetAddClientCert                 = Adds a client certificate configuration that matches the given package source name.
+    NugetAddSource                     = Add a NuGet source.
+    NugetAddSource_Name                = Name of the source.
+    NugetDelete                        = Deletes a package from the server.
+    NugetDelete_NonInteractive         = Do not prompt for user input or confirmations.
+    NugetDelete_NoServiceEndpoint      = Does not append "api/v2/package" to the source URL.
+    NugetDisable                       = Disable a NuGet source.
+    NugetEnable                        = Enable a NuGet source.
+    NugetList                          = List configured NuGet sources.
+    NugetListClientCert                = Lists all the client certificates in the configuration.
+    NugetListSource                    = Lists all configured NuGet sources.
+    NugetListSource_Format             = The format of the list command output
+    NugetLocals                        = Clears or lists local NuGet resources.
+    NugetLocals_Clear                  = Clear the selected local resources or cache location(s).
+    NugetLocals_List                   = List the selected local resources or cache location(s).
+    NugetPush                          = Pushes a package to the server and publishes it.
+    NugetPush_SymbolSource             = Symbol server URL to use.
+    NugetPush_Timeout                  = Timeout for pushing to a server in seconds. Defaults to 300 seconds
+    NugetPush_SymbolApiKey             = The API key for the symbol server.
+    NugetPush_DisableBuffering         = Disable buffering when pushing to an HTTP(S) server to decrease memory usage.
+    NugetPush_NoSymbols                = If a symbols package exists, it will not be pushed to a symbols server.
+    NugetPush_NoServiceEndpoint        = Does not append "api/v2/package" to the source URL.
+    NugetPush_SkipDuplicate            = If a package and version already exists, skip it and continue with the next package in the push, if any.
+    NugetRemove                        = Remove a NuGet source.
+    NugetRemoveClientCert              = Removes the client certificate configuration that matches the given package source name.
+    NugetRemoveSource                  = Remove a NuGet source.
+    NugetSign                          = Signs NuGet package(s) at <package-paths> with the specified certificate.
+    NugetSign_CertificatePath          = File path to the certificate to be used while signing the package.
+    NugetSign_CertificateStoreName     = Name of the X.509 certificate store to use to search for the certificate.
+    NugetSign_CertificateStoreLocation = Name of the X.509 certificate store use to search for the certificate.
+    NugetSign_CertificateSubjectName   = Subject name of the certificate
+    NugetSign_CertificateFingerPrint   = SHA-1 fingerprint of the certificate
+    NugetSign_CertificatePassword      = Password for the certificate, if needed.
+    NugetSign_HashAlgorithm            = Hash algorithm to be used to sign the package.
+    NugetSign_Timestamper              = URL to an RFC 3161 timestamping server.
+    NugetSign_TimestampHashAlgorithm   = Hash algorithm to be used by the RFC 3161 timestamp server.
+    NugetSign_Overwrite                = Switch to indicate if the current signature should be overwritten.
+    NugetTrust                         = Manage the trusted signers.
+    NugetTrustAuthor                   = Adds a trusted signer with the given name, based on the author signature of the package.
+    NugetTrustCertificate              = Adds a trusted signer with the given name, based on the repository signature or countersignature of a signed package.
+    NugetTrustList                     = Lists all the trusted signers in the configuration.
+    NugetTrustRemove                   = Removes any trusted signers that match the given name.
+    NugetTrustRepository               = Adds a trusted signer with the given name, based on the repository signature or countersignature of a signed package.
+    NugetTrustSource                   = Adds a trusted signer based on a given package source.
+    NugetTrustSync                     = Deletes the current list of certificates and replaces them with an up-to-date list from the repository.
+    NugetUpdate                        = Update a NuGet source.
+    NugetUpdateClientCert              = Updates the client certificate configuration.
+    NugetUpdateSource                  = Update a NuGet source.
+    NugetUpdateSource_Source           = Path to the package source.
+    NugetVerify                        = Verifies a signed NuGet package.
+    NugetVerify_All                    = Specifies that all verifications
+    NugetVerify_CertificateFingerPrint = Verify that the signer certificate matches with one of the specified SHA256 fingerprints.
+    Pack                               = Create a NuGet package.
+    Pack_IncludeSymbols                = Include packages with symbols
+    Pack_IncludeSource                 = Include PDBs and source files.
+    Pack_Serviceable                   = Set the serviceable flag in the package.
+    Publish                            = Publish a .NET project for deployment.
+    Publish_SelfContained              = Publish the .NET runtime with your application so the runtime doesn't need to be installed on the target machine.
+    Publish_NoSelfContained            = Publish your application as a framework dependent application.
+    Publish_Manifest                   = The path to a target manifest file
+    Remove                             = Remove a package or reference from a .NET project.
+    RemovePackage                      = Remove a NuGet package reference from the project.
+    RemoveReference                    = Remove a project-to-project reference from the project.
+    Restore                            = Restore dependencies specified in a .NET project.
+    Restore_NoCache                    = Do not cache packages and http requests.
+    Restore_DisableParallel            = Prevent restoring multiple projects in parallel.
+    Restore_Source                     = The NuGet package source to use for the restore.
+    Restore_Packages                   = The directory to restore packages to.
+    Restore_Force                      = Force all dependencies to be resolved even if the last restore was successful.
+    Restore_NoDependencies             = Do not restore project-to-project references
+    Restore_UseLockFile                = Enables project lock file to be generated and used with restore.
+    Restore_LockMode                   = Don't allow updating project lock file.
+    Restore_LockFilePath               = Output location where project lock file is written.
+    Restore_ForceEvaluate              = Forces restore to reevaluate all dependencies even if a lock file already exists.
+    Run                                = Build and run a .NET project output.
+    Run_Project                        = The path to the project file to run
+    Run_Property                       = Properties to be passed to MSBuild.
+    Run_LaunchProfile                  = The name of the launch profile
+    Run_NoLaunchProfile                = Do not attempt to use launchSettings.json to configure the application.
+    Sdk                                = Manage .NET SDK installation.
+    SdkCheck                           = .NET SDK Check Command
+    Sln                                = Modify Visual Studio solution files.
+    SlnAdd                             = Add one or more projects to a solution file.
+    SlnAdd_InRoot                      = Place project in root of the solution, rather than creating a solution folder.
+    SlnAdd_SolutionFolder              = The destination solution folder path to add the projects to.
+    SlnList                            = List all projects in a solution file.
+    SlnList_InRoot                     = Display solution folder paths.
+    SlnRemove                          = Remove one or more projects from a solution file.
+    Store                              = Store the specified assemblies in the runtime package store.
+    Store_Manifest                     = The XML file that contains the list of packages to be stored.
+    Store_FrameworkVersion             = The Microsoft.NETCore.App package version that will be used to run the assemblies.
+    Store_WorkingDir                   = The working directory used by the command to execute.
+    Store_SkipOptimization             = Skip the optimization phase.
+    Store_SkipSymbols                  = Skip creating symbol files which can be used for profiling the optimized assemblies.
+    Test                               = Run unit tests using the test runner specified in a .NET project.
+    Test_Settings                      = The settings file to use when running tests.
+    Test_ListTests                     = List the discovered tests instead of running the tests.
+    Test_Environment                   = Sets the value of an environment variable.
+    Test_Filter                        = Run tests that match the given expression.
+    Test_TestAdapterPath               = The path to the custom adapters to use for the test run.
+    Test_Logger                        = The logger to use for test results.
+    Test_Diag                          = Enable verbose logging to the specified file.
+    Test_ResultsDirectory              = The directory where the test results will be placed.
+    Test_Collect                       = The friendly name of the data collector to use for the test run.
+    Test_Blame                         = Runs the tests in blame mode.
+    Test_BlameCrash                    = Runs the tests in blame mode and collects a crash dump when the test host exits unexpectedly.
+    Test_BlameCrashDumpType            = The type of crash dump to be collected.
+    Test_BlameCrashCollectAlways       = Enables collecting crash dump on expected as well as unexpected testhost exit.
+    Test_BlameHang                     = Run the tests in blame mode and enables collecting hang dump when test exceeds the given timeout.
+    Test_BlameHangDumpType             = The type of crash dump to be collected.
+    Test_BlameHangTimeout              = Per-test timeout, after which hang dump is triggered and the testhost process is terminated.
+    Tool                               = Install or manage tools that extend the .NET experience.
+    Tool_Path                          = The tool directory
+    Tool_Manifest                      = Path to the manifest file.
+    Tool_AddSource                     = Add an additional NuGet package source to use during installation.
+    Tool_Framework                     = The target framework to install the tool for.
+    Tool_Version                       = The version of the tool package to install.
+    Tool_Prerelease                    = Include pre-release packages.
+    ToolInstall                        = Install global or local tool. Local tools are added to manifest and restored.
+    ToolInstall_Global                 = Install the tool for the current user.
+    ToolInstall_Local                  = Install the tool and add to the local tool manifest (default).
+    ToolInstall_CreateManifestIfNeeded = Create a tool manifest if one isn't found during tool installation.
+    ToolUninstall                      = Uninstall a global tool or local tool.
+    ToolUninstall_Global               = Uninstall the tool from the current user's tools directory.
+    ToolUninstall_Local                = Uninstall the tool and remove it from the local tool manifest.
+    ToolUpdate                         = Update a global or local tool.
+    ToolUpdate_Global                  = Update the tool in the current user's tools directory.
+    ToolUpdate_Local                   = Update the tool and the local tool manifest.
+    ToolList                           = List tools installed globally or locally.
+    ToolList_Global                    = List tools installed for the current user.
+    ToolList_Local                     = List the tools installed in the local tool manifest.
+    ToolRun                            = Run local tool.
+    ToolSearch                         = Search dotnet tools in nuget.org
+    ToolSearch_Detail                  = Show detail result of the query.
+    ToolSearch_Skip                    = The number of results to skip, for pagination.
+    ToolSearch_Take                    = The number of results to return, for pagination.
+    ToolRestore                        = Restore tools defined in the local tool manifest.
+    Vstest                             = Run Microsoft Test Engine (VSTest) commands.
+    Workload                           = Manage optional workloads.
+    Workload_IncludePreviews           = Allow prerelease workload manifests.
+    Workload_TempDir                   = Specify a temporary directory
+    Workload_SkipManifestUpdate        = Skip updating the workload manifests.
+    Workload_Info                      = Display information about installed workloads.
+    Workload_Version                   = Display the currently installed workload version.
+    WorkloadInstall                    = Install one or more workloads.
+    WorkloadUpdate                     = Update all installed workloads.
+    WorkloadUpdate_FromPreviousSdk     = Include workloads installed with earlier SDK versions in update.
+    WorkloadUpdate_AdvertisingManifestsOnly = Only update advertising manifests.
+    WorkloadList                       = List workloads available.
+    WorkloadSearch                     = Search for available workloads.
+    WorkloadUninstall                  = Uninstall one or more workloads.
+    WorkloadRepair                     = Repair workload installations.
+    WorkloadRestore                    = Restore workloads required for a project.
+    WorkloadClean                      = Removes workload components
+    WorkloadClean_All                  = Causes clean to remove and uninstall all workload components from all SDK versions.
+'@ }
+Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+
+$helpParam = New-ParamCompleter -OldStyleName 'h','?' -LongName help -Description $msg._Help
+$interactiveParam = New-ParamCompleter -LongName interactive -Description $msg._Interactive
+$nologoParam = New-ParamCompleter -LongName nologo -Description $msg._Nologo
+$verbosityParam = New-ParamCompleter -OldStyleName v -LongName verbosity -Description $msg._Verbosity -Arguments @(
+    ("q `t{0}" -f $msg._Verbosity_Quiet), ("quiet `t{0}" -f $msg._Verbosity_Quiet),
+    ("m `t{0}" -f $msg._Verbosity_Minimal), ("minimal `t{0}" -f $msg._Verbosity_Minimal),
+    ("n `t{0}" -f $msg._Verbosity_Normal),  ("normal `t{0}" -f $msg._Verbosity_Normal),
+    ("d` t{0}" -f $msg._Verbosity_Detailed), ("detailed `t{0}" -f $msg._Verbosity_Detailed),
+    ("diag `t{0}" -f $msg._Verbosity_Diagnostic), ("diagnostic `t{0}" -f $msg._Verbosity_Diagnostic)
 )
-$noBuildParam = New-ParamCompleter -LongName no-build -Description 'Do not build the project'
-$outputDirParam = New-ParamCompleter -OldStyleName o -LongName output -Description 'The output directory' -Type Directory
+$noBuildParam = New-ParamCompleter -LongName no-build -Description $msg._Nobuild
+$outputDirParam = New-ParamCompleter -OldStyleName o -LongName output -Description $msg._OutputDir -Type Directory
 
-$buildArtifactsPathParam = New-ParamCompleter -LongName artifacts-path -Description 'The artifacts path.' -Type Directory
-$targetFrameworkParam = New-ParamCompleter -OldStyleName f -LongName framework -Description 'The target framework' -Type Required
-$targetRuntimeParam = New-ParamCompleter -OldStyleName r -LongName runtime -Description 'The target runtime' -Type Required
-$targetArchParam = New-ParamCompleter -OldStyleName a -LongName arch -Description "The target architecture." -Type Required
-$targetOsParam = New-ParamCompleter -LongName os -Description "The target operating system." -Type Required
-$norestoreParam = New-ParamCompleter -LongName no-restore -Description 'Do not restore'
-$buildConfigurationParam = New-ParamCompleter -OldStyleName c -LongName configuration -Description "The configuration to use" -Arguments 'Debug','Release'
-$buildVersionSuffixParam = New-ParamCompleter -LongName version-suffix -Description 'Set the value of the $(VersionSuffix) property to use when building the project.' -Type Required
-$disableBuildServersParam = New-ParamCompleter -LongName disable-build-servers -Description "Force the command to ignore any persistent build servers."
-$useCurrentRuntimeParam = New-ParamCompleter -LongName ucr, use-current-runtime -Description 'Use current runtime as the target runtime.'
+$buildArtifactsPathParam = New-ParamCompleter -LongName artifacts-path -Description $msg.Build_ArtifactsPath -Type Directory
+$targetFrameworkParam = New-ParamCompleter -OldStyleName f -LongName framework -Description $msg.Build_TargetFramework -Type Required
+$targetRuntimeParam = New-ParamCompleter -OldStyleName r -LongName runtime -Description $msg.Build_TargetRuntime -Type Required
+$targetArchParam = New-ParamCompleter -OldStyleName a -LongName arch -Description $msg.Build_TargetArch -Type Required
+$targetOsParam = New-ParamCompleter -LongName os -Description $msg.Build_TargetOs -Type Required
+$norestoreParam = New-ParamCompleter -LongName no-restore -Description $msg.Build_NoRestore
+$buildConfigurationParam = New-ParamCompleter -OldStyleName c -LongName configuration -Description $msg.Build_Configuration -Arguments 'Debug','Release'
+$buildVersionSuffixParam = New-ParamCompleter -LongName version-suffix -Description $msg.Build_VersionSuffix -Type Required
+$disableBuildServersParam = New-ParamCompleter -LongName disable-build-servers -Description $msg.Build_DisableBuildServers
+$useCurrentRuntimeParam = New-ParamCompleter -LongName ucr, use-current-runtime -Description $msg.Build_UseCurrentRuntime
 
-$newNameParam = New-ParamCompleter -OldStyleName n -LongName name -Description 'The name for the output being created.' -Type Required
-$newDryRunParam = New-ParamCompleter -LongName dry-run -Description 'Displays a summary of what would happen if the given command line were run if it would result in a template creation.'
-$newForceParam = New-ParamCompleter -LongName force -Description 'Forces content to be generated even if it would change existing files.'
-$newNoUpdateCheckParam = New-ParamCompleter -LongName no-update-check -Description 'Disables checking for the template package updates when instantiating a template.'
-$newProjectParam = New-ParamCompleter -LongName project -Description 'The project that should be used for context evaluation.' -Type File
-$newAddSourceParam = New-ParamCompleter -LongName add-source, nuget-source -Description "Specifies a NuGet source to use." -Type Required
-$newAuthorFilterParam = New-ParamCompleter -LongName author -Description "Filters the templates based on the template author." -Type Required
-$newLanguageFilterParam = New-ParamCompleter -OldStyleName lang -LongName language -Description "Filters templates based on language." -Type Required
-$newTypeFilterParam = New-ParamCompleter -LongName type -Description "Filters templates based on available types." -Arguments 'project', 'item'
-$newTagFilterParam = New-ParamCompleter -LongName tag -Description "Filters the templates based on the tag." -Type Required
-$newOutputColumnsAllParam = New-ParamCompleter -LongName columns-all -Description "Displays all columns in the output."
-$newOutputColumnsParam = New-ParamCompleter -LongName columns -Description "Specifies the columns to display in the output." -Arguments 'author','language','tags','type'
-$newDiagnosticsParam = New-ParamCompleter -OldStyleName d -LongName diagnostics -Description 'Enables diagnostic output.'
+$newNameParam = New-ParamCompleter -OldStyleName n -LongName name -Description $msg.New_Name -Type Required
+$newDryRunParam = New-ParamCompleter -LongName dry-run -Description $msg.New_DryRun
+$newForceParam = New-ParamCompleter -LongName force -Description $msg.New_Force
+$newNoUpdateCheckParam = New-ParamCompleter -LongName no-update-check -Description $msg.New_NoUpdateCheck
+$newProjectParam = New-ParamCompleter -LongName project -Description $msg.New_Project -Type File
+$newAddSourceParam = New-ParamCompleter -LongName add-source, nuget-source -Description $msg.New_AddSource -Type Required
+$newAuthorFilterParam = New-ParamCompleter -LongName author -Description  $msg.New_AuthorFilter -Type Required
+$newLanguageFilterParam = New-ParamCompleter -OldStyleName lang -LongName language -Description $msg.New_LanguageFilter -Type Required
+$newTypeFilterParam = New-ParamCompleter -LongName type -Description $msg.New_TypeFilter -Arguments 'project', 'item'
+$newTagFilterParam = New-ParamCompleter -LongName tag -Description $msg.New_TagFilter -Type Required
+$newOutputColumnsAllParam = New-ParamCompleter -LongName columns-all -Description $msg.New_OutputColumnsAll
+$newOutputColumnsParam = New-ParamCompleter -LongName columns -Description $msg.New_OutputColumns -Arguments 'author','language','tags','type'
+$newDiagnosticsParam = New-ParamCompleter -OldStyleName d -LongName diagnostics -Description $msg.New_Diagnostics
 
-$publishSelfContainedParam = New-ParamCompleter -LongName sc, self-contained -Description "Publish the .NET runtime with your application so the runtime doesn't need to be installed on the target machine."
-$publishNoSelfContainedParam = New-ParamCompleter -LongName no-self-contained -Description "Publish your application as a framework dependent application."
+$publishSelfContainedParam = New-ParamCompleter -LongName sc, self-contained -Description $msg.Publish_SelfContained
+$publishNoSelfContainedParam = New-ParamCompleter -LongName no-self-contained -Description $msg.Publish_NoSelfContained
 
-$noCacheParam = New-ParamCompleter -LongName no-cache -Description 'Do not cache packages and http requests.'
-$nugetCertificatePasswordParam = New-ParamCompleter -LongName password -Description 'Password for the certificate, if needed.' -Type Required
-$nugetConfigfileParam = New-ParamCompleter -LongName configfile -Description 'The NuGet configuration file.' -Type File
-$nugetStorePassInClearTextParam = New-ParamCompleter -LongName store-password-in-clear-text -Description 'Enables storing password for the certificate by disabling password encryption.'
-$nugetPackageSourceParam = New-ParamCompleter -OldStyleName s -LongName package-source -Description 'Package source name.' -Type Required
-$nugetCertificatePathParam = New-ParamCompleter -LongName path -Description 'Path to certificate file.' -Type File
-$nugetStoreLocationParam = New-ParamCompleter -LongName store-location -Description 'Certificate store location.' -Type Required
-$nugetStoreNameParam = New-ParamCompleter -LongName store-name -Description 'Certificate store name.' -Type Required
-$nugetFindByParam = New-ParamCompleter -LongName find-by -Description 'Search method to find certificate in certificate store.' -Type Required
-$nugetFindValueParam = New-ParamCompleter -LongName find-value -Description 'Search the certificate store for the supplied value.' -Type Required
-$nugetForceParam = New-ParamCompleter -OldStyleName f -LongName force -Description 'Skip certificate validation.'
-$nugetUsernameParam = New-ParamCompleter -OldStyleName u -LongName username -Description 'Username to be used when connecting to an authenticated source.' -Type Required
-$nugetPasswordParam = New-ParamCompleter -OldStyleName p -LongName password -Description 'Password to be used when connecting to an authenticated source.' -Type Required
-$nugetValidAuthTypesParam = New-ParamCompleter -LongName valid-authentication-types -Description 'Comma-separated list of valid authentication types for this source.' -Type Required
-$nugetProtocolVersionParam = New-ParamCompleter -LongName protocol-version -Description 'The NuGet server protocol version to be used.' -Arguments '2', '3'
-$nugetForceEnglishOutputParam = New-ParamCompleter -LongName force-english-output -Description 'Forces the application to run using an invariant, English-based culture.'
-$nugetSourceParam = New-ParamCompleter -OldStyleName s -LongName source -Description 'Package source (URL, UNC/folder path or package source name) to use.' -Type Required
-$nugetApiKeyParam = New-ParamCompleter -OldStyleName k -LongName api-key -Description 'The API key for the server.' -Type Required
+$noCacheParam = New-ParamCompleter -LongName no-cache -Description $msg.Restore_NoCache
+$nugetCertificatePasswordParam = New-ParamCompleter -LongName password -Description $msg.Nuget_CertificatePassword -Type Required
+$nugetConfigfileParam = New-ParamCompleter -LongName configfile -Description $msg.Nuget_Configfile -Type File
+$nugetStorePassInClearTextParam = New-ParamCompleter -LongName store-password-in-clear-text -Description $msg.Nuget_StorePassInClearText
+$nugetPackageSourceParam = New-ParamCompleter -OldStyleName s -LongName package-source -Description $msg.Nuget_PackageSource -Type Required
+$nugetCertificatePathParam = New-ParamCompleter -LongName path -Description $msg.Nuget_CertificatePath -Type File
+$nugetStoreLocationParam = New-ParamCompleter -LongName store-location -Description $msg.Nuget_StoreLocation -Type Required
+$nugetStoreNameParam = New-ParamCompleter -LongName store-name -Description $msg.Nuget_StoreName -Type Required
+$nugetFindByParam = New-ParamCompleter -LongName find-by -Description $msg.Nuget_FindBy -Type Required
+$nugetFindValueParam = New-ParamCompleter -LongName find-value -Description $msg.Nuget_FindValue -Type Required
+$nugetForceParam = New-ParamCompleter -OldStyleName f -LongName force -Description $msg.Nuget_Force
+$nugetUsernameParam = New-ParamCompleter -OldStyleName u -LongName username -Description $msg.Nuget_Username -Type Required
+$nugetPasswordParam = New-ParamCompleter -OldStyleName p -LongName password -Description $msg.Nuget_Password -Type Required
+$nugetValidAuthTypesParam = New-ParamCompleter -LongName valid-authentication-types -Description $msg.Nuget_ValidAuthTypes -Type Required
+$nugetProtocolVersionParam = New-ParamCompleter -LongName protocol-version -Description $msg.Nuget_ProtocolVersion -Arguments '2', '3'
+$nugetForceEnglishOutputParam = New-ParamCompleter -LongName force-english-output -Description $msg.Nuget_ForceEnglishOutput
+$nugetSourceParam = New-ParamCompleter -OldStyleName s -LongName source -Description $msg.Nuget_Source -Type Required
+$nugetApiKeyParam = New-ParamCompleter -OldStyleName k -LongName api-key -Description $msg.Nuget_ApiKey -Type Required
 
-$disableParallelParam = New-ParamCompleter -LongName disable-parallel -Description 'Prevent restoring multiple projects in parallel.'
+$nugetTrustAllowUntrustedRootParam = New-ParamCompleter -LongName allow-untrusted-root
+$disableParallelParam = New-ParamCompleter -LongName disable-parallel -Description $msg.Restore_DisableParallel
 
-$toolPathParam = New-ParamCompleter -LongName tool-path -Description 'The tool directory' -Type Directory
-$toolManifestParam = New-ParamCompleter -LongName tool-manifest -Description 'Path to the manifest file.' -Type File
-$toolAddSourceParam = New-ParamCompleter -LongName add-source -Description 'Add an additional NuGet package source to use during installation.' -Type Required
-$toolFrameworkParam = New-ParamCompleter -LongName framework -Description 'The target framework to install the tool for.' -Type Required
-$toolVersionParam = New-ParamCompleter -LongName version -Description 'The version of the tool package to install.' -Type Required
-$toolPrereleaseParam = New-ParamCompleter -LongName prerelease -Description 'Include pre-release packages.'
-$ignoreFailedSourcesParam = New-ParamCompleter -LongName ignore-failed-sources -Description 'Treat package source failures as warnings.'
+$toolPathParam = New-ParamCompleter -LongName tool-path -Description $msg.Tool_Path -Type Directory
+$toolManifestParam = New-ParamCompleter -LongName tool-manifest -Description $msg.Tool_Manifest -Type File
+$toolAddSourceParam = New-ParamCompleter -LongName add-source -Description $msg.Tool_AddSource -Type Required
+$toolFrameworkParam = New-ParamCompleter -LongName framework -Description $msg.Tool_Framework -Type Required
+$toolVersionParam = New-ParamCompleter -LongName version -Description $msg.Tool_Version -Type Required
+$toolPrereleaseParam = New-ParamCompleter -LongName prerelease -Description $msg.Tool_Prerelease
+$ignoreFailedSourcesParam = New-ParamCompleter -LongName ignore-failed-sources -Description $msg._IgnoreFailedSources
 
-$nugetSourceParam = New-ParamCompleter -OldStyleName s -LongName source -Description 'The NuGet package source to use during the restore.' -Type Required
-$workloadIncludePreviewsParam = New-ParamCompleter -LongName include-previews -Description 'Allow prerelease workload manifests.'
-$workloadTempDirParam = New-ParamCompleter -LongName temp-dir -Description 'Specify a temporary directory' -Type Directory
-$workloadSkipManifestUpdateParam = New-ParamCompleter -LongName skip-manifest-update -Description 'Skip updating the workload manifests.'
+$workloadIncludePreviewsParam = New-ParamCompleter -LongName include-previews -Description $msg.Workload_IncludePreviews
+$workloadTempDirParam = New-ParamCompleter -LongName temp-dir -Description $msg.Workload_TempDir -Type Directory
+$workloadSkipManifestUpdateParam = New-ParamCompleter -LongName skip-manifest-update -Description $msg.Workload_SkipManifestUpdate
 
 $dotnetCompleteScript = {
     $cmdline = $this.CommandAst.ToString()
@@ -111,23 +392,27 @@ $solutionOrProjectCompleter = {
 }
 
 Register-NativeCompleter -Name dotnet -Parameters @(
-    New-ParamCompleter -OldStyleName d -LongName diagnostics -Description 'Enable diagnostic output.'
-    New-ParamCompleter -LongName info -Description 'Display .NET information.'
-    New-ParamCompleter -LongName list-runtimes -Description 'Display the installed runtimes.'
-    New-ParamCompleter -LongName list-sdks -Description 'Display the installed SDKs.'
+    New-ParamCompleter -OldStyleName d -LongName diagnostics -Description $msg.Dotnet_Diagnostics
+    New-ParamCompleter -LongName info -Description $msg.Dotnet_Info
+    New-ParamCompleter -LongName list-runtimes -Description $msg.Dotnet_ListRuntimes
+    New-ParamCompleter -LongName list-sdks -Description $msg.Dotnet_ListSdks
     $helpParam
 ) -SubCommands @(
-    New-CommandCompleter -Name add -Description 'Add a package or reference to a .NET project.' -Parameters @(
+    #
+    # add
+    #
+    New-CommandCompleter -Name add -Description $msg.Add -Parameters @(
         $helpParam
     ) -SubCommands @(
-        New-CommandCompleter -Name package -Description 'Add a NuGet package reference to the project.' -Parameters @(
-            New-ParamCompleter -OldStyleName v -LongName version -Description 'The version of the package to add.' -Type Required
+        # add package
+        New-CommandCompleter -Name package -Description $msg.AddPackage -Parameters @(
+            New-ParamCompleter -OldStyleName v -LongName version -Description $msg.AddPackage_Version -Type Required
             $targetFrameworkParam
-            New-ParamCompleter -OldStyleName n -LongName no-restore -Description 'Add the reference without performing restore preview and compatibility check.'
-            $nugetSourceParam
-            New-ParamCompleter -LongName package-directory -Description 'The directory to restore packages to.' -Type Directory
+            New-ParamCompleter -OldStyleName n -LongName no-restore -Description $msg.AddPackage_NoRestore
+            New-ParamCompleter -OldStyleName s -LongName source -Description $msg.AddPackage_Source -Type Required
+            New-ParamCompleter -LongName package-directory -Description $msg.AddPackage_Directory -Type Directory
             $interactiveParam
-            New-ParamCompleter -LongName prerelease -Description 'Allows prerelease packages to be installed.'
+            New-ParamCompleter -LongName prerelease -Description $msg.AddPackage_Prerelease
             $helpParam
         ) -ArgumentCompleter {
             param([int] $position, [int] $argumentIndex)
@@ -137,13 +422,17 @@ Register-NativeCompleter -Name dotnet -Parameters @(
                 dotnet complete "$cmdline"
             }
         }
-        New-CommandCompleter -Name reference -Description 'Add a project-to-project reference to the project.' -Parameters @(
+        # add reference
+        New-CommandCompleter -Name reference -Description $msg.AddReference -Parameters @(
             $targetFrameworkParam
             $interactiveParam
             $helpParam
         )
     ) -ArgumentCompleter $projectCompleter
-    New-CommandCompleter -Name build -Description 'Build a .NET project.' -Parameters @(
+    #
+    # build
+    #
+    New-CommandCompleter -Name build -Description $msg.Build -Parameters @(
         $useCurrentRuntimeParam
         $targetFrameworkParam
         $buildConfigurationParam
@@ -155,8 +444,8 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         New-ParamCompleter -LongName debug
         $outputDirParam
         $buildArtifactsPathParam
-        New-ParamCompleter -LongName no-incremental -Description 'Do not use incremental building.'
-        New-ParamCompleter -LongName no-dependencies -Description 'Do not build project-to-project references and only build the specified project.'
+        New-ParamCompleter -LongName no-incremental -Description $msg.Build_NoIncremental
+        New-ParamCompleter -LongName no-dependencies -Description $msg.Build_NoDependencies
         $nologoParam
         $publishSelfContainedParam
         $publishNoSelfContainedParam
@@ -165,75 +454,99 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $disableBuildServersParam
         $helpParam
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name build-server -Description 'Interact with servers started by a build.' -Parameters @(
+    #
+    # build-server
+    #
+    New-CommandCompleter -Name build-server -Description $msg.BuildServer -Parameters @(
         $helpParam
     ) -SubCommands @(
-        New-CommandCompleter -Name shutdown -Description 'Shuts down build servers that are started from dotnet. By default, all servers are shut down.' -Parameters @(
-            New-ParamCompleter -LongName msbuild -Description 'Shut down the MSBuild build server.'
-            New-ParamCompleter -LongName vbcscompiler -Description 'Shut down the VB/C# compiler build server.'
-            New-ParamCompleter -LongName razor -Description 'Shut down the Razor build server.'
+        # build-server shutdown
+        New-CommandCompleter -Name shutdown -Description $msg.subcommandBuildServerShutdown -Parameters @(
+            New-ParamCompleter -LongName msbuild -Description $msg.BuildServerShutdown_Msbuild
+            New-ParamCompleter -LongName vbcscompiler -Description $msg.BuildServerShutdown_Vbcscompiler
+            New-ParamCompleter -LongName razor -Description $msg.BuildServerShutdown_Razor
             $helpParam
         )
     )
-    New-CommandCompleter -Name clean -Description 'Clean build outputs of a .NET project.' -Parameters @(
+    #
+    # clean
+    #
+    New-CommandCompleter -Name clean -Description $msg.Clean -Parameters @(
         $targetFrameworkParam
         $targetRuntimeParam
         $buildConfigurationParam
         $interactiveParam
         $verbosityParam
-        New-ParamCompleter -OldStyleName o -LongName output -Description 'The directory containing the build artifacts to clean.' -Type Directory
+        New-ParamCompleter -OldStyleName o -LongName output -Description $msg.Clean_Output -Type Directory
         $buildArtifactsPathParam
         $nologoParam
         $disableBuildServersParam
         $helpParam
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name format -Description 'Apply style preferences to a project or solution.' -Parameters @(
-        New-ParamCompleter -OldStyleName ?,h -LongName help -Description 'Show help and usage information'
-        New-ParamCompleter -LongName version -Description 'Show version information'
-        New-ParamCompleter -LongName diagnostics -Description 'A space separated list of diagnostic ids to use as a filter when fixing code style or 3rd party issues.' -Type Required
-        New-ParamCompleter -LongName exclude-diagnostics -Description 'A space separated list of diagnostic ids to ignore when fixing code style or 3rd party issues.' -Type Required
-        New-ParamCompleter -LongName severity -Description 'The severity of diagnostics to fix.' -Arguments 'info', 'warn', 'error'
+    #
+    # format
+    #
+    New-CommandCompleter -Name format -Description $msg.Format -Parameters @(
+        New-ParamCompleter -OldStyleName ?,h -LongName help -Description $msg.Format_Help
+        New-ParamCompleter -LongName version -Description $msg.Format_Version
+        New-ParamCompleter -LongName diagnostics -Description $msg.Format_Diagnostics -Type Required
+        New-ParamCompleter -LongName exclude-diagnostics -Description $msg.Format_ExcludeDiagnostics -Type Required
+        New-ParamCompleter -LongName severity -Description $msg.Format_Severity -Arguments 'info', 'warn', 'error'
         $norestoreParam
-        New-ParamCompleter -LongName verify-no-changes -Description 'Verify no formatting changes would be performed.'
-        New-ParamCompleter -LongName include -Description 'A list of relative file or folder paths to include in formatting.' -Type File
-        New-ParamCompleter -LongName exclude -Description 'A list of relative file or folder paths to exclude from formatting.' -Type File
-        New-ParamCompleter -LongName include-generated -Description 'Format files generated by the SDK.'
+        New-ParamCompleter -LongName verify-no-changes -Description $msg.Format_VerifyNoChanges
+        New-ParamCompleter -LongName include -Description $msg.Format_Include -Type File
+        New-ParamCompleter -LongName exclude -Description $msg.Format_Exclude -Type File
+        New-ParamCompleter -LongName include-generated -Description $msg.Format_IncludeGenerated
         $verbosityParam
-        New-ParamCompleter -LongName binarylog -Description 'Log all project or solution load information to a binary log file.' -Type File
-        New-ParamCompleter -LongName report -Description 'Accepts a file path which if provided will produce a json report in the given directory.' -Type Directory
+        New-ParamCompleter -LongName binarylog -Description $msg.Format_BinaryLog -Type File
+        New-ParamCompleter -LongName report -Description $msg.Format_Report -Type Directory
     ) -SubCommands @(
-        New-CommandCompleter -Name whitespace -Description 'Run whitespace formatting.' -Parameters @()
-        New-CommandCompleter -Name style -Description 'Run code style analyzers and apply fixes.' -Parameters @()
-        New-CommandCompleter -Name analyzers -Description 'Run 3rd party analyzers and apply fixes.' -Parameters @()
+        # format whitespace
+        New-CommandCompleter -Name whitespace -Description $msg.FormatWhitespace -Parameters @()
+        # format style
+        New-CommandCompleter -Name style -Description $msg.FormatStyle -Parameters @()
+        # format analyzers
+        New-CommandCompleter -Name analyzers -Description $msg.FormatAnalyzers -Parameters @()
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name help -Description 'Show command line help.' -Parameters $helpParam
-    New-CommandCompleter -Name list -Description 'List project references of a .NET project.' -Parameters @(
+    New-CommandCompleter -Name help -Description $msg.Help -Parameters $helpParam
+    #
+    # list
+    #
+    New-CommandCompleter -Name list -Description $msg.List -Parameters @(
         $helpParam
     ) -SubCommands @(
-        New-CommandCompleter -Name package -Description 'List all package references of the project or solution.' -Parameters @(
+        # list package
+        New-CommandCompleter -Name package -Description $msg.ListPackage -Parameters @(
             $verbosityParam
-            New-ParamCompleter -LongName outdated -Description "Lists packages that have newer versions. Cannot be combined with '--deprecated' or '--vulnerable' options."
-            New-ParamCompleter -LongName deprecated -Description "Lists packages that have been deprecated. Cannot be combined with '--vulnerable' or '--outdated' options."
-            New-ParamCompleter -LongName vulnerable -Description "Lists packages that have known vulnerabilities. Cannot be combined with '--deprecated' or '--outdated' options."
-            New-ParamCompleter -LongName framework -Description "Chooses a framework to show its packages. Use the option multiple times for multiple frameworks." -Type Required
-            New-ParamCompleter -LongName include-transitive -Description 'Lists transitive and top-level packages.'
-            New-ParamCompleter -LongName include-prerelease -Description "Consider packages with prerelease versions when searching for newer packages. Requires the '--outdated' option"
-            New-ParamCompleter -LongName highest-patch -Description "Consider only the packages with a matching major and minor version numbers when searching for newer packages. Requires the '--outdated' option."
-            New-ParamCompleter -LongName highest-minor -Description "Consider only the packages with a matching major version number when searching for newer packages. Requires the '--outdated' option."
-            New-ParamCompleter -LongName config, configfile -Description "The path to the NuGet config file to use. Requires the '--outdated', '--deprecated' or '--vulnerable' option." -Type File
-            New-ParamCompleter -LongName source -Description "The NuGet sources to use when searching for newer packages. Requires the '--outdated', '--deprecated' or '--vulnerable' option." -Type Required
+            New-ParamCompleter -LongName outdated -Description $msg.ListPackage_Outdated
+            New-ParamCompleter -LongName deprecated -Description $msg.ListPackage_Deprecated
+            New-ParamCompleter -LongName vulnerable -Description $msg.ListPackage_Vulnerable
+            New-ParamCompleter -LongName framework -Description  $msg.ListPackage_Framework -Type Required
+            New-ParamCompleter -LongName include-transitive -Description $msg.ListPackage_IncludeTransitive
+            New-ParamCompleter -LongName include-prerelease -Description $msg.ListPackage_IncludePrerelease
+            New-ParamCompleter -LongName highest-patch -Description $msg.ListPackage_HighestPatch
+            New-ParamCompleter -LongName highest-minor -Description $msg.ListPackage_HighestMinor
+            New-ParamCompleter -LongName config, configfile -Description $msg.ListPackage_Config -Type File
+            New-ParamCompleter -LongName source -Description $msg.ListPackage_Source -Type Required
             $interactiveParam
-            New-ParamCompleter -LongName format -Description "Specifies the output format type for the list packages command." -Arguments 'console','json'
-            New-ParamCompleter -LongName output-version -Description "Specifies the version of machine-readable output. Requires the '--format json' option." -Type Required
+            New-ParamCompleter -LongName format -Description $msg.ListPackage_Format -Arguments 'console','json'
+            New-ParamCompleter -LongName output-version -Description $msg.ListPackage_OutputVersion -Type Required
             $helpParam
         )
-        New-CommandCompleter -Name reference -Description 'List all project-to-project references of the project.' -Parameters $helpParam
+        # list reference
+        New-CommandCompleter -Name reference -Description $msg.ListReference -Parameters $helpParam
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name msbuild -Description 'Run Microsoft Build Engine (MSBuild) commands.' -Parameters @(
+    #
+    # msbuild
+    #
+    New-CommandCompleter -Name msbuild -Description $msg.Msbuild -Parameters @(
         # TBD
         $helpParam
     ) -ArgumentCompleter $projectCompleter
-    New-CommandCompleter -Name new -Description 'Create a new .NET project or file.' -Parameters @(
+    #
+    # new
+    #
+    New-CommandCompleter -Name new -Description $msg.New -Parameters @(
         $outputDirParam
         $newNameParam
         $newDryRunParam
@@ -244,7 +557,8 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $newDiagnosticsParam
         $helpParam
     ) -SubCommands @(
-        New-CommandCompleter -Name create -Description "Instantiates a template with given short name. An alias of 'dotnet new <template name>'." -Parameters @(
+        # new create
+        New-CommandCompleter -Name create -Description $msg.NewCreate -Parameters @(
             $outputDirParam
             $newNameParam
             $newDryRunParam
@@ -258,51 +572,57 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $cmdline = $this.CommandAst.ToString()
             dotnet complete "$cmdLine" | Where-Object { -not ($_ -match '^[-/]') } | ForEach-Object { "$_`tTemplate" }
         }
-        New-CommandCompleter -Name install -Description "Installs a template package." -Parameters @(
+        # new install
+        New-CommandCompleter -Name install -Description $msg.NewInstall -Parameters @(
             $interactiveParam
             $newAddSourceParam
-            New-ParamCompleter -LongName force -Description 'Allows installing template packages from the specified sources even if they would override a template package from another source.'
+            New-ParamCompleter -LongName force -Description $msg.NewInstall_Force
             $verbosityParam
             $newDiagnosticsParam
             $helpParam
         ) -ArgumentCompleter $dotnetCompleteScript
-        New-CommandCompleter -Name uninstall -Description "Uninstalls a template package." -Parameters @(
+        # new uninstall
+        New-CommandCompleter -Name uninstall -Description $msg.NewUninstall -Parameters @(
             $verbosityParam
             $newDiagnosticsParam
             $helpParam
         )
-        New-CommandCompleter -Name update -Description "Checks the currently installed template packages for update, and install the updates." -Parameters @(
+        # new update
+        New-CommandCompleter -Name update -Description $msg.NewUpdate -Parameters @(
             $interactiveParam
             $newAddSourceParam
-            New-ParamCompleter -LongName check-only, dry-run -Description "Only checks for updates and display the template packages to be updated without applying update."
+            New-ParamCompleter -LongName check-only, dry-run -Description $msg.NewUpdate_CheckOnly
             $verbosityParam
             $newDiagnosticsParam
             $helpParam
         )
-        New-CommandCompleter -Name search -Description "Searches for the templates on NuGet.org." -Parameters @(
+        # new search
+        New-CommandCompleter -Name search -Description $msg.NewSearch -Parameters @(
             $newAuthorFilterParam
             $newLanguageFilterParam
             $newTypeFilterParam
             $newTagFilterParam
-            New-ParamCompleter -LongName package -Description "Filters the templates based on NuGet package ID." -Type Required
+            New-ParamCompleter -LongName package -Description $msg.NewSearch_Package -Type Required
             $newOutputColumnsAllParam
             $newOutputColumnsParam
             $verbosityParam
             $newDiagnosticsParam
             $helpParam
         )
-        New-CommandCompleter -Name list -Description "Lists templates containing the specified template name." -Parameters @(
+        # new list
+        New-CommandCompleter -Name list -Description $msg.NewList -Parameters @(
             $newAuthorFilterParam
             $newLanguageFilterParam
             $newTagFilterParam
-            New-ParamCompleter -LongName ignore-constraints -Description "Disables checking if the template meets the constraints to be run."
+            New-ParamCompleter -LongName ignore-constraints -Description $msg.NewList_IgnoreConstraints
             $newOutputColumnsAllParam
             $newOutputColumnsParam
             $verbosityParam
             $newDiagnosticsParam
             $helpParam
         )
-        New-CommandCompleter -Name details -Description "Provides the details for specified template package." -Parameters @(
+        # new details
+        New-CommandCompleter -Name details -Description $msg.NewDetails -Parameters @(
             $interactiveParam
             $newAddSourceParam
             $verbosityParam
@@ -315,12 +635,16 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             Where-Object { -not ($_ -match '^(?:[-/]|(?:create|(?:un)?install|update|search|list|details)$)') } |
             ForEach-Object { "$_`tTemplate" }
     }
-    New-CommandCompleter -Name nuget -Description 'Provides additional NuGet commands.' -Parameters @(
+    #
+    # nuget
+    #
+    New-CommandCompleter -Name nuget -Description $msg.Nuget -Parameters @(
         $helpParam
-        New-ParamCompleter -LongName version -Description 'Show version information'
+        New-ParamCompleter -LongName version -Description $msg.Nuget_Version
     ) -SubCommands @(
-        New-CommandCompleter -Name add -Description 'Add a NuGet source.' -Parameters $helpParam -SubCommands @(
-            New-CommandCompleter -Name client-cert -Description 'Adds a client certificate configuration that matches the given package source name.' -Parameters @(
+        # nuget add
+        New-CommandCompleter -Name add -Description $msg.NugetAdd -Parameters $helpParam -SubCommands @(
+            New-CommandCompleter -Name client-cert -Description $msg.NugetAddClientCert -Parameters @(
                 $nugetPackageSourceParam
                 $nugetCertificatePathParam
                 $nugetCertificatePasswordParam
@@ -333,8 +657,8 @@ Register-NativeCompleter -Name dotnet -Parameters @(
                 $nugetConfigfileParam
                 $helpParam
             )
-            New-CommandCompleter -Name source -Description 'Add a NuGet source.' -Parameters @(
-                New-ParamCompleter -OldStyleName n -LongName name -Description 'Name of the source.' -Type Required
+            New-CommandCompleter -Name source -Description $msg.NugetAddSource -Parameters @(
+                New-ParamCompleter -OldStyleName n -LongName name -Description $msg.NugetAddSource_Name -Type Required
                 $nugetUsernameParam
                 $nugetPasswordParam
                 $nugetStorePassInClearTextParam
@@ -344,110 +668,127 @@ Register-NativeCompleter -Name dotnet -Parameters @(
                 $helpParam
             )
         )
-        New-CommandCompleter -Name delete -Description 'Deletes a package from the server.' -Parameters @(
+        # nuget delete 
+        New-CommandCompleter -Name delete -Description $msg.NugetDelete -Parameters @(
             $helpParam
             $nugetForceEnglishOutputParam
             $nugetSourceParam
-            New-ParamCompleter -LongName non-interactive -Description 'Do not prompt for user input or confirmations.'
+            New-ParamCompleter -LongName non-interactive -Description $msg.NugetDelete_NonInteractive
             $nugetApiKeyParam
-            New-ParamCompleter -LongName no-service-endpoint -Description 'Does not append "api/v2/package" to the source URL.'
+            New-ParamCompleter -LongName no-service-endpoint -Description $msg.NugetDelete_NoServiceEndpoint
             $interactiveParam
         )
-        New-CommandCompleter -Name disable -Description 'Disable a NuGet source.' -Parameters $helpParam
-        New-CommandCompleter -Name enable -Description 'Enable a NuGet source.' -Parameters $helpParam
-        New-CommandCompleter -Name list -Description 'List configured NuGet sources.' -Parameters $helpParam -SubCommands @(
-            New-CommandCompleter -Name client-cert -Description 'Lists all the client certificates in the configuration.' -Parameters $nugetConfigfileParam, $helpParam
-            New-CommandCompleter -Name source -Description 'Lists all configured NuGet sources.' -Parameters @(
-                New-ParamCompleter -LongName format -Description 'The format of the list command output' -Arguments "Short", "Detailed`t(Default)"
+        # nuget disable 
+        New-CommandCompleter -Name disable -Description $msg.NugetDisable -Parameters $helpParam
+        # nuget enable 
+        New-CommandCompleter -Name enable -Description $msg.NugetEnable -Parameters $helpParam
+        # nuget list 
+        New-CommandCompleter -Name list -Description $msg.NugetList -Parameters $helpParam -SubCommands @(
+            New-CommandCompleter -Name client-cert -Description $msg.NugetListClientCert -Parameters $nugetConfigfileParam, $helpParam
+            New-CommandCompleter -Name source -Description $msg.NugetListSource -Parameters @(
+                New-ParamCompleter -LongName format -Description $msg.NugetListSource_Format -Arguments "Short", "Detailed`t(Default)"
                 $nugetConfigfileParam
                 $helpParam
             )
         )
-        New-CommandCompleter -Name locals -Description 'Clears or lists local NuGet resources.' -Parameters @(
+        # nuget locals 
+        New-CommandCompleter -Name locals -Description $msg.NugetLocals -Parameters @(
             $helpParam
             $nugetForceEnglishOutputParam
-            New-ParamCompleter -OldStyleName c -LongName clear -Description 'Clear the selected local resources or cache location(s).'
-            New-ParamCompleter -OldStyleName l -LongName list -Description 'List the selected local resources or cache location(s).'
+            New-ParamCompleter -OldStyleName c -LongName clear -Description $msg.NugetLocals_Clear
+            New-ParamCompleter -OldStyleName l -LongName list -Description $msg.NugetLocals_List
         ) -ArgumentCompleter {
             $wordToComplete = "$_*";
             'all', 'http-cache', 'global-packages', 'temp' | Where-Object { $_ -like $wordToComplete }
         }
-        New-CommandCompleter -Name push -Description 'Pushes a package to the server and publishes it.' -Parameters @(
+        # nuget push 
+        New-CommandCompleter -Name push -Description $msg.NugetPush -Parameters @(
             $helpParam
             $nugetForceEnglishOutputParam
             $nugetSourceParam
-            New-ParamCompleter -OldStyleName ss -LongName symbol-source -Description 'Symbol server URL to use.' -Type Required
-            New-ParamCompleter -OldStyleName t -LongName timeout -Description 'Timeout for pushing to a server in seconds. Defaults to 300 seconds' -Type Required
+            New-ParamCompleter -OldStyleName ss -LongName symbol-source -Description $msg.NugetPush_SymbolSource -Type Required
+            New-ParamCompleter -OldStyleName t -LongName timeout -Description $msg.NugetPush_Timeout -Type Required
             $nugetApiKeyParam
-            New-ParamCompleter -OldStyleName sk -LongName symbol-api-key -Description 'The API key for the symbol server.' -Type Required
-            New-ParamCompleter -OldStyleName d -LongName disable-buffering -Description 'Disable buffering when pushing to an HTTP(S) server to decrease memory usage.'
-            New-ParamCompleter -OldStyleName n -LongName no-symbols -Description 'If a symbols package exists, it will not be pushed to a symbols server.'
-            New-ParamCompleter -LongName no-service-endpoint -Description 'Does not append "api/v2/package" to the source URL.'
+            New-ParamCompleter -OldStyleName sk -LongName symbol-api-key -Description $msg.NugetPush_SymbolApiKey -Type Required
+            New-ParamCompleter -OldStyleName d -LongName disable-buffering -Description $msg.NugetPush_DisableBuffering
+            New-ParamCompleter -OldStyleName n -LongName no-symbols -Description $msg.NugetPush_NoSymbols
+            New-ParamCompleter -LongName no-service-endpoint -Description $msg.NugetPush_NoServiceEndpoint
             $interactiveParam
-            New-ParamCompleter -LongName skip-duplicate -Description 'If a package and version already exists, skip it and continue with the next package in the push, if any.'
+            New-ParamCompleter -LongName skip-duplicate -Description $msg.NugetPush_SkipDuplicate
         )
-        New-CommandCompleter -Name remove -Description 'Remove a NuGet source.' -Parameters $helpParam -SubCommands @(
-            New-CommandCompleter -Name client-cert -Description 'Removes the client certificate configuration that matches the given package source name.' -Parameters @(
+        # nuget remove 
+        New-CommandCompleter -Name remove -Description $msg.NugetRemove -Parameters $helpParam -SubCommands @(
+            New-CommandCompleter -Name client-cert -Description $msg.NugetRemoveClientCert -Parameters @(
                 $nugetPackageSourceParam
                 $nugetConfigfileParam
                 $helpParam
             )
-            New-CommandCompleter -Name source -Description 'Remove a NuGet source.' -Parameters $nugetConfigfileParam, $helpParam
+            New-CommandCompleter -Name source -Description $msg.NugetRemoveSource -Parameters $nugetConfigfileParam, $helpParam
         )
-        New-CommandCompleter -Name sign -Description 'Signs NuGet package(s) at <package-paths> with the specified certificate.' -Parameters @(
+        # nuget sign 
+        New-CommandCompleter -Name sign -Description $msg.NugetSign -Parameters @(
             $outputDirParam
-            New-ParamCompleter -LongName certificate-path -Description 'File path to the certificate to be used while signing the package.' -Type File
-            New-ParamCompleter -LongName certificate-store-name -Description 'Name of the X.509 certificate store to use to search for the certificate.' -Arguments 'My'
-            New-ParamCompleter -LongName certificate-store-location -Description 'Name of the X.509 certificate store use to search for the certificate.' -Arguments 'CurrentUser'
-            New-ParamCompleter -LongName certificate-subject-name -Description 'Subject name of the certificate' -Type Required
-            New-ParamCompleter -LongName certificate-fingerprint -Description 'SHA-1 fingerprint of the certificate' -Type Required
-            New-ParamCompleter -LongName certificate-password -Description 'Password for the certificate, if needed.' -Type Required
-            New-ParamCompleter -LongName hash-algorithm -Description 'Hash algorithm to be used to sign the package.' -Type Required
-            New-ParamCompleter -LongName timestamper -Description 'URL to an RFC 3161 timestamping server.' -Type Required
-            New-ParamCompleter -LongName timestamp-hash-algorithm -Description 'Hash algorithm to be used by the RFC 3161 timestamp server.' -Arguments 'SHA256','SHA384','SHA512'
-            New-ParamCompleter -LongName overwrite -Description 'Switch to indicate if the current signature should be overwritten.'
+            New-ParamCompleter -LongName certificate-path -Description $msg.NugetSign_CertificatePath -Type File
+            New-ParamCompleter -LongName certificate-store-name -Description $msg.NugetSign_CertificateStoreName -Arguments 'My'
+            New-ParamCompleter -LongName certificate-store-location -Description $msg.NugetSign_CertificateStoreLocation -Arguments 'CurrentUser'
+            New-ParamCompleter -LongName certificate-subject-name -Description $msg.NugetSign_CertificateSubjectName -Type Required
+            New-ParamCompleter -LongName certificate-fingerprint -Description $msg.NugetSign_CertificateFingerPrint -Type Required
+            New-ParamCompleter -LongName certificate-password -Description $msg.NugetSign_CertificatePassword -Type Required
+            New-ParamCompleter -LongName hash-algorithm -Description $msg.NugetSign_HashAlgorithm -Type Required
+            New-ParamCompleter -LongName timestamper -Description $msg.NugetSign_Timestamper -Type Required
+            New-ParamCompleter -LongName timestamp-hash-algorithm -Description $msg.NugetSign_TimestampHashAlgorithm -Arguments 'SHA256','SHA384','SHA512'
+            New-ParamCompleter -LongName overwrite -Description $msg.NugetSign_Overwrite
             $verbosityParam
             $helpParam
         )
-        New-CommandCompleter -Name trust -Description 'Manage the trusted signers.' -Parameters @(
+        # nuget trust 
+        New-CommandCompleter -Name trust -Description $msg.NugetTrust -Parameters @(
             $nugetConfigfileParam
             $helpParam
             $verbosityParam
         ) -SubCommands @(
-            New-CommandCompleter -Name author -Description 'Adds a trusted signer with the given name, based on the author signature of the package.' -Parameters @(
-                New-ParamCompleter -LongName allow-untrusted-root
+            # nuget trust author
+            New-CommandCompleter -Name author -Description $msg.NugetTrustAuthor -Parameters @(
+                $nugetTrustAllowUntrustedRootParam
                 $nugetConfigfileParam
                 $verbosityParam
                 $helpParam
-            ) -ArgumentCompleter { return $null }
-            New-CommandCompleter -Name certificate -Description 'Adds a trusted signer with the given name, based on the repository signature or countersignature of a signed package.' -Parameters @(
-                New-ParamCompleter -LongName allow-untrusted-root
+            )
+            # nuget trust certificate
+            New-CommandCompleter -Name certificate -Description $msg.NugetTrustCertificate -Parameters @(
+                $nugetTrustAllowUntrustedRootParam
                 New-ParamCompleter -LongName algorithm -Arguments 'SHA256','SHA384','SHA512'
                 $nugetConfigfileParam
                 $verbosityParam
                 $helpParam
             )
-            New-CommandCompleter -Name list -Description 'Lists all the trusted signers in the configuration.' -Parameters $nugetConfigfileParam, $verbosityParam, $helpParam
-            New-CommandCompleter -Name remove -Description 'Removes any trusted signers that match the given name.' -Parameters $nugetConfigfileParam, $verbosityParam, $helpParam
-            New-CommandCompleter -Name repository -Description 'Adds a trusted signer with the given name, based on the repository signature or countersignature of a signed package.' -Parameters @(
-                New-ParamCompleter -LongName allow-untrusted-root
+            # nuget trust list
+            New-CommandCompleter -Name list -Description $msg.NugetTrustList -Parameters $nugetConfigfileParam, $verbosityParam, $helpParam
+            # nuget trust remove 
+            New-CommandCompleter -Name remove -Description $msg.NugetTrustRemove -Parameters $nugetConfigfileParam, $verbosityParam, $helpParam
+            # nuget trust repository 
+            New-CommandCompleter -Name repository -Description $msg.NugetTrustRepository -Parameters @(
+                $nugetTrustAllowUntrustedRootParam
                 New-ParamCompleter -LongName owners -Type Required
                 $nugetConfigfileParam
                 $verbosityParam
                 $helpParam
             )
-            New-CommandCompleter -Name source -Description 'Adds a trusted signer based on a given package source.' -Parameters @(
+            # nuget trust source 
+            New-CommandCompleter -Name source -Description $msg.NugetTrustSource -Parameters @(
                 New-ParamCompleter -LongName owners -Type Required
                 New-ParamCompleter -LongName source-url -Type Required
                 $nugetConfigfileParam
                 $verbosityParam
                 $helpParam
             )
-            New-CommandCompleter -Name sync -Description 'Deletes the current list of certificates and replaces them with an up-to-date list from the repository.' `
-                -Parameters $nugetConfigfileParam, $verbosityParam, $helpParam
+            # nuget trust sync
+            New-CommandCompleter -Name sync -Description $msg.NugetTrustSync -Parameters $nugetConfigfileParam, $verbosityParam, $helpParam
         )
-        New-CommandCompleter -Name update -Description 'Update a NuGet source.' -Parameters $helpParam -SubCommands @(
-            New-CommandCompleter -Name client-cert -Description 'Updates the client certificate configuration.' -Parameters @(
+        # nuget update
+        New-CommandCompleter -Name update -Description $msg.NugetUpdate -Parameters $helpParam -SubCommands @(
+            # nuget update client-cert
+            New-CommandCompleter -Name client-cert -Description $msg.NugetUpdateClientCert -Parameters @(
                 $nugetPackageSourceParam
                 $nugetCertificatePathParam
                 $nugetCertificatePasswordParam
@@ -459,8 +800,9 @@ Register-NativeCompleter -Name dotnet -Parameters @(
                 $nugetConfigfileParam
                 $helpParam 
             )
-            New-CommandCompleter -Name source -Description 'Update a NuGet source.' -Parameters @(
-                New-ParamCompleter -OldStyleName s -LongName source -Description 'Path to the package source.' -Type File
+            # nuget update source
+            New-CommandCompleter -Name source -Description $msg.NugetUpdateSource -Parameters @(
+                New-ParamCompleter -OldStyleName s -LongName source -Description $msg.NugetUpdateSource_Source -Type File
                 $nugetUsernameParam
                 $nugetPasswordParam
                 $nugetStorePassInClearTextParam
@@ -470,21 +812,25 @@ Register-NativeCompleter -Name dotnet -Parameters @(
                 $helpParam
             )
         )
-        New-CommandCompleter -Name verify -Description 'Verifies a signed NuGet package.' -Parameters @(
-            New-ParamCompleter -LongName all -Description 'Specifies that all verifications'
-            New-ParamCompleter -LongName certificate-fingerprint -Description 'Verify that the signer certificate matches with one of the specified SHA256 fingerprints.'
+        # nuget verify
+        New-CommandCompleter -Name verify -Description $msg.NugetVerify -Parameters @(
+            New-ParamCompleter -LongName all -Description $msg.NugetVerify_All
+            New-ParamCompleter -LongName certificate-fingerprint -Description $msg.NugetVerify_CertificateFingerPrint
             $nugetConfigfileParam
             $verbosityParam
             $helpParam
         )
     )
-    New-CommandCompleter -Name pack -Description 'Create a NuGet package.' -Parameters @(
+    #
+    # pack
+    #
+    New-CommandCompleter -Name pack -Description $msg.Pack -Parameters @(
         $outputDirParam
         $buildArtifactsPathParam
         $noBuildParam
-        New-ParamCompleter -LongName include-symbols -Description 'Include packages with symbols'
-        New-ParamCompleter -LongName include-source -Description 'Include PDBs and source files.'
-        New-ParamCompleter -OldStyleName s -LongName serviceable -Description 'Set the serviceable flag in the package.'
+        New-ParamCompleter -LongName include-symbols -Description $msg.Pack_IncludeSymbols
+        New-ParamCompleter -LongName include-source -Description $msg.Pack_IncludeSource
+        New-ParamCompleter -OldStyleName s -LongName serviceable -Description $msg.Pack_Serviceable
         $nologoParam
         $interactiveParam
         $norestoreParam
@@ -495,11 +841,14 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $useCurrentRuntimeParam
         $helpParam
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name publish -Description 'Publish a .NET project for deployment.' -Parameters @(
+    #
+    # publish
+    #
+    New-CommandCompleter -Name publish -Description $msg.Publish -Parameters @(
         $useCurrentRuntimeParam
         $outputDirParam
         $buildArtifactsPathParam
-        New-ParamCompleter -LongName manifest -Description 'The path to a target manifest file' -Type File
+        New-ParamCompleter -LongName manifest -Description $msg.Publish_Manifest -Type File
         $noBuildParam
         $publishSelfContainedParam
         $publishNoSelfContainedParam
@@ -516,44 +865,55 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $disableBuildServersParam
         $helpParam
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name remove -Description 'Remove a package or reference from a .NET project.' -Parameters $helpParam -SubCommands @(
-        New-CommandCompleter -Name package -Description 'Remove a NuGet package reference from the project.' -Parameters $interactiveParam, $helpParam
-        New-CommandCompleter -Name reference -Description 'Remove a project-to-project reference from the project.' -Parameters $targetFrameworkParam, $helpParam
+    #
+    # remove
+    #
+    New-CommandCompleter -Name remove -Description $msg.Remove -Parameters $helpParam -SubCommands @(
+        # remove package
+        New-CommandCompleter -Name package -Description $msg.RemovePackage -Parameters $interactiveParam, $helpParam
+        # remove reference
+        New-CommandCompleter -Name reference -Description $msg.RemoveReference -Parameters $targetFrameworkParam, $helpParam
     ) -ArgumentCompleter $projectCompleter
-    New-CommandCompleter -Name restore -Description 'Restore dependencies specified in a .NET project.' -Parameters @(
+    #
+    # restore
+    #
+    New-CommandCompleter -Name restore -Description $msg.Restore -Parameters @(
         $disableBuildServersParam
-        New-ParamCompleter -OldStyleName s -LongName source -Description 'The NuGet package source to use for the restore.' -Type Required
-        New-ParamCompleter -LongName packages -Description 'The directory to restore packages to.' -Type File
+        New-ParamCompleter -OldStyleName s -LongName source -Description $msg.Restore_Source -Type Required
+        New-ParamCompleter -LongName packages -Description $msg.Restore_Packages -Type File
         $useCurrentRuntimeParam
         $disableParallelParam
         $nugetConfigfileParam
         $noCacheParam
         $ignoreFailedSourcesParam
-        New-ParamCompleter -OldStyleName f -LongName force -Description 'Force all dependencies to be resolved even if the last restore was successful.'
+        New-ParamCompleter -OldStyleName f -LongName force -Description $msg.Restore_Force
         $targetRuntimeParam
-        New-ParamCompleter -LongName no-dependencies -Description 'Do not restore project-to-project references'
+        New-ParamCompleter -LongName no-dependencies -Description $msg.Restore_NoDependencies
         $verbosityParam
         $interactiveParam
-        New-ParamCompleter -LongName use-lock-file -Description 'Enables project lock file to be generated and used with restore.'
-        New-ParamCompleter -LongName locked-mode -Description "Don't allow updating project lock file."
-        New-ParamCompleter -LongName lock-file-path -Description 'Output location where project lock file is written.' -Type File
-        New-ParamCompleter -LongName force-evaluate -Description 'Forces restore to reevaluate all dependencies even if a lock file already exists.'
+        New-ParamCompleter -LongName use-lock-file -Description $msg.Restore_UseLockFile
+        New-ParamCompleter -LongName locked-mode -Description $msg.Restore_LockMode
+        New-ParamCompleter -LongName lock-file-path -Description $msg.Restore_LockFilePath -Type File
+        New-ParamCompleter -LongName force-evaluate -Description $msg.Restore_ForceEvaluate
         $targetArchParam
         $helpParam
     ) -ArgumentCompleter $solutionOrProjectCompleter
-    New-CommandCompleter -Name run -Description 'Build and run a .NET project output.' -Parameters @(
+    #
+    # run
+    #
+    New-CommandCompleter -Name run -Description $msg.Run -Parameters @(
         $buildConfigurationParam
         $targetFrameworkParam
         $targetRuntimeParam
-        New-ParamCompleter -LongName project -Description 'The path to the project file to run' -Type File -ArgumentCompleter {
+        New-ParamCompleter -LongName project -Description $msg.Run_Project -Type File -ArgumentCompleter {
             param([string] $value, [int] $position, [MT.Comp.CompletionContext] $context)
             [MT.Comp.Helper]::CompleteFilename($value, $context.CurrentDirectory, $false, $false, { param([System.IO.FileInfo]$f)
                 $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.\w+proj$'
             });
         }
-        New-ParamCompleter -OldStyleName p -LongName property -Description 'Properties to be passed to MSBuild.' -Type Required
-        New-ParamCompleter -OldStyleName lp -LongName launch-profile -Description 'The name of the launch profile' -Type Required
-        New-ParamCompleter -LongName no-launch-profile -Description 'Do not attempt to use launchSettings.json to configure the application.'
+        New-ParamCompleter -OldStyleName p -LongName property -Description $msg.Run_Property -Type Required
+        New-ParamCompleter -OldStyleName lp -LongName launch-profile -Description $msg.Run_LaunchProfile -Type Required
+        New-ParamCompleter -LongName no-launch-profile -Description $msg.Run_NoLaunchProfile
         $noBuildParam
         $interactiveParam
         $norestoreParam
@@ -565,28 +925,41 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $disableBuildServersParam
         $helpParam
     )
-    New-CommandCompleter -Name sdk -Description 'Manage .NET SDK installation.' -Parameters $helpParam -SubCommands @(
-        New-CommandCompleter -Name check -Description '.NET SDK Check Command' -Parameters $helpParam
+    #
+    # sdk
+    #
+    New-CommandCompleter -Name sdk -Description $msg.Sdk -Parameters $helpParam -SubCommands @(
+        # sdk check
+        New-CommandCompleter -Name check -Description $msg.SdkCheck -Parameters $helpParam
     )
-    New-CommandCompleter -Name sln -Description 'Modify Visual Studio solution files.' -Parameters $helpParam -SubCommands @(
-        New-CommandCompleter -Name add -Description 'Add one or more projects to a solution file.' -Parameters @(
-            New-ParamCompleter -LongName in-root -Description 'Place project in root of the solution, rather than creating a solution folder.'
-            New-ParamCompleter -OldStyleName s -LongName solution-folder -Description 'The destination solution folder path to add the projects to.' -Type Directory
+    #
+    # sln
+    #
+    New-CommandCompleter -Name sln -Description $msg.Sln -Parameters $helpParam -SubCommands @(
+        # sln add
+        New-CommandCompleter -Name add -Description $msg.SlnAdd -Parameters @(
+            New-ParamCompleter -LongName in-root -Description $msg.SlnAdd_InRoot
+            New-ParamCompleter -OldStyleName s -LongName solution-folder -Description $msg.SlnAdd_SolutionFolder -Type Directory
             $helpParam
         ) -ArgumentCompleter $projectCompleter
-        New-CommandCompleter -Name list -Description 'List all projects in a solution file.' -Parameters @(
-            New-ParamCompleter -LongName in-root -Description 'Display solution folder paths.'
+        # sln list
+        New-CommandCompleter -Name list -Description $msg.SlnList -Parameters @(
+            New-ParamCompleter -LongName in-root -Description $msg.SlnList_InRoot
             $helpParam
         )
-        New-CommandCompleter -Name remove -Description 'Remove one or more projects from a solution file.' -Parameters $helpParam -ArgumentCompleter $projectCompleter
+        # sln remove
+        New-CommandCompleter -Name remove -Description $msg.SlnRemove -Parameters $helpParam -ArgumentCompleter $projectCompleter
     ) -ArgumentCompleter $solutionCompleter
-    New-CommandCompleter -Name store -Description 'Store the specified assemblies in the runtime package store.' -Parameters @(
-        New-ParamCompleter -OldStyleName m -LongName manifest -Description 'The XML file that contains the list of packages to be stored.' -Type File
-        New-ParamCompleter -LongName framework-version -Description 'The Microsoft.NETCore.App package version that will be used to run the assemblies.' -Type Required
+    #
+    # store
+    #
+    New-CommandCompleter -Name store -Description $msg.Store -Parameters @(
+        New-ParamCompleter -OldStyleName m -LongName manifest -Description $msg.Store_Manifest -Type File
+        New-ParamCompleter -LongName framework-version -Description $msg.Store_FrameworkVersion -Type Required
         $outputDirParam
-        New-ParamCompleter -OldStyleName w -LongName working-dir -Description 'The working directory used by the command to execute.' -Type Directory
-        New-ParamCompleter -LongName skip-optimization -Description 'Skip the optimization phase.'
-        New-ParamCompleter -LongName skip-symbols -Description 'Skip creating symbol files which can be used for profiling the optimized assemblies.'
+        New-ParamCompleter -OldStyleName w -LongName working-dir -Description $msg.Store_WorkingDir -Type Directory
+        New-ParamCompleter -LongName skip-optimization -Description $msg.Store_SkipOptimization
+        New-ParamCompleter -LongName skip-symbols -Description $msg.Store_SkipSymbols
         $targetFrameworkParam
         $targetRuntimeParam
         $verbosityParam
@@ -594,26 +967,29 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $disableBuildServersParam
         $helpParam
     )
-    New-CommandCompleter -Name test -Description 'Run unit tests using the test runner specified in a .NET project.' -Parameters @(
-        New-ParamCompleter -OldStyleName s -LongName settings -Description 'The settings file to use when running tests.' -Type File
-        New-ParamCompleter -OldStyleName t -LongName list-tests -Description 'List the discovered tests instead of running the tests.'
-        New-ParamCompleter -OldStyleName e -LongName environment -Description 'Sets the value of an environment variable.' -Type Required
-        New-ParamCompleter -LongName filter -Description 'Run tests that match the given expression.' -Type Required
-        New-ParamCompleter -LongName test-adapter-path -Description 'The path to the custom adapters to use for the test run.' -Type Directory
-        New-ParamCompleter -OldStyleName l -LongName logger -Description 'The logger to use for test results.' -Type Required
+    #
+    # test
+    #
+    New-CommandCompleter -Name test -Description $msg.Test -Parameters @(
+        New-ParamCompleter -OldStyleName s -LongName settings -Description $msg.Test_Settings -Type File
+        New-ParamCompleter -OldStyleName t -LongName list-tests -Description $msg.Test_ListTests
+        New-ParamCompleter -OldStyleName e -LongName environment -Description $msg.Test_Environment -Type Required
+        New-ParamCompleter -LongName filter -Description $msg.Test_Filter -Type Required
+        New-ParamCompleter -LongName test-adapter-path -Description $msg.Test_TestAdapterPath -Type Directory
+        New-ParamCompleter -OldStyleName l -LongName logger -Description $msg.Test_Logger -Type Required
         $outputDirParam
         $buildArtifactsPathParam
-        New-ParamCompleter -OldStyleName d -LongName diag -Description 'Enable verbose logging to the specified file.' -Type File
+        New-ParamCompleter -OldStyleName d -LongName diag -Description $msg.Test_Diag -Type File
         $noBuildParam
-        New-ParamCompleter -LongName results-directory -Description 'The directory where the test results will be placed.' -Type Directory
-        New-ParamCompleter -LongName collect -Description 'The friendly name of the data collector to use for the test run.' -Type Required
-        New-ParamCompleter -LongName blame -Description 'Runs the tests in blame mode.'
-        New-ParamCompleter -LongName blame-crash -Description 'Runs the tests in blame mode and collects a crash dump when the test host exits unexpectedly.'
-        New-ParamCompleter -LongName blame-crash-dump-type -Description 'The type of crash dump to be collected.' -Arguments "mini","full`tDefault"
-        New-ParamCompleter -LongName blame-crash-collect-always -Description 'Enables collecting crash dump on expected as well as unexpected testhost exit.'
-        New-ParamCompleter -LongName blame-hang -Description 'Run the tests in blame mode and enables collecting hang dump when test exceeds the given timeout.'
-        New-ParamCompleter -LongName blame-hang-dump-type -Description 'The type of crash dump to be collected.' -Arguments "mini","full`tDefault","none"
-        New-ParamCompleter -LongName blame-hang-timeout -Description 'Per-test timeout, after which hang dump is triggered and the testhost process is terminated.' -Type Required
+        New-ParamCompleter -LongName results-directory -Description $msg.Test_ResultsDirectory -Type Directory
+        New-ParamCompleter -LongName collect -Description $msg.Test_Collect -Type Required
+        New-ParamCompleter -LongName blame -Description $msg.Test_Blame
+        New-ParamCompleter -LongName blame-crash -Description $msg.Test_BlameCrash
+        New-ParamCompleter -LongName blame-crash-dump-type -Description $msg.Test_BlameCrashDumpType -Arguments "mini","full`tDefault"
+        New-ParamCompleter -LongName blame-crash-collect-always -Description $msg.Test_BlameCrashCollectAlways
+        New-ParamCompleter -LongName blame-hang -Description $msg.Test_BlameHang
+        New-ParamCompleter -LongName blame-hang-dump-type -Description $msg.Test_BlameHangDumpType -Arguments "mini","full`tDefault","none"
+        New-ParamCompleter -LongName blame-hang-timeout -Description $msg.Test_BlameHangTimeout -Type Required
         $nologoParam
         $buildConfigurationParam
         $targetFrameworkParam
@@ -626,10 +1002,14 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $disableBuildServersParam
         $helpParam
     )
-    New-CommandCompleter -Name tool -Description 'Install or manage tools that extend the .NET experience.' -Parameters $helpParam -SubCommands @(
-        New-CommandCompleter -Name install -Description 'Install global or local tool. Local tools are added to manifest and restored.' -Parameters @(
-            New-ParamCompleter -OldStyleName g -LongName global -Description 'Install the tool for the current user.'
-            New-ParamCompleter -LongName local -Description 'Install the tool and add to the local tool manifest (default).'
+    #
+    # tool
+    #
+    New-CommandCompleter -Name tool -Description $msg.Tool -Parameters $helpParam -SubCommands @(
+        # tool install
+        New-CommandCompleter -Name install -Description $msg.ToolInstall -Parameters @(
+            New-ParamCompleter -OldStyleName g -LongName global -Description $msg.ToolInstall_Global
+            New-ParamCompleter -LongName local -Description $msg.ToolInstall_Local
             $toolPathParam
             $toolVersionParam
             $nugetConfigfileParam
@@ -643,20 +1023,22 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $interactiveParam
             $verbosityParam
             $targetArchParam
-            New-ParamCompleter -LongName create-manifest-if-needed -Description "Create a tool manifest if one isn't found during tool installation."
+            New-ParamCompleter -LongName create-manifest-if-needed -Description $msg.ToolInstall_CreateManifestIfNeeded
             $helpParam
         )
-        New-CommandCompleter -Name uninstall -Description 'Uninstall a global tool or local tool.' -Parameters @(
-            New-ParamCompleter -OldStyleName g -LongName global -Description "Uninstall the tool from the current user's tools directory."
-            New-ParamCompleter -LongName local -Description 'Uninstall the tool and remove it from the local tool manifest.'
+        # tool uninstall
+        New-CommandCompleter -Name uninstall -Description $msg.ToolUninstall -Parameters @(
+            New-ParamCompleter -OldStyleName g -LongName global -Description $msg.ToolUninstall_Global
+            New-ParamCompleter -LongName local -Description $msg.ToolUninstall_Local
             $toolPathParam
             $toolManifestParam
             $helpParam
         )
-        New-CommandCompleter -Name update -Description 'Update a global or local tool.' -Parameters @(
-            New-ParamCompleter -OldStyleName g -LongName global -Description "Update the tool in the current user's tools directory."
+        # tool update
+        New-CommandCompleter -Name update -Description $msg.ToolUpdate -Parameters @(
+            New-ParamCompleter -OldStyleName g -LongName global -Description $msg.ToolUpdate_Global
             $toolPathParam
-            New-ParamCompleter -LongName local -Description 'Update the tool and the local tool manifest.'
+            New-ParamCompleter -LongName local -Description $msg.ToolUpdate_Local
             $nugetConfigfileParam
             $toolAddSourceParam
             $toolFrameworkParam
@@ -670,21 +1052,25 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $verbosityParam
             $helpParam
         )
-        New-CommandCompleter -Name list -Description 'List tools installed globally or locally.' -Parameters @(
-            New-ParamCompleter -OldStyleName g -LongName global -Description 'List tools installed for the current user.'
-            New-ParamCompleter -LongName local -Description 'List the tools installed in the local tool manifest.'
+        # tool list
+        New-CommandCompleter -Name list -Description $msg.ToolList -Parameters @(
+            New-ParamCompleter -OldStyleName g -LongName global -Description $msg.ToolList_Global
+            New-ParamCompleter -LongName local -Description $msg.ToolList_Local
             $toolPathParam
             $helpParam
         )
-        New-CommandCompleter -Name run -Description 'Run local tool.' -Parameters $helpParam
-        New-CommandCompleter -Name search -Description 'Search dotnet tools in nuget.org' -Parameters @(
-            New-ParamCompleter -LongName detail -Description 'Show detail result of the query.'
-            New-ParamCompleter -LongName skip -Description 'The number of results to skip, for pagination.' -Type Required
-            New-ParamCompleter -LongName take -Description 'The number of results to return, for pagination.' -Type Required
+        # tool run
+        New-CommandCompleter -Name run -Description $msg.ToolRun -Parameters $helpParam
+        # tool search
+        New-CommandCompleter -Name search -Description $msg.ToolSearch -Parameters @(
+            New-ParamCompleter -LongName detail -Description $msg.ToolSearch_Detail
+            New-ParamCompleter -LongName skip -Description $msg.ToolSearch_Skip -Type Required
+            New-ParamCompleter -LongName take -Description $msg.ToolSearch_Take -Type Required
             $toolPrereleaseParam
             $helpParam
         )
-        New-CommandCompleter -Name restore -Description 'Restore tools defined in the local tool manifest.' -Parameters @(
+        # tool restore
+        New-CommandCompleter -Name restore -Description $msg.ToolRestore -Parameters @(
             $nugetConfigfileParam
             $toolAddSourceParam
             $toolManifestParam
@@ -696,16 +1082,23 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $helpParam
         )
     )
-    New-CommandCompleter -Name vstest -Description 'Run Microsoft Test Engine (VSTest) commands.' -Parameters @(
+    #
+    # vstest
+    #
+    New-CommandCompleter -Name vstest -Description $msg.Vstest -Parameters @(
         # TBD
         $helpParam
     )
-    New-CommandCompleter -Name workload -Description 'Manage optional workloads.' -Parameters @(
-        New-ParamCompleter -LongName info -Description 'Display information about installed workloads.'
-        New-ParamCompleter -LongName version -Description 'Display the currently installed workload version.'
+    #
+    # workload
+    #
+    New-CommandCompleter -Name workload -Description $msg.Workload -Parameters @(
+        New-ParamCompleter -LongName info -Description $msg.Workload_Info
+        New-ParamCompleter -LongName version -Description $msg.Workload_Version
         $helpParam
     ) -SubCommands @(
-        New-CommandCompleter -Name install -Description 'Install one or more workloads.' -Parameters @(
+        # workload install
+        New-CommandCompleter -Name install -Description $msg.WorkloadInstall -Parameters @(
             $nugetConfigfileParam
             $nugetSourceParam
             $workloadIncludePreviewsParam
@@ -718,23 +1111,28 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $verbosityParam
             $helpParam
         )
-        New-CommandCompleter -Name update -Description 'Update all installed workloads.' -Parameters @(
+        # workload update
+        New-CommandCompleter -Name update -Description $msg.WorkloadUpdate -Parameters @(
             $nugetConfigfileParam
             $nugetSourceParam
             $workloadIncludePreviewsParam
             $workloadTempDirParam
-            New-ParamCompleter -LongName from-previous-sdk -Description 'Include workloads installed with earlier SDK versions in update.'
-            New-ParamCompleter -LongName advertising-manifests-only -Description 'Only update advertising manifests.'
+            New-ParamCompleter -LongName from-previous-sdk -Description $msg.WorkloadUpdate_FromPreviousSdk
+            New-ParamCompleter -LongName advertising-manifests-only -Description $msg.WorkloadUpdate_AdvertisingManifestsOnly
             $ignoreFailedSourcesParam
             $noCacheParam
             $interactiveParam
             $verbosityParam
             $helpParam
         )
-        New-CommandCompleter -Name list -Description 'List workloads available.' -Parameters $helpParam
-        New-CommandCompleter -Name search -Description 'Search for available workloads.' -Parameters $helpParam
-        New-CommandCompleter -Name uninstall -Description 'Uninstall one or more workloads.' -Parameters $verbosityParam, $helpParam
-        New-CommandCompleter -Name repair -Description 'Repair workload installations.' -Parameters @(
+        # workload list
+        New-CommandCompleter -Name list -Description $msg.WorkloadList -Parameters $helpParam
+        # workload search
+        New-CommandCompleter -Name search -Description $msg.WorkloadSearch -Parameters $helpParam
+        # workload uninstall
+        New-CommandCompleter -Name uninstall -Description $msg.WorkloadUninstall -Parameters $verbosityParam, $helpParam
+        # workload reqpair
+        New-CommandCompleter -Name repair -Description $msg.WorkloadRepair -Parameters @(
             $nugetConfigfileParam
             $nugetSourceParam
             $verbosityParam
@@ -744,7 +1142,8 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $interactiveParam
             $helpParam
         )
-        New-CommandCompleter -Name restore -Description 'Restore workloads required for a project.' -Parameters @(
+        # workload restore
+        New-CommandCompleter -Name restore -Description $msg.WorkloadRestore -Parameters @(
             $nugetConfigfileParam
             $nugetSourceParam
             $workloadIncludePreviewsParam
@@ -757,8 +1156,9 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $verbosityParam
             $helpParam
         )
-        New-CommandCompleter -Name clean -Description 'Removes workload components' -Parameters @(
-            New-ParamCompleter -LongName all -Description 'Causes clean to remove and uninstall all workload components from all SDK versions.'
+        # workload clean
+        New-CommandCompleter -Name clean -Description $msg.WorkloadClean -Parameters @(
+            New-ParamCompleter -LongName all -Description $msg.WorkloadClean_All
             $helpParam
         )
     )
