@@ -82,14 +82,27 @@ else
         New-ParamCompleter -ShortName S -Description $msg.gnu_stdin
         New-ParamCompleter -ShortName b -Description $msg.gnu_background
         New-ParamCompleter -ShortName e -Description $msg.gnu_edit -Type File
-        New-ParamCompleter -ShortName g -Description $msg.gnu_group -Type Required
+        New-ParamCompleter -ShortName g -Description $msg.gnu_group -ArgumentCompleter {
+            Import-Csv -Delimiter : -Header Name,X,GID,Users -Path /etc/group |
+                Where-Object Name -Like "$wordToComplete*" |
+                ForEach-Object {
+                    "{0}`t{1}" -f $_.Name, $_.Users
+                }
+        }
         New-ParamCompleter -ShortName i -Description $msg.gnu_login
         New-ParamCompleter -ShortName k -Description $msg.gnu_reset_timestamp
         New-ParamCompleter -ShortName l -Description $msg.gnu_list
         New-ParamCompleter -ShortName n -Description $msg.gnu_non_interactive
         New-ParamCompleter -ShortName p -Description $msg.gnu_prompt -Type Required
         New-ParamCompleter -ShortName s -Description $msg.gnu_shell
-        New-ParamCompleter -ShortName u -Description $msg.gnu_user -Type Required
+        New-ParamCompleter -ShortName u -Description $msg.gnu_user -ArgumentCompleter {
+            Import-Csv -Delimiter : -Header Name,X,UID,GID,Comment,Home,Shell -Path /etc/passwd |
+                Where-Object Name -Like "$wordToComplete*" |
+                ForEach-Object {
+                    $comment = ($_.Comment -Split ',')[0]
+                    "{0}`t{1}" -f $_.Name, $comment
+                }
+        }
         New-ParamCompleter -ShortName v -Description $msg.gnu_validate
     )
 }
