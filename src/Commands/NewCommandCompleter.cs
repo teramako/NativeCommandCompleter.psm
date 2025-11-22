@@ -28,6 +28,9 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("a")]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
+    public SwitchParameter NoFileCompletions { get; set; }
+
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
     [Alias("t")]
     public CommandParameterStyle Style { get; set; }
@@ -44,6 +47,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
                                            SubCommands,
                                            ArgumentCompleter,
                                            Style,
+                                           NoFileCompletions,
                                            DelegateArgumentIndex),
                     false);
     }

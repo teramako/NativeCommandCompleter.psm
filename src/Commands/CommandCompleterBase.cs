@@ -34,6 +34,7 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       CommandCompleter[] subCommands,
                                                       ScriptBlock? argumentCompleter = null,
                                                       CommandParameterStyle style = CommandParameterStyle.GNU,
+                                                      bool noFileCompletions = false,
                                                       int delegateArgumentIndex = -1)
     {
         CommandCompleter completer = style switch
@@ -54,6 +55,7 @@ public abstract class CommandCompleterBase : PSCmdlet
             completer.SubCommands.Add(subCmd.Name, subCmd);
         }
         completer.ArgumentCompleter = argumentCompleter;
+        completer.NoFileCompletions = noFileCompletions;
         completer.DelegateArgumentIndex = delegateArgumentIndex;
         return completer;
     }

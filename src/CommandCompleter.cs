@@ -25,6 +25,7 @@ public class CommandCompleter(string name,
     public Collection<ParamCompleter> Params { get; } = [];
     public Dictionary<string, CommandCompleter> SubCommands { get; } = [];
     public ScriptBlock? ArgumentCompleter { get; set; }
+    public bool NoFileCompletions { get; set; }
     /// <summary>
     /// Argument index of a command to delegate completions.
     /// </summary>
@@ -338,7 +339,7 @@ public class CommandCompleter(string name,
                 }
                 return true;
             }
-            return false;
+            return NoFileCompletions;
         }
 
         Debug($"CompleterArgument {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
@@ -364,7 +365,7 @@ public class CommandCompleter(string name,
             }
             return true;
         }
-        return false;
+        return NoFileCompletions;
     }
 
     /// <summary>

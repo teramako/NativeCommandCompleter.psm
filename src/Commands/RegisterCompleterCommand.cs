@@ -40,6 +40,10 @@ public class RegisterCompleterCommand : CommandCompleterBase
     public CommandParameterStyle Style { get; set; }
 
     [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
+    public SwitchParameter NoFileCompletions { get; set; }
+
+    [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "DelegateArgumentIndex")]
     [ValidateRange(0, int.MaxValue)]
     public int DelegateArgumentIndex { get; set; } = -1;
@@ -70,6 +74,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
                                                  SubCommands,
                                                  ArgumentCompleter,
                                                  Style,
+                                                 NoFileCompletions,
                                                  DelegateArgumentIndex),
                           Force);
     }

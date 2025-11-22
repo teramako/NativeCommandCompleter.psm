@@ -30,6 +30,9 @@
   <data name="ArgumentCompleter" xml:space="preserve">
     <value>ScriptBlock that returns completion candidates for command arguments.</value>
   </data>
+  <data name="NoFileCompletions" xml:space="preserve">
+    <value>No file or directory completion in command argument completion.</value>
+  </data>
   <data name="CommandParameterStyle" xml:space="preserve">
     <value>Style of the command parameters.
 Defaults to "GNU", Long option prefix to '--', Short option prefix to '-', and Value sparator to '='.
