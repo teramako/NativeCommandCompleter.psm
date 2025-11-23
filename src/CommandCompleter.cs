@@ -240,6 +240,8 @@ public class CommandCompleter(string name,
                                      int offsetPosition)
     {
         Collection<ParamCompleter> remainingParams = [];
+        var paramNameAndValue = tokenValue[ShortOptionPrefix.Length..];
+        offsetPosition -= ShortOptionPrefix.Length;
         (ParamCompleter? Completer, char ParamChar, int Position) pending = (null, default, 0);
         //
         // attempt to complete parameter's value, and store parameter as candidates when not matched
@@ -247,7 +249,7 @@ public class CommandCompleter(string name,
         Debug($"ShortParam {{ tokenValue='{tokenValue}', position={offsetPosition} }}");
         foreach (var param in Params.Where(p => p.ShortNames.Length > 0))
         {
-            if (param.IsMatchShortParam(tokenValue, out char paramChar, out int position))
+            if (param.IsMatchShortParam(paramNameAndValue, out char paramChar, out int position))
             {
                 Debug($"ShortParam Matched {{ '{paramChar}', {position} }}");
                 if (position < offsetPosition
@@ -268,7 +270,7 @@ public class CommandCompleter(string name,
                     }
                 }
             }
-            else if (offsetPosition == tokenValue.Length)
+            else if (offsetPosition == paramNameAndValue.Length)
             {
                 // -ab|
                 //    ^ cursor
@@ -288,17 +290,17 @@ public class CommandCompleter(string name,
             return pending.Completer.CompleteValue(results,
                                                    context,
                                                    $"{pending.ParamChar}",
-                                                   tokenValue[pending.Position..],
+                                                   paramNameAndValue[pending.Position..],
                                                    offsetPosition - pending.Position,
                                                    ShortOptionPrefix,
-                                                   $"{ShortOptionPrefix}{tokenValue[..pending.Position]}");
+                                                   $"{ShortOptionPrefix}{paramNameAndValue[..pending.Position]}");
         }
 
         //
         // complete parameter names
         //
-        var paramPrefix = tokenValue[..offsetPosition];
-        var paramSuffix = tokenValue[offsetPosition..];
+        var paramPrefix = paramNameAndValue[..offsetPosition];
+        var paramSuffix = paramNameAndValue[offsetPosition..];
         foreach (var param in remainingParams)
         {
             foreach (var c in param.ShortNames)
