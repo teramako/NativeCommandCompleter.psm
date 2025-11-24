@@ -169,20 +169,17 @@ public class CommandCompleter(string name,
             if (names.Length == 0)
                 continue;
 
-            var flagOrValue = param.Type.HasFlag(ArgumentType.FlagOrValue);
+            var tooltip = $"""
+                [{param.Type}] {param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, expandArguments: true)}
+                {param.Description}
+                """;
             foreach (var name in names)
             {
+                var listItemText = param.GetSyntax($"{optionPrefix}{name}", ValueSeparator, true, false);
                 results.Add(new CompletionParam($"{optionPrefix}{name} ",
                                                 param.Description,
-                                                $"{optionPrefix}{name}",
-                                                $"[{param.Type}] {name}"));
-                if (flagOrValue)
-                {
-                    results.Add(new CompletionParam($"{optionPrefix}{name}{ValueSeparator}",
-                                                    param.Description,
-                                                    $"{optionPrefix}{name}{ValueSeparator}",
-                                                    $"[{param.Type}] {name}"));
-                }
+                                                listItemText,
+                                                tooltip));
             }
         }
 
@@ -214,8 +211,11 @@ public class CommandCompleter(string name,
                 if (paramName.IsEmpty || name.StartsWith(paramName, StringComparison.OrdinalIgnoreCase))
                 {
                     var text = $"{ShortOptionPrefix}{name} ";
-                    var listItemText = $"{ShortOptionPrefix}{name}";
-                    var tooltip = $"[{param.Type}] {name}";
+                    var listItemText = param.GetSyntax($"{ShortOptionPrefix}{name}", default, false, true);
+                    var tooltip = $"""
+                        [{param.Type}] {param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, expandArguments: true)}
+                        {param.Description}
+                        """;
                     results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
                     completed = true;
                 }
@@ -303,11 +303,15 @@ public class CommandCompleter(string name,
         var paramSuffix = paramNameAndValue[offsetPosition..];
         foreach (var param in remainingParams)
         {
+            var tooltip = $"""
+                [{param.Type}] {param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, expandArguments: true)}
+                {param.Description}
+                """;
             foreach (var c in param.ShortNames)
             {
                 var text = $"{ShortOptionPrefix}{paramPrefix}{c}{paramSuffix}";
-                var tooltip = $"[{param.Type}] {c}";
-                results.Add(new CompletionParam(text, param.Description, text, tooltip));
+                var listItemText = param.GetSyntax($"{ShortOptionPrefix}{c}", default, true, false);
+                results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
             }
         }
 
@@ -386,12 +390,15 @@ public class CommandCompleter(string name,
 
         foreach (var param in Params)
         {
-            var names = param.ShortNames.Select(n => $"{ShortOptionPrefix}{n}")
-                                        .Union(param.OldStyleNames.Select(n => $"{ShortOptionPrefix}{n}"))
-                                        .Union(param.LongNames.Select(n => $"{LongOptionPrefix}{n}"));
-            var text = names.First();
-            var listItemText = string.Join(' ', names);
-            var tooltip = $"[{param.Type}] {listItemText}";
+            var text = param.ShortNames.Select(n => $"{ShortOptionPrefix}{n}")
+                                       .Union(param.OldStyleNames.Select(n => $"{ShortOptionPrefix}{n}"))
+                                       .Union(param.LongNames.Select(n => $"{LongOptionPrefix}{n}"))
+                                       .First();
+            var listItemText = param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, " ", false);
+            var tooltip = $"""
+                [{param.Type}] {param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, ", ", true)}
+                {param.Description}
+                """;
             results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
             Debug($"CompleteAllParams {{ '{text}', '{listItemText}', '{tooltip}' }}");
         }

@@ -258,8 +258,6 @@ public class ParamCompleter
                               string optionPrefix,
                               string prefix = "")
     {
-        string fullParamName = $"{optionPrefix}{paramName}";
-
         if (Type.HasFlag(ArgumentType.List))
         {
             Debug($"CompleteValue[List]: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
@@ -283,6 +281,12 @@ public class ParamCompleter
             Debug($"CompleteValue[List]: result = {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
         }
 
+        var cmd = context.CommandCompleter;
+        var tooltipPrefix = $"""
+            {GetSyntaxes(cmd.LongOptionPrefix, cmd.ShortOptionPrefix, cmd.ValueSeparator)} : {Description}
+            {VariableName}: 
+            """;
+
         if (Arguments.Length > 0)
         {
             Debug($"CompleteValue[Arguments]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
@@ -292,7 +296,7 @@ public class ParamCompleter
                 var data = CompletionValue.Parse(value, null);
                 if (data.IsMatch(paramValue, ignoreCase: true))
                 {
-                    results.Add(data.SetPrefix(prefix));
+                    results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
                     Debug($"Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
                 }
             }
@@ -338,7 +342,7 @@ public class ParamCompleter
                         {
                             result.QuoteText();
                         }
-                        results.Add(result.SetPrefix(prefix));
+                        results.Add(result.SetPrefix(prefix).SetTooltipPrefix(tooltipPrefix));
                     }
                 }
                 catch (Exception e)
@@ -371,7 +375,7 @@ public class ParamCompleter
                 {
                     item.QuoteText();
                 }
-                results.Add(item.SetTooltipPrefix($"[{fullParamName}] ").SetPrefix(prefix));
+                results.Add(item.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
                 completionCount++;
             }
         }
