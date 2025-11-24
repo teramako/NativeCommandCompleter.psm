@@ -42,20 +42,20 @@ if ($IsLinux)
             "nil `t{0}" -f $msg."backup.existing"
             "simple `t{0}" -f $msg."backup.simple"
             "never `t{0}" -f $msg."backup.simple"
-        )
+        ) -VariableName 'CONTROL'
         New-ParamCompleter -ShortName b -Description $msg."short_backup"
         New-ParamCompleter -ShortName f -LongName force -Description $msg."force"
         New-ParamCompleter -ShortName i -LongName interactive -Description $msg."interactive"
         New-ParamCompleter -ShortName n -LongName no-clobber -Description $msg."no-clobber"
         New-ParamCompleter -LongName strip-trailing-slashes -Description $msg."strip-trailing-slashes"
-        New-ParamCompleter -ShortName S -LongName suffix -Type Required -Description $msg."suffix"
-        New-ParamCompleter -ShortName t -LongName target-directory -Type Directory -Description $msg."target-directory"
+        New-ParamCompleter -ShortName S -LongName suffix -Type Required -Description $msg."suffix" -VariableName 'SUFFIX'
+        New-ParamCompleter -ShortName t -LongName target-directory -Type Directory -Description $msg."target-directory" -VariableName 'DIRECTORY'
         New-ParamCompleter -ShortName T -LongName no-target-directory -Description $msg."no-target-directory"
         New-ParamCompleter -LongName update -Description $msg."update" -Type FlagOrValue -Arguments @(
             "all `t{0}" -f $msg."update.all"
             "none `t{0}" -f $msg."update.none"
             "older `t{0}" -f $msg."update.older"
-        )
+        ) -VariableName 'UPDATE'
         New-ParamCompleter -ShortName u -Description $msg."short_update-older"
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg."verbose"
         New-ParamCompleter -ShortName Z -LongName context -Description $msg."context"
