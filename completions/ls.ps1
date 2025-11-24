@@ -90,18 +90,18 @@ if ($LASTEXITCODE -eq 0) # GNU ls
         New-ParamCompleter -ShortName A -LongName almost-all -Description $msg."gnu.almos-all"
         New-ParamCompleter -LongName author -Description $msg."gnu.author"
         New-ParamCompleter -ShortName b -LongName escape -Description $msg."gnu.escape"
-        New-ParamCompleter -LongName block-size -Description $msg."gnu.block-size" -Type Required
+        New-ParamCompleter -LongName block-size -Description $msg."gnu.block-size" -Type Required -VariableName 'SIZE'
         New-ParamCompleter -ShortName B -LongName ignore-backups -Description $msg."gnu.ignore-backups"
         New-ParamCompleter -ShortName c -Description $msg."gnu.short_ctime"
         New-ParamCompleter -ShortName C -Description $msg."gnu.force-multi-column"
-        New-ParamCompleter -LongName color -Description $msg."gnu.color" -Type FlagOrValue -Arguments $when_arguments
+        New-ParamCompleter -LongName color -Description $msg."gnu.color" -Type FlagOrValue -Arguments $when_arguments -VariableName 'WHEN'
         New-ParamCompleter -ShortName d -LongName directory -Description $msg."gnu.directory"
         New-ParamCompleter -ShortName D -LongName dired -Description $msg."gnu.dired"
         New-ParamCompleter -ShortName f -Description $msg."gnu.unsort-output"
         New-ParamCompleter -ShortName F -Description $msg."gnu.short_classify"
-        New-ParamCompleter -LongName classify -Description $msg."gnu.classify" -Type FlagOrValue -Arguments $when_arguments
+        New-ParamCompleter -LongName classify -Description $msg."gnu.classify" -Type FlagOrValue -Arguments $when_arguments -VariableName 'WHEN'
         New-ParamCompleter -LongName file-type -Description $msg."gnu.file-type"
-        New-ParamCompleter -LongName format -Description $msg."gnu.format" -Arguments $format_arguments
+        New-ParamCompleter -LongName format -Description $msg."gnu.format" -Arguments $format_arguments -VariableName 'WORD'
         New-ParamCompleter -LongName full-time -Description $msg."gnu.full-time"
         New-ParamCompleter -ShortName g -Description $msg."gnu.show-group"
         New-ParamCompleter -LongName group-directories-first -Description $msg."gnu.group-directories-first"
@@ -110,11 +110,11 @@ if ($LASTEXITCODE -eq 0) # GNU ls
         New-ParamCompleter -LongName si -Description $msg."gnu.si"
         New-ParamCompleter -ShortName H -LongName dereference-command-line -Description $msg."gnu.dereference-command-line"
         New-ParamCompleter -LongName dereference-command-line-symlink-to-dir -Description $msg."gnu.dereference-command-line-symlink-to-dir"
-        New-ParamCompleter -LongName hide -Description $msg."gnu.hide" -Type Required
-        New-ParamCompleter -LongName hyperlink -Description $msg."gnu.hyperlink" -Arguments $when_arguments
-        New-ParamCompleter -LongName indicator-style -Description $msg."gnu.indicator-style" -Arguments $indicator_style_arguments
+        New-ParamCompleter -LongName hide -Description $msg."gnu.hide" -Type Required -VariableName 'PATTERN'
+        New-ParamCompleter -LongName hyperlink -Description $msg."gnu.hyperlink" -Arguments $when_arguments -VariableName 'WHEN'
+        New-ParamCompleter -LongName indicator-style -Description $msg."gnu.indicator-style" -Arguments $indicator_style_arguments -VariableName 'WORD'
         New-ParamCompleter -ShortName i -LongName inode -Description $msg."gnu.inode"
-        New-ParamCompleter -ShortName I -LongName ignore -Description $msg."gnu.ignore" -Type Required
+        New-ParamCompleter -ShortName I -LongName ignore -Description $msg."gnu.ignore" -Type Required -VariableName 'PATTERN'
         New-ParamCompleter -ShortName k -LongName kibibytes -Description $msg."gnu.kibibytes"
         New-ParamCompleter -ShortName l -Description $msg."gnu.long-list-format"
         New-ParamCompleter -ShortName L -LongName dereference -Description $msg."gnu.dereference"
@@ -125,7 +125,7 @@ if ($LASTEXITCODE -eq 0) # GNU ls
         New-ParamCompleter -ShortName q -LongName hide-control-chars -Description $msg."gnu.hide-control-chars"
         New-ParamCompleter -LongName show-control-chars -Description $msg."gnu.show-control-chars"
         New-ParamCompleter -ShortName Q -LongName quote-name -Description $msg."gnu.quote-name"
-        New-ParamCompleter -LongName quoting-style -Description $msg."gnu.quoting-style" -Arguments "literal","locale","shell","shell-always","c","escape"
+        New-ParamCompleter -LongName quoting-style -Description $msg."gnu.quoting-style" -Arguments "literal","locale","shell","shell-always","c","escape" -VariableName 'WORD'
         New-ParamCompleter -ShortName r -LongName reverse -Description $msg."gnu.reverse"
         New-ParamCompleter -ShortName R -LongName recursive -Description $msg."gnu.recursive"
         New-ParamCompleter -ShortName s -LongName size -Description $msg."gnu.size"
@@ -137,7 +137,7 @@ if ($LASTEXITCODE -eq 0) # GNU ls
             "version `t{0}" -f $msg."gnu.sort.version"
             "extension `t{0}" -f $msg."gnu.sort.extension"
             "width `t{0}" -f $msg."gnu.sort.width"
-        )
+        ) -VariableName 'WORD'
         New-ParamCompleter -LongName time -Description $msg."gnu.time" -Arguments @(
             "atime `t{0}" -f $msg."gnu.time.access-time"
             "access `t{0}" -f $msg."gnu.time.access-time"
@@ -148,13 +148,13 @@ if ($LASTEXITCODE -eq 0) # GNU ls
             "modification `t{0}" -f $msg."gnu.time.modified-time"
             "birth `t{0}" -f $msg."gnu.time.birth-time"
             "creation `t{0}" -f $msg."gnu.time.birth-time"
-        )
-        New-ParamCompleter -LongName time-style -Description $msg."gnu.time-style" -Type Required -Arguments "full-iso","long-iso","iso","locale"
+        ) -VariableName 'WORD'
+        New-ParamCompleter -LongName time-style -Description $msg."gnu.time-style" -Type Required -Arguments "full-iso","long-iso","iso","locale" -VariableName 'TIME_STYLE'
         New-ParamCompleter -ShortName t -Description $msg."gnu.sort-by-time"
-        New-ParamCompleter -ShortName T -LongName tabsize -Description $msg."gnu.tabsize" -Type Required
+        New-ParamCompleter -ShortName T -LongName tabsize -Description $msg."gnu.tabsize" -Type Required -VariableName 'COLS'
         New-ParamCompleter -ShortName U -Description $msg."gnu.dont-sort"
         New-ParamCompleter -ShortName v -Description $msg."gnu.sort-by-version"
-        New-ParamCompleter -ShortName w -LongName width -Description $msg."gnu.width" -Type Required
+        New-ParamCompleter -ShortName w -LongName width -Description $msg."gnu.width" -Type Required -VariableName 'COLS'
         New-ParamCompleter -ShortName x -Description $msg."gnu.multi-column-output"
         New-ParamCompleter -ShortName X -Description $msg."gnu.sort-by-extension"
         New-ParamCompleter -ShortName Z -LongName context -Description $msg."gnu.context"
