@@ -28,11 +28,11 @@ if ($IsLinux)
     Register-NativeCompleter -Name sed -Description 'stream editor' -Parameters @(
         New-ParamCompleter -ShortName n -LongName quiet, slient -Description $msg."quiet"
         New-ParamCompleter -LongName debug -Description $msg."debug"
-        New-ParamCompleter -ShortName e -LongName expression -Type Required -Description $msg."expression"
-        New-ParamCompleter -ShortName f -LongName file -Type File -Description $msg."file"
+        New-ParamCompleter -ShortName e -LongName expression -Type Required -Description $msg."expression" -VariableName script
+        New-ParamCompleter -ShortName f -LongName file -Type File -Description $msg."file" -VariableName 'script-file'
         New-ParamCompleter -LongName follow-symlinks -Description $msg."follow-symlinks"
-        New-ParamCompleter -ShortName i -LongName in-place -Type FlagOrValue -Description $msg."in-place"
-        New-ParamCompleter -ShortName l -LongName line-length -Type Required -Description $msg."line-length"
+        New-ParamCompleter -ShortName i -LongName in-place -Type FlagOrValue -Description $msg."in-place" -VariableName 'SUFFIX'
+        New-ParamCompleter -ShortName l -LongName line-length -Type Required -Description $msg."line-length" -VariableName 'N'
         New-ParamCompleter -LongName posix -Description $msg."posix"
         New-ParamCompleter -ShortName E,r -LongName regexp-extended -Description $msg."regexp-extended"
         New-ParamCompleter -ShortName s -LongName separate -Description $msg."separate"
