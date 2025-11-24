@@ -31,14 +31,14 @@ date --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU mkdir
 {
     Register-NativeCompleter -Name date -Description 'display or set date and time' -Parameters @(
-        New-ParamCompleter -ShortName d -LongName date -Description $msg."gnu.date" -Type Required
-        New-ParamCompleter -ShortName f -LongName file -Description $msg."gnu.file" -Type File
-        New-ParamCompleter -ShortName I -LongName iso-8601 -Description $msg."gnu.iso-8601" -Type FlagOrValue -Arguments "date","hours","minutes","seconds","ns"
+        New-ParamCompleter -ShortName d -LongName date -Description $msg."gnu.date" -Type Required -VariableName 'STRING'
+        New-ParamCompleter -ShortName f -LongName file -Description $msg."gnu.file" -Type File -VariableName 'DATEFILE'
+        New-ParamCompleter -ShortName I -LongName iso-8601 -Description $msg."gnu.iso-8601" -Type FlagOrValue -Arguments "date","hours","minutes","seconds","ns" -VariableName 'FMT'
         New-ParamCompleter -LongName resolution -Description $msg."gnu.resolution"
         New-ParamCompleter -ShortName R -LongName rfc-2822 -Description $msg."gnu.rfc-2822"
-        New-ParamCompleter -LongName rfc-3339 -Description $msg."gnu.rfc-3339" -Arguments "date","seconds","ns"
-        New-ParamCompleter -ShortName r -LongName reference -Description $msg."gnu.reference" -Type File
-        New-ParamCompleter -ShortName s -LongName set -Description $msg."gnu.set" -Type Required
+        New-ParamCompleter -LongName rfc-3339 -Description $msg."gnu.rfc-3339" -Arguments "date","seconds","ns" -VariableName 'FMT'
+        New-ParamCompleter -ShortName r -LongName reference -Description $msg."gnu.reference" -Type File -VariableName 'FILE'
+        New-ParamCompleter -ShortName s -LongName set -Description $msg."gnu.set" -Type Required -VariableName 'STRING'
         New-ParamCompleter -ShortName u -LongName utc,universal -Description $msg."gnu.utc"
         New-ParamCompleter -ShortName h -LongName help -Description $msg."gnu.help"
         New-ParamCompleter -ShortName v -LongName version -Description $msg."gnu.version"
@@ -49,10 +49,10 @@ else
     Register-NativeCompleter -Name date -Description 'display or set date and time' -Parameters @(
         New-ParamCompleter -ShortName u -Description $msg."bsd.utc"
         New-ParamCompleter -ShortName j -Description $msg."bsd.dont-set"
-        New-ParamCompleter -ShortName r -Description $msg."bsd.mtime-or-timestamp" -Type Required
+        New-ParamCompleter -ShortName r -Description $msg."bsd.mtime-or-timestamp" -Type Required -VariableName 'FILE-OR-SECONDS'
         New-ParamCompleter -ShortName v -Description $msg."bsd.adjust" -Type Required
         New-ParamCompleter -ShortName R -Description $msg."bsd.rfc-2822"
-        New-ParamCompleter -ShortName I -Description $msg."bsd.iso-8601" -Arguments "date","hours","minutes","seconds"
+        New-ParamCompleter -ShortName I -Description $msg."bsd.iso-8601" -Arguments "date","hours","minutes","seconds" -VariableName 'FMT'
         New-ParamCompleter -ShortName f -Description $msg."bsd.format" -Type Required
     ) -NoFileCompletions
 }
