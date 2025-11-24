@@ -27,13 +27,13 @@ cut --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU
 {
     Register-NativeCompleter -Name cut -Parameters @(
-        New-ParamCompleter -ShortName b -LongName bytes -Description $msg.bytes -Type Required
-        New-ParamCompleter -ShortName c -LongName characters -Description $msg.gnu_characters -Type Required
-        New-ParamCompleter -ShortName d -LongName delimiter -Description $msg.gnu_delimiter -Type Required
-        New-ParamCompleter -ShortName f -LongName fields -Description $msg.fields -Type Required
+        New-ParamCompleter -ShortName b -LongName bytes -Description $msg.bytes -Type Required -VariableName 'LIST'
+        New-ParamCompleter -ShortName c -LongName characters -Description $msg.gnu_characters -Type Required -VariableName 'LIST'
+        New-ParamCompleter -ShortName d -LongName delimiter -Description $msg.gnu_delimiter -Type Required -VariableName 'DELIM'
+        New-ParamCompleter -ShortName f -LongName fields -Description $msg.fields -Type Required -VariableName 'LIST'
         New-ParamCompleter -LongName complement -Description $msg.gnu_complement
         New-ParamCompleter -ShortName s -LongName only-delimited -Description $msg.only_delimited
-        New-ParamCompleter -LongName output-delimiter -Description $msg.gnu_output_delimiter -Type Required
+        New-ParamCompleter -LongName output-delimiter -Description $msg.gnu_output_delimiter -Type Required -VariableName 'STRING'
         New-ParamCompleter -ShortName z -LongName zero-terminated -Description $msg.gnu_zero_terminated
         New-ParamCompleter -LongName help -Description $msg.gnu_help
         New-ParamCompleter -LongName version -Description $msg.gnu_version
@@ -42,10 +42,10 @@ if ($LASTEXITCODE -eq 0) # GNU
 else
 {
     Register-NativeCompleter -Name cut -Parameters @(
-        New-ParamCompleter -ShortName b -Description $msg.bytes -Type Required
-        New-ParamCompleter -ShortName c -Description $msg.bsd_characters -Type Required
-        New-ParamCompleter -ShortName d -Description $msg.bsd_delimiter -Type Required
-        New-ParamCompleter -ShortName f -Description $msg.fields -Type Required
+        New-ParamCompleter -ShortName b -Description $msg.bytes -Type Required -VariableName 'LIST'
+        New-ParamCompleter -ShortName c -Description $msg.bsd_characters -Type Required -VariableName 'LIST'
+        New-ParamCompleter -ShortName d -Description $msg.bsd_delimiter -Type Required -VariableName 'DELIM'
+        New-ParamCompleter -ShortName f -Description $msg.fields -Type Required -VariableName 'LIST'
         New-ParamCompleter -ShortName n -Description $msg.bsd_dont_split_multibytes
         New-ParamCompleter -ShortName s -Description $msg.only_delimited
         New-ParamCompleter -ShortName w -Description $msg.bsd_whitespace_delimiter
