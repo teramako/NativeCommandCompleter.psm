@@ -101,7 +101,7 @@ if ($LASTEXITCODE -eq 0)
             "nil `t{0}" -f $msg."gnu.backup.existing"
             "simple `t{0}" -f $msg."gnu.backup.simple"
             "never `t{0}" -f $msg."gnu.backup.simple"
-        )
+        ) -VariableName 'CONTROL'
         New-ParamCompleter -ShortName b -Description $msg."gnu.short_backup"
         New-ParamCompleter -LongName copy-contents -Description $msg."gnu.copy-contents"
         New-ParamCompleter -ShortName d -Description $msg."gnu.short_d"
@@ -110,14 +110,14 @@ if ($LASTEXITCODE -eq 0)
         New-ParamCompleter -ShortName H -Description $msg."gnu.short_H"
         New-ParamCompleter -ShortName l -LongName link -Description $msg."gnu.link"
         New-ParamCompleter -LongName strip-trailing-slashes -Description $msg."gnu.strip-trailing-slashes"
-        New-ParamCompleter -ShortName S -LongName suffix -Description $msg."gnu.suffix" -Type Required
-        New-ParamCompleter -ShortName t -LongName target-directory -Description $msg."gnu.target-directory" -Type Directory
+        New-ParamCompleter -ShortName S -LongName suffix -Description $msg."gnu.suffix" -Type Required -VariableName 'SUFFIX'
+        New-ParamCompleter -ShortName t -LongName target-directory -Description $msg."gnu.target-directory" -Type Directory -VariableName 'DIRECTORY'
         New-ParamCompleter -ShortName u -Description $msg."gnu.short_update"
         New-ParamCompleter -LongName update -Description $msg."gnu.update" -Type FlagOrValue -Arguments @(
             "older `t{0}" -f $msg."gnu.update.older"
             "none `t{0}" -f $msg."gnu.update.none"
             "all `t{0}" -f $msg."gnu.update.all"
-        )
+        ) -VariableName 'UPDATE'
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg."gnu.verbose"
         New-ParamCompleter -LongName help -Description $msg."gnu.help"
         New-ParamCompleter -LongName version -Description $msg."gnu.version"
@@ -125,26 +125,26 @@ if ($LASTEXITCODE -eq 0)
         New-ParamCompleter -ShortName n -LongName no-clobber -Description $msg."gnu.no-clobber"
         New-ParamCompleter -ShortName P -LongName no-dereference -Description $msg."gnu.no-dereference"
         New-ParamCompleter -ShortName p -Description $msg."gnu.short_p"
-        New-ParamCompleter -LongName preserve -Description $msg."gnu.preserve" -Arguments $attr_list_arguments -Type FlagOrValue,List
-        New-ParamCompleter -LongName no-preserve -Description $msg."gnu.no-preserve" -Arguments $attr_list_arguments -Type List
+        New-ParamCompleter -LongName preserve -Description $msg."gnu.preserve" -Arguments $attr_list_arguments -Type FlagOrValue,List -VariableName 'ATTR_LIST'
+        New-ParamCompleter -LongName no-preserve -Description $msg."gnu.no-preserve" -Arguments $attr_list_arguments -Type List -VariableName 'ATTR_LIST'
         New-ParamCompleter -LongName parents -Description $msg."gnu.parents"
         New-ParamCompleter -ShortName r,R -LongName recursive -Description $msg."gnu.recursive"
         New-ParamCompleter -LongName reflink -Description $msg."gnu.reflink" -Type FlagOrValue -Arguments @(
             "always `t{0}" -f $msg."gnu.reflink.always" 
             "auto `t{0}" -f $msg."gnu.reflink.auto"
             "never `t{0}" -f  $msg."gnu.reflink.never"
-        )
+        ) -VariableName 'WHEN'
         New-ParamCompleter -LongName remove-destination -Description $msg."gnu.remove-destination"
         New-ParamCompleter -LongName sparse -Description $msg."gnu.sparse" -Arguments @(
             "always `t{0}" -f $msg."gnu.sparse.always" 
             "auto `t{0}" -f $msg."gnu.sparse.auto"
             "never `t{0}" -f  $msg."gnu.sparse.never"
-        )
+        ) -VariableName 'WHEN'
         New-ParamCompleter -ShortName s -LongName symbolic-link -Description $msg."gnu.symbolic-link"
         New-ParamCompleter -ShortName T -LongName no-target-directory -Description $msg."gnu.no-target-directory"
         New-ParamCompleter -ShortName x -LongName one-file-system -Description $msg."gnu.one-file-system"
         New-ParamCompleter -ShortName Z -Description $msg."gnu.short_Z"
-        New-ParamCompleter -ShortName X -LongName context -Description $msg."gnu.context" -Type Required
+        New-ParamCompleter -ShortName X -LongName context -Description $msg."gnu.context" -Type Required -VariableName 'CTX'
     )
 }
 else
