@@ -13,7 +13,7 @@ public abstract class CompletionData
     protected string tooltipPrefix = string.Empty;
     protected CompletionResultType resultType;
 
-    public string CompletionText => $"{prefix}{text}";
+    public string Text => text;
     public string ListItemText => string.IsNullOrEmpty(description) ? itemText : $"{itemText}  ({description})";
     public CompletionResultType ResultType => resultType;
     public string Tooltip => string.IsNullOrEmpty(description) ? $"{tooltipPrefix}{tooltip}" : $"{tooltipPrefix}{tooltip} - {description}";
@@ -69,12 +69,12 @@ public abstract class CompletionData
 
     public CompletionResult Build()
     {
-        return new(CompletionText, ListItemText, ResultType, Tooltip);
+        return new($"{prefix}{text}", ListItemText, ResultType, Tooltip);
     }
 
     public CompletionResult Build(int maxLength)
     {
-        return new(CompletionText,
+        return new($"{prefix}{text}",
                    GetListItemTextRightAligned(maxLength),
                    resultType,
                    Tooltip);
@@ -161,7 +161,6 @@ public class CompletionValue : CompletionData, ISpanParsable<CompletionValue>
         this.resultType = resultType;
     }
 
-    public string Text { get => text; set => SetText(value); }
     public string Description { get => description; set => description = value; }
 
     private static readonly char[] Separators = ['\t', '\n', '\r'];

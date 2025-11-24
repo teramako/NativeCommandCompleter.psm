@@ -199,7 +199,7 @@ public class ParamCompleter
                 if (data.IsMatch(paramValue, ignoreCase: true))
                 {
                     results.Add(data.SetPrefix(prefix));
-                    Debug($"Matched: '{data.CompletionText}', '{data.ListItemText}'");
+                    Debug($"Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
                 }
             }
 
