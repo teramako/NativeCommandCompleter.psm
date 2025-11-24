@@ -16,7 +16,7 @@ public abstract class CompletionData
     public string Text => text;
     public string ListItemText => string.IsNullOrEmpty(description) ? itemText : $"{itemText}  ({description})";
     public CompletionResultType ResultType => resultType;
-    public string Tooltip => string.IsNullOrEmpty(description) ? $"{tooltipPrefix}{tooltip}" : $"{tooltipPrefix}{tooltip} - {description}";
+    public string Tooltip => $"{tooltipPrefix}{tooltip}";
 
     /// <summary>
     /// Get formated string for <see cref="CompletionResult.ListItemText"/>.
