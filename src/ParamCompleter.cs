@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Management.Automation;
+using System.Text;
 
 namespace MT.Comp;
 
@@ -93,6 +94,99 @@ public class ParamCompleter
     public string[] Arguments { get; internal set; } = [];
 
     public string VariableName { get; set; }
+
+    public string GetSyntaxes(string longOptionPrefix = "--",
+                              string shortOptionPrefix = "-",
+                              char valueSeparator = '=',
+                              string delimiter = ", ",
+                              bool expandArguments = false)
+    {
+        StringBuilder sb = new();
+        int count = 0;
+        if (!string.IsNullOrEmpty(shortOptionPrefix))
+        {
+            foreach (var c in ShortNames)
+            {
+                if (count > 0)
+                    sb.Append(delimiter);
+                PrintSyntax(sb, $"{shortOptionPrefix}{c}", default, true, expandArguments);
+                count++;
+            }
+            foreach (var name in OldStyleNames)
+            {
+                if (count > 0)
+                    sb.Append(delimiter);
+                PrintSyntax(sb, $"{shortOptionPrefix}{name}", default, false, expandArguments);
+                count++;
+            }
+        }
+        if (!string.IsNullOrEmpty(longOptionPrefix))
+        {
+            foreach (var name in LongNames)
+            {
+                if (count > 0)
+                    sb.Append(delimiter);
+                PrintSyntax(sb, $"{longOptionPrefix}{name}", valueSeparator, true, expandArguments);
+                count++;
+            }
+        }
+        return sb.ToString();
+    }
+    public string GetSyntax(string name,
+                            char valueSeparator,
+                            bool careFlagOrValue = false,
+                            bool expandArguments = false)
+    {
+        StringBuilder sb = new();
+        PrintSyntax(sb, name, valueSeparator, careFlagOrValue, expandArguments);
+        return sb.ToString();
+    }
+    private void PrintSyntax(StringBuilder sb,
+                             string name,
+                             char valueSeparator,
+                             bool careFlagOrValue = false,
+                             bool expandArguments = false)
+    {
+        sb.Append(name);
+        if (Type == ArgumentType.Flag)
+            return;
+        bool optional = careFlagOrValue && Type.HasFlag(ArgumentType.FlagOrValue);
+
+        if (optional)
+        {
+            sb.Append('[');
+            if (valueSeparator > 0)
+                sb.Append(valueSeparator);
+        }
+        else
+        {
+            sb.Append(valueSeparator > 0 ? valueSeparator : ' ');
+        }
+        if (expandArguments && Arguments.Length > 0)
+        {
+            sb.Append('{');
+            for (var i = 0; i < Arguments.Length; i++)
+            {
+                if (i > 0)
+                    sb.Append('|');
+                var p = Arguments[i].IndexOfAny(['\t', '\n', '\r']);
+                var text = p > 0 ? Arguments[i].AsSpan(0, p) : Arguments[i];
+                sb.Append(text.Trim());
+            }
+            sb.Append('}');
+        }
+        else
+        {
+            sb.Append(VariableName);
+        }
+        if (Type.HasFlag(ArgumentType.List))
+        {
+            sb.Append("[, ...]");
+        }
+
+        if (optional)
+            sb.Append(']');
+    }
 
     internal bool IsMatchLongParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
     {
