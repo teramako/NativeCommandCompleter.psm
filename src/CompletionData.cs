@@ -49,13 +49,6 @@ public abstract class CompletionData
     internal int ListItemLength => itemText.LengthInBufferCells() + description.LengthInBufferCells() + /* space & paren */ 3 + /* mergin */ 2;
     internal int ListItemRawLength => itemText.LengthInBufferCells() + /* margin */ 2;
 
-    protected void SetText(string text)
-    {
-        this.text = text;
-        this.itemText = text;
-        this.tooltip = text;
-    }
-
     public CompletionData SetPrefix(string prefix)
     {
         this.prefix = prefix;
@@ -127,14 +120,18 @@ public class CompletionValue : CompletionData, ISpanParsable<CompletionValue>
     public CompletionValue(string text)
     {
         ArgumentException.ThrowIfNullOrEmpty(text, nameof(text));
-        SetText(text);
+        this.text = text;
+        this.itemText = text;
+        this.tooltip = text;
         this.resultType = CompletionResultType.ParameterValue;
     }
     public CompletionValue(string text, string description)
     {
         ArgumentException.ThrowIfNullOrEmpty(text, nameof(text));
-        SetText(text);
+        this.text = text;
+        this.itemText = text;
         this.description = description;
+        this.tooltip = description;
         this.resultType = CompletionResultType.ParameterValue;
     }
     public CompletionValue(object[] textAndDescription)
@@ -144,8 +141,10 @@ public class CompletionValue : CompletionData, ISpanParsable<CompletionValue>
         ArgumentException.ThrowIfNullOrEmpty(text);
         var description = textAndDescription[1].ToString();
         ArgumentNullException.ThrowIfNull(description);
-        SetText(text);
+        this.text = text;
+        this.itemText = text;
         this.description = description;
+        this.tooltip = description;
         this.resultType = CompletionResultType.ParameterValue;
     }
     public CompletionValue(string text,
