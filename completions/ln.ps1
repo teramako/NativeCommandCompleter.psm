@@ -38,7 +38,7 @@ Register-NativeCompleter -Name ln -Description 'make links between files' -Param
         "nil `t{0}" -f $msg."backup.existing"
         "simple `t{0}" -f $msg."backup.simple"
         "never `t{0}" -f $msg."backup.simple"
-    )
+    ) -VariableName 'CONTROL'
     New-ParamCompleter -ShortName b -Description 'Make a backup of each existing destination file'
     New-ParamCompleter -ShortName d -LongName directory -Description $msg."directory"
     New-ParamCompleter -ShortName f -LongName force -Description $msg."force"
@@ -48,8 +48,8 @@ Register-NativeCompleter -Name ln -Description 'make links between files' -Param
     New-ParamCompleter -ShortName P -LongName physical -Description $msg."physical"
     New-ParamCompleter -ShortName r -LongName relative -Description $msg."relative"
     New-ParamCompleter -ShortName s -LongName symbolic -Description $msg."symbolic"
-    New-ParamCompleter -ShortName S -LongName suffix -Description $msg."suffix"
-    New-ParamCompleter -ShortName t -LongName target-directory -Description $msg."target-directory" -Type Directory
+    New-ParamCompleter -ShortName S -LongName suffix -Description $msg."suffix" -VariableName 'SUFFIX'
+    New-ParamCompleter -ShortName t -LongName target-directory -Description $msg."target-directory" -Type Directory -VariableName 'DIRECTORY'
     New-ParamCompleter -ShortName T -LongName no-target-directory -Description $msg."no-target-directory"
     New-ParamCompleter -ShortName v -LongName verbose -Description $msg."verbose"
     New-ParamCompleter -LongName help -Description $msg."help"
