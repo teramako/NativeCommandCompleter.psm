@@ -38,6 +38,9 @@ public class NewParamCompleterCommand : Cmdlet
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "VariableName")]
+    public string VariableName { get; set; } = "Val";
+
     private string _name = string.Empty;
 
     protected override void BeginProcessing()
@@ -54,7 +57,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName)
+        ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName, VariableName)
         {
             Description = Description,
             Arguments = Arguments,

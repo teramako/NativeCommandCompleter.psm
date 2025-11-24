@@ -46,7 +46,7 @@ public class ParamCompleter
         NativeCompleter.Messages.Add(msg);
     }
 
-    public ParamCompleter(ArgumentType type, string[] longNames, string[] oldStyleNames, char[] shortNames)
+    public ParamCompleter(ArgumentType type, string[] longNames, string[] oldStyleNames, char[] shortNames, string variableName = "Val")
     {
         Name = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
@@ -58,6 +58,7 @@ public class ParamCompleter
         LongNames = longNames;
         OldStyleNames = oldStyleNames;
         ShortNames = shortNames;
+        VariableName = type > 0 ? variableName : string.Empty;
     }
 
     public string Name { get; }
@@ -90,6 +91,8 @@ public class ParamCompleter
     public ScriptBlock? ArgumentCompleter { get; internal set; }
 
     public string[] Arguments { get; internal set; } = [];
+
+    public string VariableName { get; set; }
 
     internal bool IsMatchLongParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
     {

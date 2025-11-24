@@ -35,6 +35,9 @@
   <data name="ArgumentCompleter" xml:space="preserve">
     <value>ScriptBlock that returns completion candidates for the parameter arguments.</value>
   </data>
+  <data name="VariableName" xml:space="preserve">
+    <value>Name of this parameter's argument variable.</value>
+  </data>
   <data name="Error.NotSpecifiedAnyParameterNames" xml:space="preserve">
     <value>At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified.</value>
   </data>
