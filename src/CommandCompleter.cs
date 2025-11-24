@@ -173,10 +173,11 @@ public class CommandCompleter(string name,
                 [{param.Type}] {param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, expandArguments: true)}
                 {param.Description}
                 """;
+            var suffix = param.Type is ArgumentType.Flag ? " " : string.Empty;
             foreach (var name in names)
             {
                 var listItemText = param.GetSyntax($"{optionPrefix}{name}", ValueSeparator, true, false);
-                results.Add(new CompletionParam($"{optionPrefix}{name} ",
+                results.Add(new CompletionParam($"{optionPrefix}{name}{suffix}",
                                                 param.Description,
                                                 listItemText,
                                                 tooltip));
