@@ -34,16 +34,16 @@ tail --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU
 {
     Register-NativeCompleter -Name tail -Parameters @(
-        New-ParamCompleter -ShortName c -LongName bytes -Description $msg.gnu_bytes -Type Required
+        New-ParamCompleter -ShortName c -LongName bytes -Description $msg.gnu_bytes -Type Required -VariableName '[+]NUM'
         New-ParamCompleter -LongName follow -Description $msg.gnu_follow -Type FlagOrValue -Arguments "name","descriptor"
         New-ParamCompleter -ShortName f -Description $msg.gnu_follow_descriptor
         New-ParamCompleter -ShortName F -Description $msg.gnu_follow_name
-        New-ParamCompleter -ShortName n -LongName lines -Description $msg.gnu_lines -Type Required
-        New-ParamCompleter -LongName max-unchanged-stats -Description $msg.gnu_max_unchanged_stats -Type Required
-        New-ParamCompleter -LongName pid -Description $msg.gnu_pid -Type Required
+        New-ParamCompleter -ShortName n -LongName lines -Description $msg.gnu_lines -Type Required -VariableName '[+]NUM'
+        New-ParamCompleter -LongName max-unchanged-stats -Description $msg.gnu_max_unchanged_stats -Type Required -VariableName 'N'
+        New-ParamCompleter -LongName pid -Description $msg.gnu_pid -Type Required -VariableName 'PID'
         New-ParamCompleter -ShortName q -LongName quiet, silent -Description $msg.gnu_quiet
         New-ParamCompleter -LongName retry -Description $msg.gnu_retry
-        New-ParamCompleter -ShortName s -LongName sleep-interval -Description $msg.gnu_sleep_interval -Type Required
+        New-ParamCompleter -ShortName s -LongName sleep-interval -Description $msg.gnu_sleep_interval -Type Required -VariableName 'N'
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg.gnu_verbose
         New-ParamCompleter -ShortName z -LongName zero-terminated -Description $msg.gnu_zero
         New-ParamCompleter -LongName help -Description $msg.gnu_help

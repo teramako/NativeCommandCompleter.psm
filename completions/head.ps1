@@ -22,8 +22,8 @@ head --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU
 {
     Register-NativeCompleter -Name head -Parameters @(
-        New-ParamCompleter -ShortName c -LongName bytes -Description $msg.gnu_bytes -Type Required
-        New-ParamCompleter -ShortName n -LongName lines -Description $msg.gnu_lines -Type Required
+        New-ParamCompleter -ShortName c -LongName bytes -Description $msg.gnu_bytes -Type Required -VariableName '[-]NUM'
+        New-ParamCompleter -ShortName n -LongName lines -Description $msg.gnu_lines -Type Required -VariableName '[-]NUM'
         New-ParamCompleter -ShortName q -LongName quiet, silent -Description $msg.gnu_quiet
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg.gnu_verbose
         New-ParamCompleter -ShortName z -LongName zero-terminated -Description $msg.gnu_zero
