@@ -18,7 +18,7 @@ mkdir --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0) # GNU mkdir
 {
     Register-NativeCompleter -Name mkdir -Parameters @(
-        New-ParamCompleter -ShortName m -LongName mode -Description $msg.mode -Type Required
+        New-ParamCompleter -ShortName m -LongName mode -Description $msg.mode -Type Required -VariableName 'MODE'
         New-ParamCompleter -ShortName p -LongName parents -Description $msg.parents
         New-ParamCompleter -ShortName v -LongName verbose -Description $msg.verbose
         New-ParamCompleter -LongName version -Description $msg.version
