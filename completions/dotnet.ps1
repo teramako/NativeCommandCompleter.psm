@@ -291,35 +291,45 @@ $verbosityParam = New-ParamCompleter -OldStyleName v -LongName verbosity -Descri
     ("q `t{0}" -f $msg._Verbosity_Quiet), ("quiet `t{0}" -f $msg._Verbosity_Quiet),
     ("m `t{0}" -f $msg._Verbosity_Minimal), ("minimal `t{0}" -f $msg._Verbosity_Minimal),
     ("n `t{0}" -f $msg._Verbosity_Normal),  ("normal `t{0}" -f $msg._Verbosity_Normal),
-    ("d` t{0}" -f $msg._Verbosity_Detailed), ("detailed `t{0}" -f $msg._Verbosity_Detailed),
+    ("d `t{0}" -f $msg._Verbosity_Detailed), ("detailed `t{0}" -f $msg._Verbosity_Detailed),
     ("diag `t{0}" -f $msg._Verbosity_Diagnostic), ("diagnostic `t{0}" -f $msg._Verbosity_Diagnostic)
-)
+) -VariableName 'LEVEL'
 $noBuildParam = New-ParamCompleter -LongName no-build -Description $msg._Nobuild
-$outputDirParam = New-ParamCompleter -OldStyleName o -LongName output -Description $msg._OutputDir -Type Directory
+$outputDirParam = New-ParamCompleter -OldStyleName o -LongName output -Description $msg._OutputDir -Type Directory -VariableName 'OUTPUT_DIR'
 
-$buildArtifactsPathParam = New-ParamCompleter -LongName artifacts-path -Description $msg.Build_ArtifactsPath -Type Directory
-$targetFrameworkParam = New-ParamCompleter -OldStyleName f -LongName framework -Description $msg.Build_TargetFramework -Type Required
-$targetRuntimeParam = New-ParamCompleter -OldStyleName r -LongName runtime -Description $msg.Build_TargetRuntime -Type Required
-$targetArchParam = New-ParamCompleter -OldStyleName a -LongName arch -Description $msg.Build_TargetArch -Type Required
-$targetOsParam = New-ParamCompleter -LongName os -Description $msg.Build_TargetOs -Type Required
+$buildArtifactsPathParam = New-ParamCompleter -LongName artifacts-path -Description $msg.Build_ArtifactsPath -Type Directory 'ARTIFACTS_DIR'
+$targetFrameworkParam = New-ParamCompleter -OldStyleName f -LongName framework -Description $msg.Build_TargetFramework -Type Required -VariableName 'FRAMEWORK'
+$targetRuntimeParam = New-ParamCompleter -OldStyleName r -LongName runtime -Description $msg.Build_TargetRuntime -Type Required -VariableName 'RUNTIME'
+$targetArchParam = New-ParamCompleter -OldStyleName a -LongName arch -Description $msg.Build_TargetArch -Type Required -VariableName 'ARCH'
+$targetOsParam = New-ParamCompleter -LongName os -Description $msg.Build_TargetOs -Type Required -VariableName 'OS'
 $norestoreParam = New-ParamCompleter -LongName no-restore -Description $msg.Build_NoRestore
-$buildConfigurationParam = New-ParamCompleter -OldStyleName c -LongName configuration -Description $msg.Build_Configuration -Arguments 'Debug','Release'
-$buildVersionSuffixParam = New-ParamCompleter -LongName version-suffix -Description $msg.Build_VersionSuffix -Type Required
+$buildConfigurationParam = New-ParamCompleter -OldStyleName c -LongName configuration -Description $msg.Build_Configuration -Arguments 'Debug','Release' -VariableName 'CONFIGURATION'
+$buildVersionSuffixParam = New-ParamCompleter -LongName version-suffix -Description $msg.Build_VersionSuffix -Type Required -VariableName 'VERSION_SUFFIX'
 $disableBuildServersParam = New-ParamCompleter -LongName disable-build-servers -Description $msg.Build_DisableBuildServers
 $useCurrentRuntimeParam = New-ParamCompleter -LongName ucr, use-current-runtime -Description $msg.Build_UseCurrentRuntime
 
-$newNameParam = New-ParamCompleter -OldStyleName n -LongName name -Description $msg.New_Name -Type Required
+$formatHelpParam = New-ParamCompleter -OldStyleName ?,h -LongName help -Description $msg.Format_Help
+$formatVerifyNoChangesParam = New-ParamCompleter -LongName verify-no-changes -Description $msg.Format_VerifyNoChanges
+$formatIncludeParam = New-ParamCompleter -LongName include -Description $msg.Format_Include -Type File -VariableName 'PATH'
+$formatExcludeParam = New-ParamCompleter -LongName exclude -Description $msg.Format_Exclude -Type File -VariableName 'PATH'
+$formatIncludeGeneratedParam = New-ParamCompleter -LongName include-generated -Description $msg.Format_IncludeGenerated
+$formatBinarylogParam = New-ParamCompleter -LongName binarylog -Description $msg.Format_BinaryLog -Type File -VariableName 'PATH'
+$formatReportParam = New-ParamCompleter -LongName report -Description $msg.Format_Report -Type Directory -VariableName 'DIR'
+$formatDiagnosticsParam = New-ParamCompleter -LongName diagnostics -Description $msg.Format_Diagnostics -Type Required -VariableName 'LIST'
+$formatExcludeDiagnosticsParam = New-ParamCompleter -LongName exclude-diagnostics -Description $msg.Format_ExcludeDiagnostics -Type Required -VariableName 'LIST'
+$formatSeverityParam = New-ParamCompleter -LongName severity -Description $msg.Format_Severity -Arguments 'info', 'warn', 'error' -VariableName 'SEVERITY'
+$newNameParam = New-ParamCompleter -OldStyleName n -LongName name -Description $msg.New_Name -Type Required -VariableName 'NAME'
 $newDryRunParam = New-ParamCompleter -LongName dry-run -Description $msg.New_DryRun
 $newForceParam = New-ParamCompleter -LongName force -Description $msg.New_Force
 $newNoUpdateCheckParam = New-ParamCompleter -LongName no-update-check -Description $msg.New_NoUpdateCheck
-$newProjectParam = New-ParamCompleter -LongName project -Description $msg.New_Project -Type File
-$newAddSourceParam = New-ParamCompleter -LongName add-source, nuget-source -Description $msg.New_AddSource -Type Required
-$newAuthorFilterParam = New-ParamCompleter -LongName author -Description  $msg.New_AuthorFilter -Type Required
-$newLanguageFilterParam = New-ParamCompleter -OldStyleName lang -LongName language -Description $msg.New_LanguageFilter -Type Required
-$newTypeFilterParam = New-ParamCompleter -LongName type -Description $msg.New_TypeFilter -Arguments 'project', 'item'
-$newTagFilterParam = New-ParamCompleter -LongName tag -Description $msg.New_TagFilter -Type Required
+$newProjectParam = New-ParamCompleter -LongName project -Description $msg.New_Project -Type File -VariableName 'PROJECT'
+$newAddSourceParam = New-ParamCompleter -LongName add-source, nuget-source -Description $msg.New_AddSource -Type Required -VariableName 'NUGET-SOURCE'
+$newAuthorFilterParam = New-ParamCompleter -LongName author -Description  $msg.New_AuthorFilter -Type Required -VariableName 'AUTHOR'
+$newLanguageFilterParam = New-ParamCompleter -OldStyleName lang -LongName language -Description $msg.New_LanguageFilter -Type Required -VariableName 'LANG'
+$newTypeFilterParam = New-ParamCompleter -LongName type -Description $msg.New_TypeFilter -Arguments 'project', 'item' -VariableName 'TYPE'
+$newTagFilterParam = New-ParamCompleter -LongName tag -Description $msg.New_TagFilter -Type Required -VariableName 'TAG'
 $newOutputColumnsAllParam = New-ParamCompleter -LongName columns-all -Description $msg.New_OutputColumnsAll
-$newOutputColumnsParam = New-ParamCompleter -LongName columns -Description $msg.New_OutputColumns -Arguments 'author','language','tags','type'
+$newOutputColumnsParam = New-ParamCompleter -LongName columns -Description $msg.New_OutputColumns -Arguments 'author','language','tags','type' -VariableName 'COLUMNS'
 $newDiagnosticsParam = New-ParamCompleter -OldStyleName d -LongName diagnostics -Description $msg.New_Diagnostics
 
 $publishSelfContainedParam = New-ParamCompleter -LongName sc, self-contained -Description $msg.Publish_SelfContained
@@ -406,11 +416,11 @@ Register-NativeCompleter -Name dotnet -Parameters @(
     ) -SubCommands @(
         # add package
         New-CommandCompleter -Name package -Description $msg.AddPackage -Parameters @(
-            New-ParamCompleter -OldStyleName v -LongName version -Description $msg.AddPackage_Version -Type Required
+            New-ParamCompleter -OldStyleName v -LongName version -Description $msg.AddPackage_Version -Type Required -VariableName 'VERSION'
             $targetFrameworkParam
             New-ParamCompleter -OldStyleName n -LongName no-restore -Description $msg.AddPackage_NoRestore
-            New-ParamCompleter -OldStyleName s -LongName source -Description $msg.AddPackage_Source -Type Required
-            New-ParamCompleter -LongName package-directory -Description $msg.AddPackage_Directory -Type Directory
+            New-ParamCompleter -OldStyleName s -LongName source -Description $msg.AddPackage_Source -Type Required -VariableName 'SOURCE'
+            New-ParamCompleter -LongName package-directory -Description $msg.AddPackage_Directory -Type Directory -VariableName 'PACKAGE_DIR'
             $interactiveParam
             New-ParamCompleter -LongName prerelease -Description $msg.AddPackage_Prerelease
             $helpParam
@@ -477,7 +487,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $buildConfigurationParam
         $interactiveParam
         $verbosityParam
-        New-ParamCompleter -OldStyleName o -LongName output -Description $msg.Clean_Output -Type Directory
+        New-ParamCompleter -OldStyleName o -LongName output -Description $msg.Clean_Output -Type Directory -VariableName 'OUTPUT_DIR'
         $buildArtifactsPathParam
         $nologoParam
         $disableBuildServersParam
@@ -487,26 +497,63 @@ Register-NativeCompleter -Name dotnet -Parameters @(
     # format
     #
     New-CommandCompleter -Name format -Description $msg.Format -Parameters @(
-        New-ParamCompleter -OldStyleName ?,h -LongName help -Description $msg.Format_Help
+        $formatHelpParam
         New-ParamCompleter -LongName version -Description $msg.Format_Version
-        New-ParamCompleter -LongName diagnostics -Description $msg.Format_Diagnostics -Type Required
-        New-ParamCompleter -LongName exclude-diagnostics -Description $msg.Format_ExcludeDiagnostics -Type Required
-        New-ParamCompleter -LongName severity -Description $msg.Format_Severity -Arguments 'info', 'warn', 'error'
+        $formatDiagnosticsParam
+        $formatExcludeDiagnosticsParam
+        $formatSeverityParam
         $norestoreParam
-        New-ParamCompleter -LongName verify-no-changes -Description $msg.Format_VerifyNoChanges
-        New-ParamCompleter -LongName include -Description $msg.Format_Include -Type File
-        New-ParamCompleter -LongName exclude -Description $msg.Format_Exclude -Type File
-        New-ParamCompleter -LongName include-generated -Description $msg.Format_IncludeGenerated
+        $formatVerifyNoChangesParam
+        $formatIncludeParam
+        $formatExcludeParam
+        $formatIncludeGeneratedParam
         $verbosityParam
-        New-ParamCompleter -LongName binarylog -Description $msg.Format_BinaryLog -Type File
-        New-ParamCompleter -LongName report -Description $msg.Format_Report -Type Directory
+        $formatBinarylogParam
+        $formatReportParam
     ) -SubCommands @(
         # format whitespace
-        New-CommandCompleter -Name whitespace -Description $msg.FormatWhitespace -Parameters @()
+        New-CommandCompleter -Name whitespace -Description $msg.FormatWhitespace -Parameters @(
+            $formatHelpParam
+            $norestoreParam
+            $formatVerifyNoChangesParam
+            $formatIncludeParam
+            $formatExcludeParam
+            $formatIncludeGeneratedParam
+            $verbosityParam
+            $formatBinarylogParam
+            $formatReportParam
+            $formatHelpParam
+        ) -ArgumentCompleter $solutionOrProjectCompleter
         # format style
-        New-CommandCompleter -Name style -Description $msg.FormatStyle -Parameters @()
+        New-CommandCompleter -Name style -Description $msg.FormatStyle -Parameters @(
+            $formatDiagnosticsParam
+            $formatExcludeDiagnosticsParam
+            $formatSeverityParam
+            $norestoreParam
+            $formatVerifyNoChangesParam
+            $formatIncludeParam
+            $formatExcludeParam
+            $formatIncludeGeneratedParam
+            $verbosityParam
+            $formatBinarylogParam
+            $formatReportParam
+            $formatHelpParam
+        ) -ArgumentCompleter $solutionOrProjectCompleter
         # format analyzers
-        New-CommandCompleter -Name analyzers -Description $msg.FormatAnalyzers -Parameters @()
+        New-CommandCompleter -Name analyzers -Description $msg.FormatAnalyzers -Parameters @(
+            $formatDiagnosticsParam
+            $formatExcludeDiagnosticsParam
+            $formatSeverityParam
+            $norestoreParam
+            $formatVerifyNoChangesParam
+            $formatIncludeParam
+            $formatExcludeParam
+            $formatIncludeGeneratedParam
+            $verbosityParam
+            $formatBinarylogParam
+            $formatReportParam
+            $formatHelpParam
+        ) -ArgumentCompleter $solutionOrProjectCompleter
     ) -ArgumentCompleter $solutionOrProjectCompleter
     New-CommandCompleter -Name help -Description $msg.Help -Parameters $helpParam
     #
@@ -521,16 +568,16 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             New-ParamCompleter -LongName outdated -Description $msg.ListPackage_Outdated
             New-ParamCompleter -LongName deprecated -Description $msg.ListPackage_Deprecated
             New-ParamCompleter -LongName vulnerable -Description $msg.ListPackage_Vulnerable
-            New-ParamCompleter -LongName framework -Description  $msg.ListPackage_Framework -Type Required
+            New-ParamCompleter -LongName framework -Description  $msg.ListPackage_Framework -Type Required -VariableName 'FRAMEWORK'
             New-ParamCompleter -LongName include-transitive -Description $msg.ListPackage_IncludeTransitive
             New-ParamCompleter -LongName include-prerelease -Description $msg.ListPackage_IncludePrerelease
             New-ParamCompleter -LongName highest-patch -Description $msg.ListPackage_HighestPatch
             New-ParamCompleter -LongName highest-minor -Description $msg.ListPackage_HighestMinor
-            New-ParamCompleter -LongName config, configfile -Description $msg.ListPackage_Config -Type File
-            New-ParamCompleter -LongName source -Description $msg.ListPackage_Source -Type Required
+            New-ParamCompleter -LongName config, configfile -Description $msg.ListPackage_Config -Type File -VariableName 'CONFIG_FILE'
+            New-ParamCompleter -LongName source -Description $msg.ListPackage_Source -Type Required -VariableName 'SOURCE'
             $interactiveParam
-            New-ParamCompleter -LongName format -Description $msg.ListPackage_Format -Arguments 'console','json'
-            New-ParamCompleter -LongName output-version -Description $msg.ListPackage_OutputVersion -Type Required
+            New-ParamCompleter -LongName format -Description $msg.ListPackage_Format -Arguments 'console','json' -VariableName 'FORMAT'
+            New-ParamCompleter -LongName output-version -Description $msg.ListPackage_OutputVersion -Type Required -VariableName 'VERSION'
             $helpParam
         )
         # list reference
@@ -602,7 +649,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
             $newLanguageFilterParam
             $newTypeFilterParam
             $newTagFilterParam
-            New-ParamCompleter -LongName package -Description $msg.NewSearch_Package -Type Required
+            New-ParamCompleter -LongName package -Description $msg.NewSearch_Package -Type Required -VariableName 'ID'
             $newOutputColumnsAllParam
             $newOutputColumnsParam
             $verbosityParam
@@ -848,7 +895,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $useCurrentRuntimeParam
         $outputDirParam
         $buildArtifactsPathParam
-        New-ParamCompleter -LongName manifest -Description $msg.Publish_Manifest -Type File
+        New-ParamCompleter -LongName manifest -Description $msg.Publish_Manifest -Type File -VariableName 'MANIFEST'
         $noBuildParam
         $publishSelfContainedParam
         $publishNoSelfContainedParam
@@ -879,8 +926,8 @@ Register-NativeCompleter -Name dotnet -Parameters @(
     #
     New-CommandCompleter -Name restore -Description $msg.Restore -Parameters @(
         $disableBuildServersParam
-        New-ParamCompleter -OldStyleName s -LongName source -Description $msg.Restore_Source -Type Required
-        New-ParamCompleter -LongName packages -Description $msg.Restore_Packages -Type File
+        New-ParamCompleter -OldStyleName s -LongName source -Description $msg.Restore_Source -Type Required -VariableName 'SOURCE'
+        New-ParamCompleter -LongName packages -Description $msg.Restore_Packages -Type File -VariableName 'PACKAGES_DIR'
         $useCurrentRuntimeParam
         $disableParallelParam
         $nugetConfigfileParam
@@ -893,7 +940,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $interactiveParam
         New-ParamCompleter -LongName use-lock-file -Description $msg.Restore_UseLockFile
         New-ParamCompleter -LongName locked-mode -Description $msg.Restore_LockMode
-        New-ParamCompleter -LongName lock-file-path -Description $msg.Restore_LockFilePath -Type File
+        New-ParamCompleter -LongName lock-file-path -Description $msg.Restore_LockFilePath -Type File -VariableName 'FILE'
         New-ParamCompleter -LongName force-evaluate -Description $msg.Restore_ForceEvaluate
         $targetArchParam
         $helpParam
@@ -905,14 +952,9 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         $buildConfigurationParam
         $targetFrameworkParam
         $targetRuntimeParam
-        New-ParamCompleter -LongName project -Description $msg.Run_Project -Type File -ArgumentCompleter {
-            param([string] $value, [int] $position, [MT.Comp.CompletionContext] $context)
-            [MT.Comp.Helper]::CompleteFilename($value, $context.CurrentDirectory, $false, $false, { param([System.IO.FileInfo]$f)
-                $f.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $f.Extension -match '\.\w+proj$'
-            });
-        }
-        New-ParamCompleter -OldStyleName p -LongName property -Description $msg.Run_Property -Type Required
-        New-ParamCompleter -OldStyleName lp -LongName launch-profile -Description $msg.Run_LaunchProfile -Type Required
+        New-ParamCompleter -LongName project -Description $msg.Run_Project -Type File -ArgumentCompleter $projectCompleter
+        New-ParamCompleter -OldStyleName p -LongName property -Description $msg.Run_Property -Type Required -VariableName 'property'
+        New-ParamCompleter -OldStyleName lp -LongName launch-profile -Description $msg.Run_LaunchProfile -Type Required -VariableName 'profile-name'
         New-ParamCompleter -LongName no-launch-profile -Description $msg.Run_NoLaunchProfile
         $noBuildParam
         $interactiveParam
@@ -939,7 +981,7 @@ Register-NativeCompleter -Name dotnet -Parameters @(
         # sln add
         New-CommandCompleter -Name add -Description $msg.SlnAdd -Parameters @(
             New-ParamCompleter -LongName in-root -Description $msg.SlnAdd_InRoot
-            New-ParamCompleter -OldStyleName s -LongName solution-folder -Description $msg.SlnAdd_SolutionFolder -Type Directory
+            New-ParamCompleter -OldStyleName s -LongName solution-folder -Description $msg.SlnAdd_SolutionFolder -Type Directory -VariableName 'DIR'
             $helpParam
         ) -ArgumentCompleter $projectCompleter
         # sln list
@@ -954,10 +996,10 @@ Register-NativeCompleter -Name dotnet -Parameters @(
     # store
     #
     New-CommandCompleter -Name store -Description $msg.Store -Parameters @(
-        New-ParamCompleter -OldStyleName m -LongName manifest -Description $msg.Store_Manifest -Type File
-        New-ParamCompleter -LongName framework-version -Description $msg.Store_FrameworkVersion -Type Required
+        New-ParamCompleter -OldStyleName m -LongName manifest -Description $msg.Store_Manifest -Type File -VariableName 'MANIFEST'
+        New-ParamCompleter -LongName framework-version -Description $msg.Store_FrameworkVersion -Type Required -VariableName 'VERSION'
         $outputDirParam
-        New-ParamCompleter -OldStyleName w -LongName working-dir -Description $msg.Store_WorkingDir -Type Directory
+        New-ParamCompleter -OldStyleName w -LongName working-dir -Description $msg.Store_WorkingDir -Type Directory -VariableName 'WORKING_DIR'
         New-ParamCompleter -LongName skip-optimization -Description $msg.Store_SkipOptimization
         New-ParamCompleter -LongName skip-symbols -Description $msg.Store_SkipSymbols
         $targetFrameworkParam
@@ -971,25 +1013,25 @@ Register-NativeCompleter -Name dotnet -Parameters @(
     # test
     #
     New-CommandCompleter -Name test -Description $msg.Test -Parameters @(
-        New-ParamCompleter -OldStyleName s -LongName settings -Description $msg.Test_Settings -Type File
+        New-ParamCompleter -OldStyleName s -LongName settings -Description $msg.Test_Settings -Type File -VariableName 'SETTINGS_FILE'
         New-ParamCompleter -OldStyleName t -LongName list-tests -Description $msg.Test_ListTests
-        New-ParamCompleter -OldStyleName e -LongName environment -Description $msg.Test_Environment -Type Required
-        New-ParamCompleter -LongName filter -Description $msg.Test_Filter -Type Required
-        New-ParamCompleter -LongName test-adapter-path -Description $msg.Test_TestAdapterPath -Type Directory
-        New-ParamCompleter -OldStyleName l -LongName logger -Description $msg.Test_Logger -Type Required
+        New-ParamCompleter -OldStyleName e -LongName environment -Description $msg.Test_Environment -Type Required -VariableName 'NAME="VALUE"'
+        New-ParamCompleter -LongName filter -Description $msg.Test_Filter -Type Required -VariableName 'EXPRESSION'
+        New-ParamCompleter -LongName test-adapter-path -Description $msg.Test_TestAdapterPath -Type Directory -VariableName 'ADAPTER_PATH'
+        New-ParamCompleter -OldStyleName l -LongName logger -Description $msg.Test_Logger -Type Required -VariableName 'LOGGER'
         $outputDirParam
         $buildArtifactsPathParam
-        New-ParamCompleter -OldStyleName d -LongName diag -Description $msg.Test_Diag -Type File
+        New-ParamCompleter -OldStyleName d -LongName diag -Description $msg.Test_Diag -Type File -VariableName 'LOG_FILE'
         $noBuildParam
-        New-ParamCompleter -LongName results-directory -Description $msg.Test_ResultsDirectory -Type Directory
-        New-ParamCompleter -LongName collect -Description $msg.Test_Collect -Type Required
+        New-ParamCompleter -LongName results-directory -Description $msg.Test_ResultsDirectory -Type Directory -VariableName 'RESULTS_DIR'
+        New-ParamCompleter -LongName collect -Description $msg.Test_Collect -Type Required -VariableName 'NAME'
         New-ParamCompleter -LongName blame -Description $msg.Test_Blame
         New-ParamCompleter -LongName blame-crash -Description $msg.Test_BlameCrash
-        New-ParamCompleter -LongName blame-crash-dump-type -Description $msg.Test_BlameCrashDumpType -Arguments "mini","full`tDefault"
+        New-ParamCompleter -LongName blame-crash-dump-type -Description $msg.Test_BlameCrashDumpType -Arguments "mini","full`tDefault" -VariableName 'TYPE'
         New-ParamCompleter -LongName blame-crash-collect-always -Description $msg.Test_BlameCrashCollectAlways
         New-ParamCompleter -LongName blame-hang -Description $msg.Test_BlameHang
-        New-ParamCompleter -LongName blame-hang-dump-type -Description $msg.Test_BlameHangDumpType -Arguments "mini","full`tDefault","none"
-        New-ParamCompleter -LongName blame-hang-timeout -Description $msg.Test_BlameHangTimeout -Type Required
+        New-ParamCompleter -LongName blame-hang-dump-type -Description $msg.Test_BlameHangDumpType -Arguments "mini","full`tDefault","none" -VariableName 'TYPE'
+        New-ParamCompleter -LongName blame-hang-timeout -Description $msg.Test_BlameHangTimeout -Type Required -VariableName 'TIMESPAN'
         $nologoParam
         $buildConfigurationParam
         $targetFrameworkParam
