@@ -297,7 +297,7 @@ $verbosityParam = New-ParamCompleter -OldStyleName v -LongName verbosity -Descri
 $noBuildParam = New-ParamCompleter -LongName no-build -Description $msg._Nobuild
 $outputDirParam = New-ParamCompleter -OldStyleName o -LongName output -Description $msg._OutputDir -Type Directory -VariableName 'OUTPUT_DIR'
 
-$buildArtifactsPathParam = New-ParamCompleter -LongName artifacts-path -Description $msg.Build_ArtifactsPath -Type Directory 'ARTIFACTS_DIR'
+$buildArtifactsPathParam = New-ParamCompleter -LongName artifacts-path -Description $msg.Build_ArtifactsPath -Type Directory -VariableName 'ARTIFACTS_DIR'
 $targetFrameworkParam = New-ParamCompleter -OldStyleName f -LongName framework -Description $msg.Build_TargetFramework -Type Required -VariableName 'FRAMEWORK'
 $targetRuntimeParam = New-ParamCompleter -OldStyleName r -LongName runtime -Description $msg.Build_TargetRuntime -Type Required -VariableName 'RUNTIME'
 $targetArchParam = New-ParamCompleter -OldStyleName a -LongName arch -Description $msg.Build_TargetArch -Type Required -VariableName 'ARCH'
