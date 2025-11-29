@@ -304,6 +304,9 @@ public class CommandCompleter(string name,
         var paramSuffix = paramNameAndValue[offsetPosition..];
         foreach (var param in remainingParams)
         {
+            if (!paramSuffix.IsEmpty && param.Type is not ArgumentType.Flag)
+                continue;
+
             var tooltip = $"""
                 [{param.Type}] {param.GetSyntaxes(LongOptionPrefix, ShortOptionPrefix, ValueSeparator, expandArguments: true)}
                 {param.Description}
