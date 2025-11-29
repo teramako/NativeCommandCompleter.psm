@@ -80,7 +80,7 @@ public sealed class CompletionContext
     }
     private CompletionContext(CommandCompleter commandCompleter, CompletionContext parentContext, int argumentIndex)
     {
-        Name = $"{parentContext.Name}-{commandCompleter.Name}";
+        Name = $"{parentContext.Name} {commandCompleter.Name}";
         CommandCompleter = commandCompleter;
         WordToComplete = parentContext.WordToComplete;
         CommandAst = parentContext.CommandAst;
