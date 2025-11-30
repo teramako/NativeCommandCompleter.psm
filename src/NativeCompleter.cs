@@ -150,7 +150,7 @@ public static class NativeCompleter
         };
         if (TryGetCommandCompleter(cmdName, scriptParameters, out var commandCompleter, out var loadResults))
         {
-            var context = CompletionContext.Create(commandCompleter, wordToComplete, commandAst, cursorPosition, cwd);
+            var context = CompletionContext.Create(commandCompleter, wordToComplete, commandAst, cursorPosition, host, cwd);
             return context.Complete();
         }
 
