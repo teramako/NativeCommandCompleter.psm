@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Management.Automation;
+using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 
 namespace MT.Comp;
@@ -32,6 +33,11 @@ public sealed class CompletionContext
     /// Cursor position in the command line
     /// </summary>
     public int CursorPosition { get; }
+
+    /// <summary>
+    /// Host interface
+    /// </summary>
+    public PSHost Host { get; }
 
     /// <summary>
     /// Current directory
@@ -69,13 +75,14 @@ public sealed class CompletionContext
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
 
-    private CompletionContext(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
         WordToComplete = wordToComplete;
         CommandAst = ast;
         CursorPosition = cursorPosition;
+        Host = host;
         CurrentDirectory = cwd;
     }
     private CompletionContext(CommandCompleter commandCompleter, CompletionContext parentContext, int argumentIndex)
@@ -85,6 +92,7 @@ public sealed class CompletionContext
         WordToComplete = parentContext.WordToComplete;
         CommandAst = parentContext.CommandAst;
         CursorPosition = parentContext.CursorPosition;
+        Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
         if (argumentIndex < parentContext.Arguments.Count - 1)
@@ -96,9 +104,9 @@ public sealed class CompletionContext
         CurrentToken = parentContext.CurrentToken;
     }
 
-    public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, cwd);
+        CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, host, cwd);
         NativeCompleter.Messages.Add($"[{context.Name}] Create CompletionContext");
         int prevEndOffset = -1;
         Token? prevToken = null;
@@ -381,6 +389,6 @@ public sealed class CompletionContext
             return [null];
         }
         Debug($"Build completion data");
-        return results.Build();
+        return results.Build(Host);
     }
 }

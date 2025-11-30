@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
+using System.Management.Automation.Host;
 
 namespace MT.Comp;
 
@@ -14,21 +15,22 @@ public abstract class CompletionData
     protected CompletionResultType resultType;
 
     public string Text => text;
-    public string ListItemText => string.IsNullOrEmpty(description) ? itemText : $"{itemText}  ({description})";
+    // public string ListItemText => string.IsNullOrEmpty(description) ? itemText : $"{itemText}  ({description})";
+    public string ListItemText => itemText;
     public CompletionResultType ResultType => resultType;
     public string Tooltip => $"{tooltipPrefix}{tooltip}";
 
     /// <summary>
     /// Get formated string for <see cref="CompletionResult.ListItemText"/>.
     /// </summary>
-    protected string GetListItemTextRightAligned(int cellWidth)
+    protected string GetListItemTextRightAligned(PSHost host, int cellWidth)
     {
         if (string.IsNullOrEmpty(description))
         {
             return itemText;
         }
-        var descWidth = description.LengthInBufferCells();
-        var spaceWidth = cellWidth - ListItemLength;
+        var descWidth = host.UI.RawUI.LengthInBufferCells(description);
+        var spaceWidth = cellWidth - GetListItemLength(host);
         if (spaceWidth >= 0)
         {
             return $"{itemText} {new string(' ', spaceWidth)}{Config.ListItemDescriptionStart}{description}{Config.ListItemDescriptionEnd}";
@@ -36,7 +38,7 @@ public abstract class CompletionData
         else if (descWidth + spaceWidth - 1 > 0)
         {
             var descCellLength = descWidth + spaceWidth - 1;
-            var desc = description.CropToCellLength(0, descCellLength, out var actualLength);
+            var desc = CropToCellLength(description, host, 0, descCellLength, out var actualLength);
             var spaces = new string(' ', 1 + descCellLength - actualLength);
             return $"{itemText}{spaces}{Config.ListItemDescriptionStart}{desc}…{Config.ListItemDescriptionEnd}";
         }
@@ -46,8 +48,49 @@ public abstract class CompletionData
         }
     }
 
-    internal int ListItemLength => itemText.LengthInBufferCells() + description.LengthInBufferCells() + /* space & paren */ 3 + /* mergin */ 2;
-    internal int ListItemRawLength => itemText.LengthInBufferCells() + /* margin */ 2;
+    private static string CropToCellLength(string value, PSHost host, int start, int cellLength, out int actualCellLength)
+    {
+        Span<char> newStr = new char[value.Length];
+        actualCellLength = 0;
+        int charIndex = 0;
+        for (var i = start; i < value.Length - start; i++)
+        {
+            var c = value[i];
+            var cLength = host.UI.RawUI.LengthInBufferCells(c);
+            if (actualCellLength + cLength > cellLength)
+                break;
+
+            if (char.IsSurrogate(c))
+            {
+                i++;
+                cLength += host.UI.RawUI.LengthInBufferCells(value[i]);
+                if (actualCellLength + cLength > cellLength)
+                    break;
+                newStr[charIndex++] = c;
+                newStr[charIndex++] = value[i];
+            }
+            else
+            {
+                newStr[charIndex++] = c;
+            }
+            actualCellLength += cLength;
+        }
+
+        return newStr[..charIndex].ToString();
+    }
+
+    internal int GetListItemLength(PSHost host)
+    {
+        return host.UI.RawUI.LengthInBufferCells(itemText)
+               + host.UI.RawUI.LengthInBufferCells(description)
+               + /* space & paren */ 3
+               + /* mergin */ 2;
+    }
+    internal int GetListItemRawLength(PSHost host)
+    {
+        return host.UI.RawUI.LengthInBufferCells(itemText)
+               + /* margin */ 2;
+    }
 
     public CompletionData SetPrefix(string prefix)
     {
@@ -60,15 +103,25 @@ public abstract class CompletionData
         return this;
     }
 
+    /// <summary>
+    /// Build <see cref="CompletionResult"/>
+    /// </summary>
+    /// <returns></returns>
     public CompletionResult Build()
     {
         return new($"{prefix}{text}", ListItemText, ResultType, Tooltip);
     }
 
-    public CompletionResult Build(int maxLength)
+    /// <summary>
+    /// Build <see cref="CompletionResult"/> with specified max length for list item text.
+    /// </summary>
+    /// <param name="host"></param>
+    /// <param name="maxLength"></param>
+    /// <returns></returns>
+    public CompletionResult Build(PSHost host, int maxLength)
     {
         return new($"{prefix}{text}",
-                   GetListItemTextRightAligned(maxLength),
+                   GetListItemTextRightAligned(host, maxLength),
                    resultType,
                    Tooltip);
     }
