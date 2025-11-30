@@ -16,6 +16,9 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("d")]
     public string Description { get; set; } = string.Empty;
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Aliases")]
+    public string[] Aliases { get; set; } = [];
+
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Parameters")]
     [Alias("p")]
     public ParamCompleter[] Parameters { get; set; } = [];
@@ -43,6 +46,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     {
         WriteObject(CreateCommandCompleter(Name,
                                            Description,
+                                           Aliases,
                                            Parameters,
                                            SubCommands,
                                            ArgumentCompleter,

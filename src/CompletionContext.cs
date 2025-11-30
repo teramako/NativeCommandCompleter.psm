@@ -165,10 +165,15 @@ public sealed class CompletionContext
 
             if (CommandCompleter.SubCommands.Count > 0)
             {
-                if (CommandCompleter.SubCommands.TryGetValue($"{tokenValue}", out var subCmd))
+                string tokenStr = tokenValue.ToString();
+                foreach (var subCmd in CommandCompleter.SubCommands)
                 {
-                    var subContext = new CompletionContext(subCmd, this, argumentIndex);
-                    return subContext.Build();
+                    if (subCmd.Name.Equals(tokenStr, StringComparison.Ordinal)
+                        || subCmd.Aliases.Any(a => a.Equals(tokenStr, StringComparison.Ordinal)))
+                    {
+                        var subContext = new CompletionContext(subCmd, this, argumentIndex);
+                        return subContext.Build();
+                    }
                 }
             }
 

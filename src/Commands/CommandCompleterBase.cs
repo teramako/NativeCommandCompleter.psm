@@ -30,6 +30,7 @@ public abstract class CommandCompleterBase : PSCmdlet
 
     protected CommandCompleter CreateCommandCompleter(string name,
                                                       string description,
+                                                      string[] aliases,
                                                       ParamCompleter[] paramCompleters,
                                                       CommandCompleter[] subCommands,
                                                       ScriptBlock? argumentCompleter = null,
@@ -52,8 +53,9 @@ public abstract class CommandCompleterBase : PSCmdlet
         }
         foreach (var subCmd in subCommands)
         {
-            completer.SubCommands.Add(subCmd.Name, subCmd);
+            completer.SubCommands.Add(subCmd);
         }
+        completer.Aliases = aliases;
         completer.ArgumentCompleter = argumentCompleter;
         completer.NoFileCompletions = noFileCompletions;
         completer.DelegateArgumentIndex = delegateArgumentIndex;

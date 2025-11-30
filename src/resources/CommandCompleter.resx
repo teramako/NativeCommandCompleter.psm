@@ -18,6 +18,9 @@
   <data name="Unregister.Name" xml:space="preserve">
     <value>Command name to be unregistered. Can use wildcards like '*'</value>
   </data>
+  <data name="Aliases" xml:space="preserve">
+    <value>Alias names for the command.</value>
+  </data>
   <data name="Description" xml:space="preserve">
     <value>Description for the command.</value>
   </data>

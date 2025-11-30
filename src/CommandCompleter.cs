@@ -21,9 +21,10 @@ public class CommandCompleter(string name,
     internal readonly char ValueSeparator = valueSeparator;
 
     public string Name { get; } = name;
+    public string[] Aliases { get; set; } =  [];
     public string Description { get; set; } = description;
     public Collection<ParamCompleter> Params { get; } = [];
-    public Dictionary<string, CommandCompleter> SubCommands { get; } = [];
+    public Collection<CommandCompleter> SubCommands { get; } = [];
     public ScriptBlock? ArgumentCompleter { get; set; }
     public bool NoFileCompletions { get; set; }
     /// <summary>
@@ -56,17 +57,28 @@ public class CommandCompleter(string name,
         if (SubCommands.Count == 0)
             return completed;
 
-        var subCommands = string.IsNullOrEmpty(tokenValue)
-            ? SubCommands
-            : SubCommands.Where(kv => kv.Key.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase));
-
-        foreach (var kv in subCommands)
+        foreach (var subCommand in SubCommands)
         {
-            var text = kv.Value.Name;
-            results.Add(new CompletionValue(text, kv.Value.Description).SetTooltipPrefix($"[{context.Name}] "));
-            completed = true;
+            if (string.IsNullOrEmpty(tokenValue)
+                || subCommand.Name.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase))
+            {
+                var text = subCommand.Name;
+                results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix($"[{context.Name}] "));
+                completed = true;
+            }
+            else if (subCommand.Aliases.Length > 0)
+            {
+                foreach (var alias in subCommand.Aliases)
+                {
+                    if (alias.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var text = alias;
+                        results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix($"[{context.Name}] "));
+                        completed = true;
+                    }
+                }
+            }
         }
-
         return completed;
     }
 

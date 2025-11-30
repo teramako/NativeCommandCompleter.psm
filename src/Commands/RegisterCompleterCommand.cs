@@ -20,6 +20,10 @@ public class RegisterCompleterCommand : CommandCompleterBase
     public string Description { get; set; } = string.Empty;
 
     [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Aliases")]
+    public string[] Aliases { get; set; } = [];
+
+    [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Parameters")]
     [Alias("p")]
     public ParamCompleter[] Parameters { get; set; } = [];
@@ -70,6 +74,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
 
         RegisterCompleter(CreateCommandCompleter(Name,
                                                  Description,
+                                                 Aliases,
                                                  Parameters,
                                                  SubCommands,
                                                  ArgumentCompleter,
