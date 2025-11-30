@@ -15,8 +15,9 @@ internal class CompletionDataCollection : Collection<CompletionData>
     /// <param name="host">Host interface</param>
     public IEnumerable<CompletionResult> Build(PSHost host)
     {
-        if (host.Name.Equals("ConsoleHost", StringComparison.OrdinalIgnoreCase) &&
-            host.UI.RawUI.BufferSize.Height > 0)
+        if (Config.ShowDescriptionInListItem
+            && host.Name.Equals("ConsoleHost", StringComparison.OrdinalIgnoreCase)
+            && host.UI.RawUI.BufferSize.Height > 0)
         {
             var maxHeight = host.UI.RawUI.BufferSize.Height - 3;
             int divison = 1;

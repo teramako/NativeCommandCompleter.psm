@@ -33,4 +33,9 @@ public static class Config
     /// <seealso cref="CompletionData.GetListItemTextRightAligned(int)"/>
     public static string ListItemDescriptionEnd { get; set; } =
         $"{PSStyle.Instance.ItalicOff}{PSStyle.Instance.Foreground.White})";
+
+    /// <summary>
+    /// Whether to show description in the completion menu item
+    /// </summary>
+    public static bool ShowDescriptionInListItem { get; set; } = true;
 }
