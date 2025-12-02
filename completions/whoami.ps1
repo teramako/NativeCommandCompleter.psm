@@ -16,8 +16,8 @@ $msg = data { ConvertFrom-StringData @'
     nh      = Specifies that the column header shouldn't be displayed in the output.
     help    = Displays help at the command prompt.
 
-    gnu.help    = Display this help and exit
-    gnu.version = Output version information and exit
+    gnu_help    = Display this help and exit
+    gnu_version = Output version information and exit
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
@@ -41,7 +41,7 @@ if ($IsWindows)
 else
 {
     Register-NativeCompleter -Name whoami -Description 'print effective user name' -Parameters @(
-        New-ParamCompleter -LongName help -Description $msg."gnu.help"
-        New-ParamCompleter -LongName version -Description $msg."gnu.version"
+        New-ParamCompleter -LongName help -Description $msg.gnu_help
+        New-ParamCompleter -LongName version -Description $msg.gnu_version
     ) -NoFileCompletions
 }
