@@ -41,6 +41,201 @@ public class CommandCompleter(string name,
     public int DelegateArgumentIndex { get; internal set; } = -1;
 
     /// <summary>
+    /// Parse arguments in the completion context.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public CompletionContext ParseArguments(CompletionContext context)
+    {
+        NativeCompleter.Messages.Add($"[{Name}] Build CompletionContext");
+
+        // Early return if no parameters to analyze
+        if (SubCommands.Count == 0
+            && Params.Count == 0
+            && DelegateArgumentIndex < 0)
+        {
+            foreach (var token in context.Arguments)
+            {
+                context.AddUnboundArgument(token);
+            }
+            return context;
+        }
+
+        int argumentsCount = context.Arguments.Count;
+        bool hasLongOptionPrefix = !string.IsNullOrEmpty(LongOptionPrefix);
+        bool hasShortOptionPrefix = !string.IsNullOrEmpty(ShortOptionPrefix);
+
+        for (int argumentIndex = 0; argumentIndex < argumentsCount; argumentIndex++)
+        {
+            Token token = context.Arguments[argumentIndex];
+            ReadOnlySpan<char> tokenValue = token.Value;
+            string optionPrefix;
+
+            if (SubCommands.Count > 0)
+            {
+                string tokenStr = tokenValue.ToString();
+                foreach (var subCmd in SubCommands)
+                {
+                    if (subCmd.Name.Equals(tokenStr, StringComparison.Ordinal)
+                        || subCmd.Aliases.Any(a => a.Equals(tokenStr, StringComparison.Ordinal)))
+                    {
+                        return context.CreateNestedContext(subCmd, argumentIndex);
+                    }
+                }
+            }
+
+            if (hasLongOptionPrefix
+                && tokenValue.StartsWith(LongOptionPrefix, StringComparison.Ordinal))
+            {
+                optionPrefix = LongOptionPrefix;
+                var paramName = tokenValue[optionPrefix.Length..];
+                var separatorIndex = tokenValue.IndexOf(ValueSeparator);
+                if (separatorIndex > 0)
+                {
+                    // In case the token contains both parameter name and value,
+                    // like `--longParam=Value`.
+                    var paramValue = tokenValue[(separatorIndex + 1)..];
+                    paramName = tokenValue[optionPrefix.Length..separatorIndex];
+                    foreach (var param in Params)
+                    {
+                        if (param.IsMatchLongParam(paramName, out var outParamName))
+                        {
+                            context.AddBoundParameter(param.Name, $"{paramValue}");
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var param in Params)
+                    {
+                        if (param.IsMatchLongParam(paramName, out var outParamName))
+                        {
+                            if (param.Type == ArgumentType.Flag
+                                || param.Type.HasFlag(ArgumentType.FlagOrValue))
+                            {
+                                context.AddBoundParameter(param.Name, true);
+                                break;
+                            }
+                            else if (argumentIndex < argumentsCount - 1)
+                            {
+                                // `--longParam value ...|`
+                                //                       ^ cursor
+                                argumentIndex++;
+                                context.AddBoundParameter(param.Name, context.Arguments[argumentIndex].Value);
+                                break;
+                            }
+                            else
+                            {
+                                // `--longParam |`
+                                //              ^ cursor
+                                context.SetPendingParameter(param, $"{outParamName}", optionPrefix);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (hasShortOptionPrefix
+                     && tokenValue.StartsWith(ShortOptionPrefix, StringComparison.Ordinal))
+            {
+                optionPrefix = ShortOptionPrefix;
+                var paramName = tokenValue[optionPrefix.Length..];
+                bool found = false;
+                foreach (var param in Params)
+                {
+                    found = param.IsMatchOldStyleParam(paramName, out var outParamName);
+                    if (found)
+                    {
+                        if (param.Type == ArgumentType.Flag)
+                        {
+                            context.AddBoundParameter(param.Name, true);
+                        }
+                        else if (argumentIndex < argumentsCount - 1)
+                        {
+                            // `-oldStyleParam value ...|`
+                            //                          ^ cursor
+                            argumentIndex++;
+                            context.AddBoundParameter(param.Name, context.Arguments[argumentIndex].Value);
+                        }
+                        else
+                        {
+                            // `-oldStyleParam |`
+                            //                 ^ cursor
+                            context.SetPendingParameter(param, $"{outParamName}", optionPrefix);
+                        }
+                        break;
+                    }
+                }
+
+                if (found)
+                    continue;
+
+                var shortParams = Params.Where(p => p.ShortNames.Length > 0);
+                for (var i = 0; i < paramName.Length; i++)
+                {
+                    var c = paramName[i];
+                    var p = shortParams.FirstOrDefault(p => p.ShortNames.Contains(c));
+                    if (p is null)
+                        continue;
+
+                    if (!p.ShortNames.Contains(c))
+                        continue;
+
+                    if (p.Type.HasFlag(ArgumentType.FlagOrValue))
+                    {
+                        // e.g. `sed -i[.bk]`
+                        context.AddBoundParameter(p.Name, $"{paramName[(i + 1)..]}");
+                        break;
+                    }
+                    else if (p.Type == ArgumentType.Flag)
+                    {
+                        context.AddBoundParameter(p.Name, true);
+                    }
+                    else if (i == paramName.Length - 1)
+                    {
+                        if (argumentIndex < argumentsCount - 1)
+                        {
+                            // `-abc Value ... |`
+                            //      \          ^ cursor
+                            //       i
+                            // the argument of `c` param is supplied
+                            argumentIndex++;
+                            context.AddBoundParameter(p.Name, context.Arguments[argumentIndex].Value);
+                        }
+                        else
+                        {
+                            // `-abc  |`
+                            //      \ ^ cursor
+                            //       i
+                            // the argument of `c` param is NOT supplied
+                            context.SetPendingParameter(p, $"{c}", optionPrefix);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        context.AddBoundParameter(p.Name, $"{paramName[(i + 1)..]}");
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (context.UnboundArguments.Count == DelegateArgumentIndex)
+                {
+                    var cmdName = Path.GetFileName(tokenValue).ToString();
+                    return NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
+                        ? context.CreateNestedContext(delegatedCompleter, argumentIndex)
+                        : context.CreateNestedContext(new(cmdName, "Unknown"), argumentIndex);
+                }
+                context.AddUnboundArgument(token);
+            }
+        }
+        return context;
+    }
+
+    /// <summary>
     /// Complete sub command names
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
