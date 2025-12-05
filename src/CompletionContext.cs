@@ -345,7 +345,7 @@ public sealed class CompletionContext
         return this;
     }
 
-    private void AddBoundParameter(string name, PSObject? paramValue = null)
+    internal void AddBoundParameter(string name, PSObject? paramValue = null)
     {
         if (_boundParameters.TryGetValue(name, out var found))
         {
