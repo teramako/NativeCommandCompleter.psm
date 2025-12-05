@@ -187,8 +187,7 @@ public sealed class CompletionContext
                     if (subCmd.Name.Equals(tokenStr, StringComparison.Ordinal)
                         || subCmd.Aliases.Any(a => a.Equals(tokenStr, StringComparison.Ordinal)))
                     {
-                        var subContext = new CompletionContext(subCmd, this, argumentIndex);
-                        return subContext.Build();
+                        return CreateNestedContext(subCmd, argumentIndex);
                     }
                 }
             }
@@ -334,15 +333,26 @@ public sealed class CompletionContext
                 if (UnboundArguments.Count == CommandCompleter.DelegateArgumentIndex)
                 {
                     var cmdName = Path.GetFileName(tokenValue).ToString();
-                    var nestedContext = NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
-                        ? new CompletionContext(delegatedCompleter, this, argumentIndex)
-                        : new CompletionContext(new(cmdName, "Unknown"), this, argumentIndex);
-                    return nestedContext.Build();
+                    return NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
+                        ? CreateNestedContext(delegatedCompleter, argumentIndex)
+                        : CreateNestedContext(new(cmdName, "Unknown"), argumentIndex);
                 }
                 AddUnboundArgument(token);
             }
         }
         return this;
+    }
+
+    /// <summary>
+    /// Create nested CompletionContext for sub-command
+    /// </summary>
+    /// <param name="commandCompleter">CommandCompleter</param>
+    /// <param name="argumentIndex">Argument index of the sub-command</param>
+    /// <returns>CompletionContext</returns>
+    public CompletionContext CreateNestedContext(CommandCompleter commandCompleter, int argumentIndex)
+    {
+        var nestedContext = new CompletionContext(commandCompleter, this, argumentIndex);
+        return nestedContext.Build();
     }
 
     internal void AddBoundParameter(string name, PSObject? paramValue = null)
