@@ -164,7 +164,7 @@ public sealed class CompletionContext
         {
             foreach (var token in Arguments)
             {
-                _unboundArguments.Add(token);
+                AddUnboundArgument(token);
             }
             return this;
         }
@@ -332,7 +332,7 @@ public sealed class CompletionContext
             }
             else
             {
-                if (_unboundArguments.Count == CommandCompleter.DelegateArgumentIndex)
+                if (UnboundArguments.Count == CommandCompleter.DelegateArgumentIndex)
                 {
                     var cmdName = Path.GetFileName(tokenValue).ToString();
                     var nestedContext = NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
@@ -340,7 +340,7 @@ public sealed class CompletionContext
                         : new CompletionContext(new(cmdName, "Unknown"), this, argumentIndex);
                     return nestedContext.Build();
                 }
-                _unboundArguments.Add(token);
+                AddUnboundArgument(token);
             }
         }
         return this;
@@ -358,6 +358,11 @@ public sealed class CompletionContext
             _boundParameters.Add(name, [paramValue]);
             Debug($"[BoundParameter]: Added: '{name}', {paramValue} (New)");
         }
+    }
+
+    internal void AddUnboundArgument(Token token)
+    {
+        _unboundArguments.Add(token);
     }
 
     public IEnumerable<CompletionResult?> Complete()
