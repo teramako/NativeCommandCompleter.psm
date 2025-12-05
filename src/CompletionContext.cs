@@ -47,7 +47,7 @@ public sealed class CompletionContext
     /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
-    public ReadOnlyCollection<Token> Arguments => _arguments.AsReadOnly();
+    public ReadOnlyCollection<Token> Arguments { get; }
     /// <summary>
     /// Token at the cursor position
     /// </summary>
@@ -55,22 +55,22 @@ public sealed class CompletionContext
     /// <summary>
     /// Arguments after the cursor position
     /// </summary>
-    public ReadOnlyCollection<Token> RemainingArguments => _remainingArguments.AsReadOnly();
+    public ReadOnlyCollection<Token> RemainingArguments { get; }
 
     /// <summary>
     /// Arguments before the cursor position that are not parameters and not the parameter's values
     /// </summary>
-    public ReadOnlyCollection<Token> UnboundArguments => _unboundArguments.AsReadOnly();
+    public ReadOnlyCollection<Token> UnboundArguments { get; }
 
     /// <summary>
     /// Dictionary parsed parameters to parameters and their value
     /// </summary>
-    public ReadOnlyDictionary<string, List<PSObject?>> BoundParameters => _boundParameters.AsReadOnly();
+    public ReadOnlyDictionary<string, System.Collections.ArrayList> BoundParameters { get; }
 
     private List<Token> _arguments = [];
     private List<Token> _remainingArguments = [];
     private List<Token> _unboundArguments = [];
-    private Dictionary<string, List<PSObject?>> _boundParameters = [];
+    private Dictionary<string, System.Collections.ArrayList> _boundParameters = [];
 
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
@@ -84,6 +84,10 @@ public sealed class CompletionContext
         CursorPosition = cursorPosition;
         Host = host;
         CurrentDirectory = cwd;
+        Arguments = _arguments.AsReadOnly();
+        RemainingArguments = _remainingArguments.AsReadOnly();
+        UnboundArguments = _unboundArguments.AsReadOnly();
+        BoundParameters = _boundParameters.AsReadOnly();
     }
     private CompletionContext(CommandCompleter commandCompleter, CompletionContext parentContext, int argumentIndex)
     {
@@ -102,6 +106,10 @@ public sealed class CompletionContext
         _remainingArguments = parentContext._remainingArguments;
         _boundParameters = parentContext._boundParameters;
         CurrentToken = parentContext.CurrentToken;
+        Arguments = _arguments.AsReadOnly();
+        RemainingArguments = _remainingArguments.AsReadOnly();
+        UnboundArguments = _unboundArguments.AsReadOnly();
+        BoundParameters = _boundParameters.AsReadOnly();
     }
 
     public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
