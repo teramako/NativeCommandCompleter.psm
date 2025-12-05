@@ -112,6 +112,16 @@ public sealed class CompletionContext
         BoundParameters = _boundParameters.AsReadOnly();
     }
 
+    /// <summary>
+    /// Create new CompletionContext from CommandAst
+    /// </summary>
+    /// <param name="commandCompleter">CommandCompleter</param>
+    /// <param name="wordToComplete">Word to complete</param>
+    /// <param name="ast">CommandAst</param>
+    /// <param name="cursorPosition">Cursor position</param>
+    /// <param name="host">Host interface</param>
+    /// <param name="cwd">Current directory</param>
+    /// <returns>CompletionContext</returns>
     public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
     {
         CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, host, cwd);
@@ -305,7 +315,7 @@ public sealed class CompletionContext
                         if (argumentIndex < argumentsCount - 1)
                         {
                             // `-abc Value ... |`
-                            //      \          ^ cursor 
+                            //      \          ^ cursor
                             //       i
                             // the argument of `c` param is supplied
                             argumentIndex++;
@@ -314,7 +324,7 @@ public sealed class CompletionContext
                         else
                         {
                             // `-abc  |`
-                            //      \ ^ cursor 
+                            //      \ ^ cursor
                             //       i
                             // the argument of `c` param is NOT supplied
                             SetPendingParameter(p, $"{c}", optionPrefix);
