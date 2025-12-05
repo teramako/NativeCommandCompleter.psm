@@ -238,8 +238,7 @@ public sealed class CompletionContext
                             {
                                 // `--longParam |`
                                 //              ^ cursor
-                                Debug($"Set pending: {tokenValue}");
-                                _pendingParam = new(param, $"{outParamName}", optionPrefix);
+                                SetPendingParameter(param, $"{outParamName}", optionPrefix);
                             }
                             break;
                         }
@@ -272,7 +271,7 @@ public sealed class CompletionContext
                         {
                             // `-oldStyleParam |`
                             //                 ^ cursor
-                            _pendingParam = new(param, $"{outParamName}", optionPrefix);
+                            SetPendingParameter(param, $"{outParamName}", optionPrefix);
                         }
                         break;
                     }
@@ -319,7 +318,7 @@ public sealed class CompletionContext
                             //      \ ^ cursor 
                             //       i
                             // the argument of `c` param is NOT supplied
-                            _pendingParam = new(p, $"{c}", optionPrefix);
+                            SetPendingParameter(p, $"{c}", optionPrefix);
                         }
                         break;
                     }
@@ -363,6 +362,11 @@ public sealed class CompletionContext
     internal void AddUnboundArgument(Token token)
     {
         _unboundArguments.Add(token);
+    }
+
+    internal void SetPendingParameter(ParamCompleter parameter, string name, string value)
+    {
+        _pendingParam = new(parameter, name, value);
     }
 
     public IEnumerable<CompletionResult?> Complete()
