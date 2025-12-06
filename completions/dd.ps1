@@ -4,20 +4,9 @@
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $msg = data { ConvertFrom-StringData @'
-    dd      = convert and copy a file
-    help    = display this help and exit
-    version = output version information and exit
-'@ }
-Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
-
-Register-NativeCompleter -Name dd -Description $msg.dd -Parameters @(
-    New-ParamCompleter -LongName help -Description $msg.help
-    New-ParamCompleter -LongName version -Description $msg.version
-) -NoFileCompletions -ArgumentCompleter {
-    param([int] $position, [int] $argIndex)
-    
-$msg = data { ConvertFrom-StringData @'
+    dd                   = convert and copy a file
+    help                 = display this help and exit
+    version              = output version information and exit
     if                   = read from FILE instead of stdin
     of                   = write to FILE instead of stdout
     ibs                  = read up to BYTES bytes at a time
@@ -65,9 +54,15 @@ $msg = data { ConvertFrom-StringData @'
     status_noxfer        = suppress the final transfer statistics
     status_progress      = show periodic transfer statistics
 '@ }
-    Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
-    foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
+Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
+foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
+Register-NativeCompleter -Name dd -Description $msg.dd -Metadata @{ msg = $msg } -Parameters @(
+    New-ParamCompleter -LongName help -Description $msg.help
+    New-ParamCompleter -LongName version -Description $msg.version
+) -NoFileCompletions -ArgumentCompleter {
+    param([int] $position, [int] $argIndex)
+    $msg = $this.Metadata.msg;
     $word = $_
     
     # Check for "option name=" format

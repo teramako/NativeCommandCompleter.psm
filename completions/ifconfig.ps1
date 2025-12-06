@@ -4,17 +4,40 @@
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $msg = data { ConvertFrom-StringData @'
-    ifconfig   = configure network interface parameters
-    _all       = Display all interfaces
-    _short     = Display a short list
-    _verbose   = Be more verbose
-    _version   = Display version information
-    _help      = Display help message
+    ifconfig    = configure network interface parameters
+    _all        = Display all interfaces
+    _short      = Display a short list
+    _verbose    = Be more verbose
+    _version    = Display version information
+    _help       = Display help message
+    up          = Activate the interface
+    down        = Deactivate the interface
+    arp         = Enable or disable ARP protocol on the interface
+    promisc     = Enable or disable promiscuous mode
+    allmulti    = Enable or disable all-multicast mode
+    mtu         = Set the Maximum Transfer Unit (MTU)
+    dstaddr     = Set the remote IP address for point-to-point link
+    netmask     = Set the IP network mask
+    add         = Add an IPv6 address
+    del         = Delete an IPv6 address
+    tunnel      = Create IPv6-over-IPv4 tunnel
+    irq         = Set the interrupt line used by the device
+    io_addr     = Set the I/O address of the device
+    mem_start   = Set the start address for shared memory
+    media       = Set the physical port or medium type
+    broadcast   = Set the broadcast address
+    pointopoint = Enable point-to-point mode
+    hw          = Set the hardware address
+    multicast   = Set the multicast flag
+    address     = Set the IP address
+    txqueuelen  = Set the transmit queue length
+    name        = Change the interface name
+    alias       = Create an interface alias
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Parameters @(
+Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Metadata @{ msg = $msg } -Parameters @(
     # Display options
     New-ParamCompleter -OldStyleName a -Description $msg._all
     New-ParamCompleter -OldStyleName s -Description $msg._short
@@ -23,7 +46,6 @@ Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Parameters @
     New-ParamCompleter -LongName help -Description $msg._help
 ) -NoFileCompletions -ArgumentCompleter {
     param([int] $position, [int] $argIndex)
-
     switch ($argIndex) {
         0 {
             # Complete <interface>
@@ -33,31 +55,7 @@ Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Parameters @
             }
         }
         1 {
-            $msg = ConvertFrom-StringData @'
-                up          = Activate the interface
-                down        = Deactivate the interface
-                arp         = Enable or disable ARP protocol on the interface
-                promisc     = Enable or disable promiscuous mode
-                allmulti    = Enable or disable all-multicast mode
-                mtu         = Set the Maximum Transfer Unit (MTU)
-                dstaddr     = Set the remote IP address for point-to-point link
-                netmask     = Set the IP network mask
-                add         = Add an IPv6 address
-                del         = Delete an IPv6 address
-                tunnel      = Create IPv6-over-IPv4 tunnel
-                irq         = Set the interrupt line used by the device
-                io_addr     = Set the I/O address of the device
-                mem_start   = Set the start address for shared memory
-                media       = Set the physical port or medium type
-                broadcast   = Set the broadcast address
-                pointopoint = Enable point-to-point mode
-                hw          = Set the hardware address
-                multicast   = Set the multicast flag
-                address     = Set the IP address
-                txqueuelen  = Set the transmit queue length
-                name        = Change the interface name
-                alias       = Create an interface alias
-'@
+            $msg = $this.Metadata.msg
             $cmds = @(
                 "up `t{0}" -f $msg.up
                 "down `t{0}" -f $msg.down
