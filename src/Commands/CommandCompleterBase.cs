@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Management.Automation;
 
 namespace MT.Comp.Commands;
@@ -36,7 +37,8 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       ScriptBlock? argumentCompleter = null,
                                                       CommandParameterStyle style = CommandParameterStyle.GNU,
                                                       bool noFileCompletions = false,
-                                                      int delegateArgumentIndex = -1)
+                                                      int delegateArgumentIndex = -1,
+                                                      Hashtable? metadata = null)
     {
         CommandCompleter completer = style switch
         {
@@ -59,6 +61,7 @@ public abstract class CommandCompleterBase : PSCmdlet
         completer.ArgumentCompleter = argumentCompleter;
         completer.NoFileCompletions = noFileCompletions;
         completer.DelegateArgumentIndex = delegateArgumentIndex;
+        completer.Metadata = metadata;
         return completer;
     }
 

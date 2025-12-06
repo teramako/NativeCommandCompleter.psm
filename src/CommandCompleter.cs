@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Management.Automation;
@@ -39,6 +40,8 @@ public class CommandCompleter(string name,
     /// </code>
     /// </remarks>
     public int DelegateArgumentIndex { get; internal set; } = -1;
+
+    public Hashtable? Metadata { get; set; }
 
     /// <summary>
     /// Parse arguments in the completion context.

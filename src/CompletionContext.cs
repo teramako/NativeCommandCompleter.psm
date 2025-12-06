@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Management.Automation;
@@ -65,12 +66,14 @@ public sealed class CompletionContext
     /// <summary>
     /// Dictionary parsed parameters to parameters and their value
     /// </summary>
-    public ReadOnlyDictionary<string, System.Collections.ArrayList> BoundParameters { get; }
+    public ReadOnlyDictionary<string, ArrayList> BoundParameters { get; }
+
+    public Hashtable? Metadata => CommandCompleter.Metadata;
 
     private List<Token> _arguments = [];
     private List<Token> _remainingArguments = [];
     private List<Token> _unboundArguments = [];
-    private Dictionary<string, System.Collections.ArrayList> _boundParameters = [];
+    private Dictionary<string, ArrayList> _boundParameters = [];
 
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;

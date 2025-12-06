@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Management.Automation;
 
 namespace MT.Comp.Commands;
@@ -42,6 +43,9 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [ValidateRange(0, int.MaxValue)]
     public int DelegateArgumentIndex { get; set; } = -1;
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Metadata")]
+    public Hashtable? Metadata { get; set; }
+
     protected override void EndProcessing()
     {
         WriteObject(CreateCommandCompleter(Name,
@@ -52,7 +56,8 @@ public class NewCommandCompleterCommand : CommandCompleterBase
                                            ArgumentCompleter,
                                            Style,
                                            NoFileCompletions,
-                                           DelegateArgumentIndex),
+                                           DelegateArgumentIndex,
+                                           Metadata),
                     false);
     }
 }

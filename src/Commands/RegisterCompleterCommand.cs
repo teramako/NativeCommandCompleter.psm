@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Management.Automation;
 
 namespace MT.Comp.Commands;
@@ -52,6 +53,10 @@ public class RegisterCompleterCommand : CommandCompleterBase
     [ValidateRange(0, int.MaxValue)]
     public int DelegateArgumentIndex { get; set; } = -1;
 
+    [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Metadata")]
+    public Hashtable? Metadata { get; set; }
+
     [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Completer")]
     public CommandCompleter? Completer { get; set; } = null;
@@ -80,7 +85,8 @@ public class RegisterCompleterCommand : CommandCompleterBase
                                                  ArgumentCompleter,
                                                  Style,
                                                  NoFileCompletions,
-                                                 DelegateArgumentIndex),
+                                                 DelegateArgumentIndex,
+                                                 Metadata),
                           Force);
     }
 }
