@@ -109,14 +109,14 @@ public class ParamCompleter
             {
                 if (count > 0)
                     sb.Append(delimiter);
-                PrintSyntax(sb, $"{shortOptionPrefix}{c}", default, true, expandArguments);
+                PrintSyntax(sb, $"{shortOptionPrefix}{c}", default, true);
                 count++;
             }
             foreach (var name in OldStyleNames)
             {
                 if (count > 0)
                     sb.Append(delimiter);
-                PrintSyntax(sb, $"{shortOptionPrefix}{name}", default, false, expandArguments);
+                PrintSyntax(sb, $"{shortOptionPrefix}{name}", default, false);
                 count++;
             }
         }
@@ -126,10 +126,12 @@ public class ParamCompleter
             {
                 if (count > 0)
                     sb.Append(delimiter);
-                PrintSyntax(sb, $"{longOptionPrefix}{name}", valueSeparator, true, expandArguments);
+                PrintSyntax(sb, $"{longOptionPrefix}{name}", valueSeparator, true);
                 count++;
             }
         }
+        if (expandArguments)
+            PrintArgumentValues(sb);
         return sb.ToString();
     }
     public string GetSyntax(string name,
@@ -138,14 +140,15 @@ public class ParamCompleter
                             bool expandArguments = false)
     {
         StringBuilder sb = new();
-        PrintSyntax(sb, name, valueSeparator, careFlagOrValue, expandArguments);
+        PrintSyntax(sb, name, valueSeparator, careFlagOrValue);
+        if (expandArguments)
+            PrintArgumentValues(sb);
         return sb.ToString();
     }
     private void PrintSyntax(StringBuilder sb,
                              string name,
                              char valueSeparator,
-                             bool careFlagOrValue = false,
-                             bool expandArguments = false)
+                             bool careFlagOrValue = false)
     {
         sb.Append(name);
         if (Type == ArgumentType.Flag)
@@ -162,9 +165,20 @@ public class ParamCompleter
         {
             sb.Append(valueSeparator > 0 ? valueSeparator : ' ');
         }
-        if (expandArguments && Arguments.Length > 0)
+        sb.Append(VariableName);
+        if (Type.HasFlag(ArgumentType.List))
         {
-            sb.Append('{');
+            sb.Append("[,…]");
+        }
+
+        if (optional)
+            sb.Append(']');
+    }
+    private void PrintArgumentValues(StringBuilder sb)
+    {
+        if (Arguments.Length > 0)
+        {
+            sb.Append($" ({VariableName}={{");
             for (var i = 0; i < Arguments.Length; i++)
             {
                 if (i > 0)
@@ -173,19 +187,8 @@ public class ParamCompleter
                 var text = p > 0 ? Arguments[i].AsSpan(0, p) : Arguments[i];
                 sb.Append(text.Trim());
             }
-            sb.Append('}');
+            sb.Append("})");
         }
-        else
-        {
-            sb.Append(VariableName);
-        }
-        if (Type.HasFlag(ArgumentType.List))
-        {
-            sb.Append("[, ...]");
-        }
-
-        if (optional)
-            sb.Append(']');
     }
 
     internal bool IsMatchLongParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
