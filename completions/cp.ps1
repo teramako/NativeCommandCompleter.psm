@@ -81,7 +81,7 @@ cp --version 2>&1 | Out-Null
 if ($LASTEXITCODE -eq 0)
 {
     $attr_list_arguments = @(
-        "mode`t{0}" -f $msg.gnueattrList_mode
+        "mode`t{0}" -f $msg.gnu_attrList_mode
         "ownership`t{0}" -f $msg.gnu_attrList_ownership
         "timestamps`t{0}" -f $msg.gnu_attrList_timestamps
         "links`t{0}" -f $msg.gnu_attrList_links
