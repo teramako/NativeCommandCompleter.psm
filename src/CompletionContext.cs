@@ -197,9 +197,9 @@ public sealed class CompletionContext
         _unboundArguments.Add(token);
     }
 
-    internal void SetPendingParameter(ParamCompleter parameter, string name, string value)
+    internal void SetPendingParameter(ParamCompleter parameter, string paramName, string optionPrefix)
     {
-        _pendingParam = new(parameter, name, value);
+        _pendingParam = new(parameter, paramName, optionPrefix);
     }
 
     public IEnumerable<CompletionResult?> Complete()
