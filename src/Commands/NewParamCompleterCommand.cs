@@ -41,12 +41,16 @@ public class NewParamCompleterCommand : Cmdlet
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "VariableName")]
     public string VariableName { get; set; } = "Val";
 
-    private string _name = string.Empty;
-
     protected override void BeginProcessing()
     {
-        _name = LongName.Union(OldStyleName).Union(ShortName.Select(c => $"{c}")).FirstOrDefault()
-            ?? throw new ArgumentException(GetResourceString(MessageBaseName, "Error.NotSpecifiedAnyParameterNames"));
+        if (LongName.Length == 0 && OldStyleName.Length == 0 && ShortName.Length == 0)
+        {
+            ThrowTerminatingError(new ErrorRecord(
+                new ArgumentException(GetResourceString(MessageBaseName, "Error.NotSpecifiedAnyParameterNames")),
+                "NotSpecifiedAnyParameterNames",
+                ErrorCategory.InvalidArgument,
+                this));
+        }
 
         if (Type == ArgumentType.Flag
             && (Arguments.Length != 0 || ArgumentCompleter is not null))
