@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Text;
 
@@ -47,7 +48,22 @@ public class ParamCompleter
         NativeCompleter.Messages.Add(msg);
     }
 
-    public ParamCompleter(ArgumentType type, string[] longNames, string[] oldStyleNames, char[] shortNames, string variableName = "Val")
+    /// <summary>
+    /// Initialize a new instance of ParamCompleter class
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="longNames"></param>
+    /// <param name="oldStyleNames"></param>
+    /// <param name="shortNames"></param>
+    /// <param name="variableName"></param>
+    /// <param name="style"></param>
+    /// <exception cref="ArgumentException"></exception>
+    public ParamCompleter(ArgumentType type,
+                          string[] longNames,
+                          string[] oldStyleNames,
+                          char[] shortNames,
+                          string variableName = "Val",
+                          ParameterStyle? style = null)
     {
         Name = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
@@ -60,11 +76,28 @@ public class ParamCompleter
         OldStyleNames = oldStyleNames;
         ShortNames = shortNames;
         VariableName = type > 0 ? variableName : string.Empty;
+        if (style is not null)
+        {
+            _style = style;
+        }
     }
 
     public string Name { get; }
 
     public ArgumentType Type { get; }
+
+    private ParameterStyle? _style;
+    public ParameterStyle Style
+    {
+        get {
+            _style ??= ParameterStyle.GNU;
+            return _style;
+        }
+        set
+        {
+            _style ??= value;
+        }
+    }
 
     /// <summary>
     /// One character parameter names.
@@ -95,75 +128,66 @@ public class ParamCompleter
 
     public string VariableName { get; set; }
 
-    public string GetSyntaxes(string longOptionPrefix = "--",
-                              string shortOptionPrefix = "-",
-                              char valueSeparator = '=',
-                              string delimiter = ", ",
-                              bool expandArguments = false)
+    public string GetSyntaxes(string delimiter = ", ", bool expandArguments = false)
     {
+        ParameterStyle style = Style;
         StringBuilder sb = new();
         int count = 0;
-        if (!string.IsNullOrEmpty(shortOptionPrefix))
+
+        foreach (var c in ShortNames)
         {
-            foreach (var c in ShortNames)
-            {
-                if (count > 0)
-                    sb.Append(delimiter);
-                PrintSyntax(sb, $"{shortOptionPrefix}{c}", default, true);
-                count++;
-            }
-            foreach (var name in OldStyleNames)
-            {
-                if (count > 0)
-                    sb.Append(delimiter);
-                PrintSyntax(sb, $"{shortOptionPrefix}{name}", default, false);
-                count++;
-            }
+            if (count > 0)
+                sb.Append(delimiter);
+            PrintSyntax(sb, $"{style.ShortOptionPrefix}{c}", true);
+            count++;
         }
-        if (!string.IsNullOrEmpty(longOptionPrefix))
+
+        foreach (var name in OldStyleNames)
         {
-            foreach (var name in LongNames)
-            {
-                if (count > 0)
-                    sb.Append(delimiter);
-                PrintSyntax(sb, $"{longOptionPrefix}{name}", valueSeparator, true);
-                count++;
-            }
+            if (count > 0)
+                sb.Append(delimiter);
+            PrintSyntax(sb, $"{style.ShortOptionPrefix}{name}", false);
+            count++;
         }
+
+        foreach (var name in LongNames)
+        {
+            if (count > 0)
+                sb.Append(delimiter);
+            PrintSyntax(sb, $"{style.LongOptionPrefix}{name}", false);
+            count++;
+        }
+
         if (expandArguments)
             PrintArgumentValues(sb);
         return sb.ToString();
     }
-    public string GetSyntax(string name,
-                            char valueSeparator,
-                            bool careFlagOrValue = false,
-                            bool expandArguments = false)
+
+    public string GetSyntax(string name, bool isShortParam = false, bool expandArguments = false)
     {
         StringBuilder sb = new();
-        PrintSyntax(sb, name, valueSeparator, careFlagOrValue);
+        PrintSyntax(sb, name, isShortParam);
         if (expandArguments)
             PrintArgumentValues(sb);
         return sb.ToString();
     }
-    private void PrintSyntax(StringBuilder sb,
-                             string name,
-                             char valueSeparator,
-                             bool careFlagOrValue = false)
+    private void PrintSyntax(StringBuilder sb, string name, bool isShortParam = false)
     {
         sb.Append(name);
         if (Type == ArgumentType.Flag)
             return;
-        bool optional = careFlagOrValue && Type.HasFlag(ArgumentType.FlagOrValue);
+        bool optional = Type.HasFlag(ArgumentType.FlagOrValue);
+        char valueSeparator = Style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent) ? Style.ValueSeparator : ' ';
 
         if (optional)
         {
             sb.Append('[');
-            if (valueSeparator > 0)
+            if (!isShortParam && valueSeparator > 0)
                 sb.Append(valueSeparator);
         }
         else
         {
-            sb.Append(valueSeparator > 0 ? valueSeparator : ' ');
+            sb.Append(!isShortParam && valueSeparator > 0 ? valueSeparator : ' ');
         }
         sb.Append(VariableName);
         if (Type.HasFlag(ArgumentType.List))
@@ -191,7 +215,127 @@ public class ParamCompleter
         }
     }
 
-    internal bool IsMatchLongParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
+    /// <summary>
+    /// Parse parameter from input value
+    /// </summary>
+    /// <param name="inputValue">A command argument which may contains option prefix and adjacented value with a value separator.</param>
+    /// <param name="paramName"></param>
+    /// <param name="paramValue"></param>
+    /// <param name="optionPrefix"></param>
+    /// <returns></returns>
+    public bool ParseParam(ReadOnlySpan<char> inputValue,
+                           out ReadOnlySpan<char> paramName,
+                           out ReadOnlySpan<char> paramValue,
+                           [MaybeNullWhen(false)] out string optionPrefix)
+    {
+        ParameterStyle style = Style;
+        if (style.DisableOptionPrefix)
+        {
+            if (ParseLongParam(inputValue, out paramName, out paramValue))
+            {
+                optionPrefix = style.LongOptionPrefix;
+                return true;
+            }
+            if (ParseOldStyleParam(inputValue, out paramName, out paramValue))
+            {
+                optionPrefix = style.ShortOptionPrefix;
+                return true;
+            }
+        }
+        else
+        {
+            optionPrefix = style.LongOptionPrefix;
+            if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var nameSpan = inputValue[optionPrefix.Length..];
+                if (ParseLongParam(nameSpan, out paramName, out paramValue))
+                    return true;
+            }
+
+            optionPrefix = style.ShortOptionPrefix;
+            if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var nameSpan = inputValue[optionPrefix.Length..];
+                if (ParseOldStyleParam(nameSpan, out paramName, out paramValue))
+                    return true;
+            }
+        }
+        paramName = default;
+        paramValue = default;
+        optionPrefix = null;
+        return false;
+    }
+    internal bool ParseLongParam(ReadOnlySpan<char> inputValue,
+                                 out ReadOnlySpan<char> paramName,
+                                 out ReadOnlySpan<char> paramValue)
+    {
+        ParameterStyle style = Style;
+        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent))
+        {
+            var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
+            if (separatorPosition >= 0)
+            {
+                ReadOnlySpan<char> nameSpan = inputValue[..separatorPosition];
+                if (IsMatchLongParam(nameSpan, out paramName))
+                {
+                    paramValue = inputValue[(separatorPosition + 1)..];
+                    return true;
+                }
+                paramValue = default;
+                return false;
+            }
+            else if (!style.ValueStyle.HasFlag(ParameterValueStyle.AllowSeparated))
+            {
+                // No separate value allowed
+                paramName = default;
+                paramValue = default;
+                return false;
+            }
+        }
+        paramValue = default;
+        if (IsMatchLongParam(inputValue, out paramName))
+        {
+            return true;
+        }
+        paramName = default;
+        return false;
+    }
+    internal bool ParseOldStyleParam(ReadOnlySpan<char> inputValue,
+                                     out ReadOnlySpan<char> paramName,
+                                     out ReadOnlySpan<char> paramValue)
+    {
+        ParameterStyle style = Style;
+        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent))
+        {
+            var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
+            if (separatorPosition >= 0)
+            {
+                ReadOnlySpan<char> nameSpan = inputValue[..separatorPosition];
+                if (IsMatchOldStyleParam(nameSpan, out paramName))
+                {
+                    paramValue = inputValue[(separatorPosition + 1)..];
+                    return true;
+                }
+                paramValue = default;
+                return false;
+            }
+            else if (!style.ValueStyle.HasFlag(ParameterValueStyle.AllowSeparated))
+            {
+                // No separate value allowed
+                paramName = default;
+                paramValue = default;
+                return false;
+            }
+        }
+        paramValue = default;
+        if (IsMatchOldStyleParam(inputValue, out paramName))
+        {
+            return true;
+        }
+        paramName = default;
+        return false;
+    }
+    private bool IsMatchLongParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
     {
         foreach (ReadOnlySpan<char> name in LongNames)
         {
@@ -204,7 +348,7 @@ public class ParamCompleter
         paramName = default;
         return false;
     }
-    internal bool IsMatchOldStyleParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
+    private bool IsMatchOldStyleParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
     {
         foreach (ReadOnlySpan<char> name in OldStyleNames)
         {
@@ -284,9 +428,8 @@ public class ParamCompleter
             Debug($"CompleteValue[List]: result = {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
         }
 
-        var cmd = context.CommandCompleter;
         var tooltipPrefix = $"""
-            {GetSyntaxes(cmd.LongOptionPrefix, cmd.ShortOptionPrefix, cmd.ValueSeparator)} : {Description}
+            {GetSyntaxes(expandArguments: false)} : {Description}
             {VariableName}: 
             """;
 

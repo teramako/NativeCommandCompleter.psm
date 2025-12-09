@@ -40,28 +40,29 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       int delegateArgumentIndex = -1,
                                                       Hashtable? metadata = null)
     {
-        CommandCompleter completer = style switch
+        ParameterStyle paramStyle = style switch
         {
-            CommandParameterStyle.TraditionalWindows => new(name,
-                                                            description,
-                                                            longOptionPrefix: string.Empty,
-                                                            shortOptionPrefix: "/",
-                                                            valueSeparator: ':'),
-            _ => new(name, description)
+            CommandParameterStyle.TraditionalWindows => ParameterStyle.Windows,
+            CommandParameterStyle.TraditionalUnix => ParameterStyle.UnixTraditional,
+            CommandParameterStyle.GNU or _ => ParameterStyle.GNU,
+        };
+        CommandCompleter completer = new(name, description)
+        {
+            Aliases = aliases,
+            ArgumentCompleter = argumentCompleter,
+            NoFileCompletions = noFileCompletions,
+            DelegateArgumentIndex = delegateArgumentIndex,
+            Metadata = metadata
         };
         foreach (var paramCompleter in paramCompleters)
         {
+            paramCompleter.Style = paramStyle;
             completer.Params.Add(paramCompleter);
         }
         foreach (var subCmd in subCommands)
         {
             completer.SubCommands.Add(subCmd);
         }
-        completer.Aliases = aliases;
-        completer.ArgumentCompleter = argumentCompleter;
-        completer.NoFileCompletions = noFileCompletions;
-        completer.DelegateArgumentIndex = delegateArgumentIndex;
-        completer.Metadata = metadata;
         return completer;
     }
 
