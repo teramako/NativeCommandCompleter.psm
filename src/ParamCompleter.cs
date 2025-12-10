@@ -229,37 +229,22 @@ public class ParamCompleter
                            [MaybeNullWhen(false)] out string optionPrefix)
     {
         ParameterStyle style = Style;
-        if (style.DisableOptionPrefix)
+        optionPrefix = style.LongOptionPrefix;
+        if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            if (ParseLongParam(inputValue, out paramName, out paramValue))
-            {
-                optionPrefix = style.LongOptionPrefix;
+            var nameSpan = inputValue[optionPrefix.Length..];
+            if (ParseLongParam(nameSpan, out paramName, out paramValue))
                 return true;
-            }
-            if (ParseOldStyleParam(inputValue, out paramName, out paramValue))
-            {
-                optionPrefix = style.ShortOptionPrefix;
-                return true;
-            }
         }
-        else
-        {
-            optionPrefix = style.LongOptionPrefix;
-            if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                var nameSpan = inputValue[optionPrefix.Length..];
-                if (ParseLongParam(nameSpan, out paramName, out paramValue))
-                    return true;
-            }
 
-            optionPrefix = style.ShortOptionPrefix;
-            if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                var nameSpan = inputValue[optionPrefix.Length..];
-                if (ParseOldStyleParam(nameSpan, out paramName, out paramValue))
-                    return true;
-            }
+        optionPrefix = style.ShortOptionPrefix;
+        if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            var nameSpan = inputValue[optionPrefix.Length..];
+            if (ParseOldStyleParam(nameSpan, out paramName, out paramValue))
+                return true;
         }
+
         paramName = default;
         paramValue = default;
         optionPrefix = null;

@@ -119,7 +119,7 @@ public class CommandCompleter(string name,
                 char prefixChar = tokenValue[0];
                 var inputValue = tokenValue[1..];
                 var shortParams = Params.Where(p => p.ShortNames.Length > 0
-                                                    && !p.Style.DisableOptionPrefix
+                                                    && p.Style.HasShortOptionPrefix
                                                     && p.Style.ShortOptionPrefix[0] == prefixChar);
                 for (var i = 0; i < inputValue.Length; i++)
                 {
@@ -420,7 +420,7 @@ public class CommandCompleter(string name,
         // attempt to complete parameter's value, and store parameter as candidates when not matched
         //
         Debug($"ShortParam {{ tokenValue='{tokenValue}', position={offsetPosition} }}");
-        foreach (var param in Params.Where(p => !p.Style.DisableOptionPrefix && p.ShortNames.Length > 0))
+        foreach (var param in Params.Where(p => p.Style.HasShortOptionPrefix && p.ShortNames.Length > 0))
         {
             var optionPrefix = param.Style.ShortOptionPrefix;
             if (!tokenValue.StartsWith(optionPrefix, StringComparison.Ordinal))
