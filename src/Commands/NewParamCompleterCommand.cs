@@ -41,6 +41,9 @@ public class NewParamCompleterCommand : Cmdlet
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "VariableName")]
     public string VariableName { get; set; } = "Val";
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Style")]
+    public ParameterStyle? Style { get; set; }
+
     protected override void BeginProcessing()
     {
         if (LongName.Length == 0 && OldStyleName.Length == 0 && ShortName.Length == 0)
@@ -61,7 +64,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName, VariableName)
+        ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName, VariableName, Style)
         {
             Description = Description,
             Arguments = Arguments,

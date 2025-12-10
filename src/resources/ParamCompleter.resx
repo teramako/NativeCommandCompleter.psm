@@ -38,6 +38,11 @@
   <data name="VariableName" xml:space="preserve">
     <value>Name of this parameter's argument variable.</value>
   </data>
+  <data name="Style" xml:space="preserve">
+    <value>Specify Parameter style.
+If ommited, inhertes from the parent CommandCompleter's style.
+</value>
+  </data>
   <data name="Error.NotSpecifiedAnyParameterNames" xml:space="preserve">
     <value>At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified.</value>
   </data>
