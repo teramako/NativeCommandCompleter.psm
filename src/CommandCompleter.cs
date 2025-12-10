@@ -5,8 +5,7 @@ using System.Management.Automation;
 
 namespace MT.Comp;
 
-public class CommandCompleter(string name,
-                              string description = "")
+public class CommandCompleter
 {
     [Conditional("DEBUG")]
     private void Debug(string msg)
@@ -14,11 +13,45 @@ public class CommandCompleter(string name,
         NativeCompleter.Messages.Add($"[{Name}]: {msg}");
     }
 
-    public string Name { get; } = name;
+    public CommandCompleter(string name,
+                            string description = "",
+                            ParameterStyle? defaultParameterStyle = null)
+        : this(name, description, defaultParameterStyle ?? ParameterStyle.GNU, [], [])
+    {
+    }
+    public CommandCompleter(string name,
+                            string description,
+                            ParameterStyle defaultParameterStyle,
+                            IEnumerable<ParamCompleter> parameters,
+                            IEnumerable<CommandCompleter> subCommands)
+    {
+        Name = name;
+        Description = description;
+
+        DefaultParameterStyle = defaultParameterStyle;
+
+        foreach (var param in parameters)
+        {
+            AddParameter(param);
+        }
+        Params = _params.AsReadOnly();
+
+        foreach (var subCmd in subCommands)
+        {
+            AddSubCommand(subCmd);
+        }
+        SubCommands = _subCommands.AsReadOnly();
+    }
+
+    public string Name { get; }
     public string[] Aliases { get; set; } =  [];
-    public string Description { get; set; } = description;
-    public Collection<ParamCompleter> Params { get; } = [];
-    public Collection<CommandCompleter> SubCommands { get; } = [];
+    public string Description { get; set; }
+
+    public ParameterStyle DefaultParameterStyle { get; }
+    private readonly Collection<ParamCompleter> _params = [];
+    public ReadOnlyCollection<ParamCompleter> Params { get; }
+    private readonly Collection<CommandCompleter> _subCommands = [];
+    public ReadOnlyCollection<CommandCompleter> SubCommands { get; }
     public ScriptBlock? ArgumentCompleter { get; set; }
     public bool NoFileCompletions { get; set; }
     /// <summary>
@@ -35,6 +68,17 @@ public class CommandCompleter(string name,
     public int DelegateArgumentIndex { get; internal set; } = -1;
 
     public Hashtable? Metadata { get; set; }
+
+    public void AddSubCommand(CommandCompleter subCommand)
+    {
+        _subCommands.Add(subCommand);
+    }
+
+    public void AddParameter(ParamCompleter param)
+    {
+        param.Style = DefaultParameterStyle;
+        _params.Add(param);
+    }
 
     /// <summary>
     /// Parse arguments in the completion context.

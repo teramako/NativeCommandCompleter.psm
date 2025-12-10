@@ -22,7 +22,17 @@ public enum CommandParameterStyle
     ///     <item><term>ValueSparator</term><description><c>:</c></description></item>
     /// </list>
     /// </summary>
-    TraditionalWindows
+    TraditionalWindows,
+
+    /// <summary>
+    /// Traditional Unix style.
+    /// <list type="bullet">
+    ///     <item><term>LongOptionPrefix</term><description><c>--</c></description></item>
+    ///     <item><term>ShortOptionPrefix</term><description><c>-</c></description></item>
+    ///     <item><term>ValueSparator</term><description>(Space)<c>" "</c></description></item>
+    /// </list>
+    /// </summary>
+    TraditionalUnix,
 }
 
 public abstract class CommandCompleterBase : PSCmdlet
@@ -46,7 +56,7 @@ public abstract class CommandCompleterBase : PSCmdlet
             CommandParameterStyle.TraditionalUnix => ParameterStyle.UnixTraditional,
             CommandParameterStyle.GNU or _ => ParameterStyle.GNU,
         };
-        CommandCompleter completer = new(name, description)
+        CommandCompleter completer = new(name, description, paramStyle, paramCompleters, subCommands)
         {
             Aliases = aliases,
             ArgumentCompleter = argumentCompleter,
@@ -54,15 +64,6 @@ public abstract class CommandCompleterBase : PSCmdlet
             DelegateArgumentIndex = delegateArgumentIndex,
             Metadata = metadata
         };
-        foreach (var paramCompleter in paramCompleters)
-        {
-            paramCompleter.Style = paramStyle;
-            completer.Params.Add(paramCompleter);
-        }
-        foreach (var subCmd in subCommands)
-        {
-            completer.SubCommands.Add(subCmd);
-        }
         return completer;
     }
 
