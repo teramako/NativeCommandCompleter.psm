@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/16/2025
+ms.date: 12/10/2025
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
 ---
@@ -21,21 +21,23 @@ Create a parameter's completer.
 
 ```
 New-ParamCompleter [-LongName <string[]>] [-ShortName <char[]>] [-OldStyleName <string[]>]
- [-Description <string>] [-Type <ArgumentType>] [<CommonParameters>]
+ [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>]
 ```
 
 ### WithArguments
 
 ```
 New-ParamCompleter -Arguments <string[]> [-LongName <string[]>] [-ShortName <char[]>]
- [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>]
+ [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
+ [-Style <ParameterStyle>]
 ```
 
 ### WithArgumentCompleter
 
 ```
 New-ParamCompleter -ArgumentCompleter <scriptblock> [-LongName <string[]>] [-ShortName <char[]>]
- [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>]
+ [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
+ [-Style <ParameterStyle>]
 ```
 
 ## ALIASES
@@ -216,6 +218,28 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Style
+
+Specify Parameter style.
+If ommited, inhertes from the parent CommandCompleter's style.
+
+```yaml
+Type: MT.Comp.ParameterStyle
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Type
 
 Parametesr's type for completion.
@@ -244,6 +268,29 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - t
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -VariableName
+
+Name of this parameter's argument variable.
+
+This parameter value does not affect the operation. It is only used to display the candidate completion list.
+
+```yaml
+Type: System.String
+DefaultValue: 'Val'
+SupportsWildcards: false
+Aliases: []
 ParameterSets:
 - Name: (All)
   Position: Named

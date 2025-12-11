@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/22/2025
+ms.date: 12/10/2025
 PlatyPS schema version: 2024-05-01
 title: New-CommandCompleter
 ---
@@ -20,9 +20,10 @@ Create a CommandCompleter object.
 ### __AllParameterSets
 
 ```
-New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Parameters <ParamCompleter[]>]
- [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>] [-NoFileCompletions]
- [-Style <CommandParameterStyle>] [-DelegateArgumentIndex <int>]
+New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
+ [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
+ [-ArgumentCompleter <scriptblock>] [-NoFileCompletions] [-Style <CommandParameterStyle>]
+ [-DelegateArgumentIndex <int>] [-Metadata <hashtable>]
 ```
 
 ## ALIASES
@@ -48,6 +49,27 @@ $completer = New-CommandCompleter -Name cmd-name -Description 'command explanati
 ```
 
 ## PARAMETERS
+
+### -Aliases
+
+Alias names for the command.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
 ### -ArgumentCompleter
 
@@ -129,6 +151,32 @@ Aliases:
 ParameterSets:
 - Name: (All)
   Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Metadata
+
+Metadata settings.
+
+The given data can be accessed through `-ArgumentCompleter`'s ScriptBlock.
+This may reduce the amount of code by eliminating the need to redefine static data.
+
+Typically, it can be used to get localized messages.
+
+```yaml
+Type: System.Collections.Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false

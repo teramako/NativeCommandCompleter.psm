@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 11/22/2025
+ms.date: 12/10/2025
 PlatyPS schema version: 2024-05-01
 title: Register-NativeCompleter
 ---
@@ -20,9 +20,10 @@ Create and register a CommandCompleter object.
 ### New
 
 ```
-Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Parameters <ParamCompleter[]>]
- [-SubCommands <CommandCompleter[]>] [-ArgumentCompleter <scriptblock>]
- [-Style <CommandParameterStyle>] [-NoFileCompletions] [-DelegateArgumentIndex <int>] [-Force]
+Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
+ [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
+ [-ArgumentCompleter <scriptblock>] [-Style <CommandParameterStyle>] [-NoFileCompletions]
+ [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [-Force]
 ```
 
 ### Input
@@ -51,6 +52,27 @@ Register-NativeCompleter -Name cmd-name -Parameters @(
 ```
 
 ## PARAMETERS
+
+### -Aliases
+
+Alias names for the command.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: New
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
 ### -ArgumentCompleter
 
@@ -174,6 +196,32 @@ Aliases:
 - f
 ParameterSets:
 - Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Metadata
+
+Metadata settings.
+
+The given data can be accessed through `-ArgumentCompleter`'s ScriptBlock.
+This may reduce the amount of code by eliminating the need to redefine static data.
+
+Typically, it can be used to get localized messages.
+
+```yaml
+Type: System.Collections.Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
