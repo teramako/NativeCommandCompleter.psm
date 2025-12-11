@@ -92,9 +92,9 @@ public sealed class CompletionContext
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
     }
-    private CompletionContext(CommandCompleter commandCompleter, CompletionContext parentContext, int argumentIndex)
+    private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
-        Name = $"{parentContext.Name} {commandCompleter.Name}";
+        Name = $"{parentContext.Name} {cmdName}";
         CommandCompleter = commandCompleter;
         WordToComplete = parentContext.WordToComplete;
         CommandAst = parentContext.CommandAst;
@@ -170,12 +170,19 @@ public sealed class CompletionContext
     /// Create nested CompletionContext for sub-command
     /// </summary>
     /// <param name="commandCompleter">CommandCompleter</param>
+    /// <param name="cmdName">Command name</param>
     /// <param name="argumentIndex">Argument index of the sub-command</param>
     /// <returns>CompletionContext</returns>
+    public CompletionContext CreateNestedContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, int argumentIndex)
+    {
+        var nestedContext = new CompletionContext(commandCompleter, cmdName, this, argumentIndex);
+        return commandCompleter.ParseArguments(nestedContext);
+    }
+
+    /// <inheritdoc cref="CreateNestedContext(CommandCompleter, ReadOnlySpan{char}, int)"/>
     public CompletionContext CreateNestedContext(CommandCompleter commandCompleter, int argumentIndex)
     {
-        var nestedContext = new CompletionContext(commandCompleter, this, argumentIndex);
-        return commandCompleter.ParseArguments(nestedContext);
+        return CreateNestedContext(commandCompleter, commandCompleter.Name, argumentIndex);
     }
 
     internal void AddBoundParameter(string name, PSObject? paramValue = null)
