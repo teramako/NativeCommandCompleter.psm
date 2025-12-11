@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/10/2025
+ms.date: 12/11/2025
 PlatyPS schema version: 2024-05-01
 title: New-CommandCompleter
 ---
@@ -17,13 +17,22 @@ Create a CommandCompleter object.
 
 ## SYNTAX
 
-### __AllParameterSets
+### Default (Default)
 
 ```
 New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
  [-ArgumentCompleter <scriptblock>] [-NoFileCompletions] [-Style <CommandParameterStyle>]
- [-DelegateArgumentIndex <int>] [-Metadata <hashtable>]
+ [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [<CommonParameters>]
+```
+
+### CustomStyle
+
+```
+New-CommandCompleter [-Name] <string> [[-Description] <string>] -CustomStyle <ParameterStyle>
+ [-Aliases <string[]>] [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
+ [-ArgumentCompleter <scriptblock>] [-NoFileCompletions] [-DelegateArgumentIndex <int>]
+ [-Metadata <hashtable>]
 ```
 
 ## ALIASES
@@ -101,6 +110,28 @@ ParameterSets:
 - Name: (All)
   Position: Named
   IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -CustomStyle
+
+Sets a special non-standard parameter style.
+This setting is inherited by each parameter.
+
+```yaml
+Type: MT.Comp.ParameterStyle
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: CustomStyle
+  Position: Named
+  IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -267,7 +298,7 @@ SupportsWildcards: false
 Aliases:
 - t
 ParameterSets:
-- Name: (All)
+- Name: Default
   Position: Named
   IsRequired: false
   ValueFromPipeline: false

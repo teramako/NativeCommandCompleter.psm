@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/10/2025
+ms.date: 12/11/2025
 PlatyPS schema version: 2024-05-01
 title: Register-NativeCompleter
 ---
@@ -23,7 +23,7 @@ Create and register a CommandCompleter object.
 Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
  [-ArgumentCompleter <scriptblock>] [-Style <CommandParameterStyle>] [-NoFileCompletions]
- [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [-Force]
+ [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [-Force] [<CommonParameters>]
 ```
 
 ### Input

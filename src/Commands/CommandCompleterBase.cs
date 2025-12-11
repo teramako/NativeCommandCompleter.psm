@@ -44,19 +44,13 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       string[] aliases,
                                                       ParamCompleter[] paramCompleters,
                                                       CommandCompleter[] subCommands,
+                                                      ParameterStyle style,
                                                       ScriptBlock? argumentCompleter = null,
-                                                      CommandParameterStyle style = CommandParameterStyle.GNU,
                                                       bool noFileCompletions = false,
                                                       int delegateArgumentIndex = -1,
                                                       Hashtable? metadata = null)
     {
-        ParameterStyle paramStyle = style switch
-        {
-            CommandParameterStyle.Windows => ParameterStyle.Windows,
-            CommandParameterStyle.Unix => ParameterStyle.Unix,
-            CommandParameterStyle.GNU or _ => ParameterStyle.GNU,
-        };
-        CommandCompleter completer = new(name, description, paramStyle, paramCompleters, subCommands)
+        CommandCompleter completer = new(name, description, style, paramCompleters, subCommands)
         {
             Aliases = aliases,
             ArgumentCompleter = argumentCompleter,
@@ -65,6 +59,16 @@ public abstract class CommandCompleterBase : PSCmdlet
             Metadata = metadata
         };
         return completer;
+    }
+
+    protected ParameterStyle GetStyle(CommandParameterStyle style)
+    {
+        return style switch
+        {
+            CommandParameterStyle.Windows => ParameterStyle.Windows,
+            CommandParameterStyle.Unix => ParameterStyle.Unix,
+            CommandParameterStyle.GNU or _ => ParameterStyle.GNU,
+        };
     }
 
     protected void RegisterCompleter(CommandCompleter completer, bool force = false)

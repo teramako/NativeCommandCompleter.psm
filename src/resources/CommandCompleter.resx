@@ -41,6 +41,10 @@
 Defaults to "GNU", Long option prefix to '--', Short option prefix to '-', and Value sparator to '='.
 "Windows" will have the option prefix to '/' and Value separator to ':'.</value>
   </data>
+  <data name="CustomStyle" xml:space="preserve">
+    <value>Sets a special non-standard parameter style.
+This setting is inherited by each parameter.</value>
+  </data>
   <data name="DelegateArgumentIndex" xml:space="preserve">
     <value>Argument index of a command to delegate completions.
 e.g.) `sudo {COMMAND} [args...]`, `time {COMMAND} [args...]`
