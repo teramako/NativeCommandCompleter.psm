@@ -3,6 +3,7 @@ using System.Management.Automation;
 namespace MT.Comp.Commands;
 
 [Cmdlet(VerbsCommon.New, "ParamStyle", DefaultParameterSetName = "Named")]
+[OutputType(typeof(ParameterStyle))]
 public class NewParamStyleCommand : PSCmdlet
 {
     [Parameter(ParameterSetName = "Named", Mandatory = true, Position = 0)]
