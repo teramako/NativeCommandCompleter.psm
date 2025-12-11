@@ -81,6 +81,34 @@ public class CommandCompleter
     }
 
     /// <summary>
+    /// Determine whether the token value matches this command completer
+    /// </summary>
+    /// <param name="tokenValue"></param>
+    /// <param name="cmdName">Command name</param>
+    /// <returns></returns>
+    protected bool IsMatch(ReadOnlySpan<char> tokenValue, out ReadOnlySpan<char> cmdName)
+    {
+        cmdName = default;
+        if (tokenValue.Equals(Name, StringComparison.Ordinal))
+        {
+            cmdName = Name;
+            return true;
+        }
+        if (Aliases.Length > 0)
+        {
+            foreach (var alias in Aliases)
+            {
+                if (tokenValue.Equals(alias, StringComparison.Ordinal))
+                {
+                    cmdName = alias;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Parse arguments in the completion context.
     /// </summary>
     /// <param name="context"></param>
@@ -109,13 +137,11 @@ public class CommandCompleter
 
             if (SubCommands.Count > 0)
             {
-                string tokenStr = tokenValue.ToString();
                 foreach (var subCmd in SubCommands)
                 {
-                    if (subCmd.Name.Equals(tokenStr, StringComparison.Ordinal)
-                        || subCmd.Aliases.Any(a => a.Equals(tokenStr, StringComparison.Ordinal)))
+                    if (subCmd.IsMatch(tokenValue, out var cmdName))
                     {
-                        return context.CreateNestedContext(subCmd, argumentIndex);
+                        return context.CreateNestedContext(subCmd, cmdName, argumentIndex);
                     }
                 }
             }
