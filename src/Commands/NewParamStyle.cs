@@ -31,8 +31,8 @@ public class NewParamStyleCommand : PSCmdlet
         {
             _style = Name switch
             {
-                CommandParameterStyle.TraditionalWindows => ParameterStyle.Windows,
-                CommandParameterStyle.TraditionalUnix => ParameterStyle.UnixTraditional,
+                CommandParameterStyle.Windows => ParameterStyle.Windows,
+                CommandParameterStyle.Unix => ParameterStyle.Unix,
                 CommandParameterStyle.GNU or _ => ParameterStyle.GNU,
             };
         }
@@ -50,9 +50,9 @@ public class NewParamStyleCommand : PSCmdlet
             {
                 _style = ParameterStyle.Windows;
             }
-            else if (_style == ParameterStyle.UnixTraditional)
+            else if (_style == ParameterStyle.Unix)
             {
-                _style = ParameterStyle.UnixTraditional;
+                _style = ParameterStyle.Unix;
             }
         }
     }

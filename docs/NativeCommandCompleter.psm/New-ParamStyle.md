@@ -35,7 +35,7 @@ New-ParamStyle [-LongOptionPrefix <string>] [-ShortOptionPrefix <string>] [-Valu
 The `New-ParamStyle` cmdlet allows you to create or retrieve a parameter style instance.
 This can be used to define how command-line parameters are parsed, including the prefixes for long and short options, the separator for values, and the style of parameter values.
 
-You can use predefined styles such as GNU, Windows, or UnixTraditional, or define a custom style by specifying the prefixes, separator, and value style.
+You can use predefined styles such as GNU, Windows, or Unix, or define a custom style by specifying the prefixes, separator, and value style.
 
 ## EXAMPLES
 
@@ -76,7 +76,8 @@ HelpMessage: 'Specifies the prefix for long options (e.g., "--").'
 
 ### -Name
 
-Specifies the predefined parameter style to use. Valid values are GNU, Windows, and UnixTraditional.
+Specifies the predefined parameter style to use.
+Valid values are `GNU`, `Windows`, and `Unix`.
 
 ```yaml
 Type: MT.Comp.Commands.CommandParameterStyle
@@ -91,7 +92,7 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: [GNU, Windows, UnixTraditional]
+AcceptedValues: [GNU, Windows, Unix]
 HelpMessage: 'Specifies the predefined parameter style to use.'
 ```
 

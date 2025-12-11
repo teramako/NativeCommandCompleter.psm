@@ -20,13 +20,13 @@ public record ParameterStyle(string LongOptionPrefix,
     /// <summary>
     /// Traditional Windows OS style.
     /// </summary>
-    public static readonly ParameterStyle Windows = new("-", "/", ':', ParameterValueStyle.AllowAdjacent);
+    public static readonly ParameterStyle Windows = new("/", "/", ':', ParameterValueStyle.AllowAdjacent);
 
     /// <summary>
     /// Traditional Unix style.
     /// Almost same as GNU style, but value must be separated by space.
     /// </summary>
-    public static readonly ParameterStyle UnixTraditional = new("--", "-", ' ', ParameterValueStyle.AllowSeparated);
+    public static readonly ParameterStyle Unix = new("--", "-", ' ', ParameterValueStyle.AllowSeparated);
 
     /// <summary>
     /// Indicates whether short option prefix is defined.

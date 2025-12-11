@@ -39,7 +39,7 @@
   <data name="CommandParameterStyle" xml:space="preserve">
     <value>Style of the command parameters.
 Defaults to "GNU", Long option prefix to '--', Short option prefix to '-', and Value sparator to '='.
-"TraditionalWindows" will have the option prefix to '/' and Value separator to ':'.</value>
+"Windows" will have the option prefix to '/' and Value separator to ':'.</value>
   </data>
   <data name="DelegateArgumentIndex" xml:space="preserve">
     <value>Argument index of a command to delegate completions.

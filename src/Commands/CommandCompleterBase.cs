@@ -17,12 +17,12 @@ public enum CommandParameterStyle
     /// <summary>
     /// Traditional Windows OS style.
     /// <list type="bullet">
-    ///     <item><term>LongOptionPrefix</term><description>disable</description></item>
+    ///     <item><term>LongOptionPrefix</term><description><c>/</c></description></item>
     ///     <item><term>ShortOptionPrefix</term><description><c>/</c></description></item>
     ///     <item><term>ValueSparator</term><description><c>:</c></description></item>
     /// </list>
     /// </summary>
-    TraditionalWindows,
+    Windows,
 
     /// <summary>
     /// Traditional Unix style.
@@ -32,7 +32,7 @@ public enum CommandParameterStyle
     ///     <item><term>ValueSparator</term><description>(Space)<c>" "</c></description></item>
     /// </list>
     /// </summary>
-    TraditionalUnix,
+    Unix,
 }
 
 public abstract class CommandCompleterBase : PSCmdlet
@@ -52,8 +52,8 @@ public abstract class CommandCompleterBase : PSCmdlet
     {
         ParameterStyle paramStyle = style switch
         {
-            CommandParameterStyle.TraditionalWindows => ParameterStyle.Windows,
-            CommandParameterStyle.TraditionalUnix => ParameterStyle.UnixTraditional,
+            CommandParameterStyle.Windows => ParameterStyle.Windows,
+            CommandParameterStyle.Unix => ParameterStyle.Unix,
             CommandParameterStyle.GNU or _ => ParameterStyle.GNU,
         };
         CommandCompleter completer = new(name, description, paramStyle, paramCompleters, subCommands)

@@ -258,7 +258,7 @@ Style of the command parameters.
 Availables:
 
 - `GNU`: Set long option prefix to `--`, short option prefix to `-` and value spprator to `=`. (Default)
-- `TraditionalWindows`: Set short option prefix to `-` and value spprator to `:`.
+- `Windows`: Set short option prefix to `-` and value spprator to `:`.
 
 ```yaml
 Type: MT.Comp.Commands.CommandParameterStyle
