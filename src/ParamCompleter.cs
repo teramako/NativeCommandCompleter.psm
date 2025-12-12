@@ -365,6 +365,22 @@ public class ParamCompleter
         return false;
     }
 
+    internal string GetParamNameSuffix()
+    {
+        if (Type is ArgumentType.Flag)
+            return " ";
+        if (Type.HasFlag(ArgumentType.FlagOrValue))
+        {
+            return string.Empty;
+        }
+        return Style.ValueStyle switch
+        {
+            ParameterValueStyle.AllowSeparated => " ",
+            ParameterValueStyle.AllowAdjacent => $"{Style.ValueSeparator}",
+            ParameterValueStyle.Both or _=> string.Empty,
+        };
+    }
+
     /// <summary>
     /// Complete parameter's argument values
     /// </summary>

@@ -414,7 +414,7 @@ public class CommandCompleter
                         [{param.Type}] {param.GetSyntaxes(expandArguments: true)}
                         {param.Description}
                         """;
-                    var suffix = param.Type is ArgumentType.Flag ? " " : string.Empty;
+                    var suffix = param.GetParamNameSuffix();
                     results.Add(new CompletionParam($"{text}{suffix}",
                                                     param.Description,
                                                     listItemText,
@@ -489,7 +489,7 @@ public class CommandCompleter
                         [{param.Type}] {param.GetSyntaxes(expandArguments: true)}
                         {param.Description}
                         """;
-                    var suffix = param.Type is ArgumentType.Flag ? " " : string.Empty;
+                    var suffix = param.GetParamNameSuffix();
                     results.Add(new CompletionParam($"{text}{suffix}",
                                                     param.Description,
                                                     listItemText,
@@ -680,9 +680,10 @@ public class CommandCompleter
         foreach (var param in Params)
         {
             var style = param.Style;
+            var suffix = param.GetParamNameSuffix();
             var texts = param.ShortNames.Select(n => $"{style.ShortOptionPrefix}{n}")
-                                       .Union(param.OldStyleNames.Select(n => $"{style.ShortOptionPrefix}{n}"))
-                                       .Union(param.LongNames.Select(n => $"{style.LongOptionPrefix}{n}"))
+                                       .Union(param.OldStyleNames.Select(n => $"{style.ShortOptionPrefix}{n}{suffix}"))
+                                       .Union(param.LongNames.Select(n => $"{style.LongOptionPrefix}{n}{suffix}"))
                                        .Where(p => isEmpty || p.StartsWith(c));
             var text = texts.FirstOrDefault();
             if (text is null)
