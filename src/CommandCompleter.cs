@@ -108,6 +108,102 @@ public class CommandCompleter
         return false;
     }
 
+    private bool ParseParameter(ReadOnlySpan<char> tokenValue,
+                                CompletionContext context,
+                                int argumentIndex,
+                                out int advancedCount)
+    {
+        advancedCount = 0;
+
+        foreach (var param in Params)
+        {
+            if (param.ParseParam(tokenValue, out var paramName, out var paramValue, out var optionPrefix))
+            {
+                if (param.Type == ArgumentType.Flag
+                    || (param.Type.HasFlag(ArgumentType.FlagOrValue) && paramValue.IsEmpty))
+                {
+                    context.AddBoundParameter(param.Name, true);
+                }
+                else if (paramValue.IsEmpty)
+                {
+                    if (argumentIndex < context.Arguments.Count - 1)
+                    {
+                        // `-param value ...|`
+                        //                  ^ cursor
+                        advancedCount = 1;
+                        context.AddBoundParameter(param.Name, context.Arguments[argumentIndex + advancedCount].Value);
+                    }
+                    else
+                    {
+                        // `-param |`
+                        //         ^ cursor
+                        context.SetPendingParameter(param, $"{paramName}", optionPrefix);
+                    }
+                }
+                else
+                {
+                    context.AddBoundParameter(param.Name, $"{paramValue}");
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool ParseShortParam(ReadOnlySpan<char> tokenValue,
+                                 CompletionContext context,
+                                 int argumentIndex,
+                                 out int advancedCount)
+    {
+        advancedCount = 0;
+        if (tokenValue.IsEmpty)
+            return false;
+
+        char prefixChar = tokenValue[0];
+        var inputValue = tokenValue[1..];
+        var shortParams = Params.Where(p => p.ShortNames.Length > 0
+                                            && p.Style.HasShortOptionPrefix
+                                            && p.Style.ShortOptionPrefix[0] == prefixChar);
+        for (var i = 0; i < inputValue.Length; i++)
+        {
+            var c = inputValue[i];
+            var p = shortParams.FirstOrDefault(p => p.ShortNames.Contains(c));
+            if (p is null)
+                continue;
+
+            if (p.Type == ArgumentType.Flag)
+            {
+                context.AddBoundParameter(p.Name, true);
+            }
+            else if (i == inputValue.Length - 1)
+            {
+                if (argumentIndex < context.Arguments.Count - 1)
+                {
+                    // `-abc Value ... |`
+                    //      \          ^ cursor
+                    //       i
+                    // the argument of `c` param is supplied
+                    advancedCount = 1;
+                    context.AddBoundParameter(p.Name, context.Arguments[argumentIndex + advancedCount].Value);
+                }
+                else
+                {
+                    // `-abc  |`
+                    //      \ ^ cursor
+                    //       i
+                    // the argument of `c` param is NOT supplied
+                    context.SetPendingParameter(p, $"{c}", p.Style.ShortOptionPrefix);
+                }
+            }
+            else
+            {
+                context.AddBoundParameter(p.Name, $"{inputValue[(i + 1)..]}");
+            }
+            return true;
+        }
+        return false;
+    }
+
     /// <summary>
     /// Parse arguments in the completion context.
     /// </summary>
@@ -146,92 +242,16 @@ public class CommandCompleter
                 }
             }
 
-            bool moveToNextArgument = false;
             // Attempt to parse as long parameter or old-style parameter
-            foreach (var param in Params)
+            if (ParseParameter(tokenValue, context, argumentIndex, out var advancedCount))
             {
-                if (param.ParseParam(tokenValue, out var paramName, out var paramValue, out var optionPrefix))
-                {
-                    moveToNextArgument = true;
-                    if (param.Type == ArgumentType.Flag
-                        || param.Type.HasFlag(ArgumentType.FlagOrValue))
-                    {
-                        context.AddBoundParameter(param.Name, true);
-                    }
-                    else if (paramValue.IsEmpty)
-                    {
-                        if (argumentIndex < argumentsCount - 1)
-                        {
-                            // `-param value ...|`
-                            //                  ^ cursor
-                            argumentIndex++;
-                            context.AddBoundParameter(param.Name, context.Arguments[argumentIndex].Value);
-                        }
-                        else
-                        {
-                            // `-param |`
-                            //         ^ cursor
-                            context.SetPendingParameter(param, $"{paramName}", optionPrefix);
-                            return context;
-                        }
-                    }
-                    else
-                    {
-                        context.AddBoundParameter(param.Name, $"{paramValue}");
-                    }
-                    break;
-                }
-            }
-            if (moveToNextArgument)
+                argumentIndex += advancedCount;
                 continue;
-            if (!tokenValue.IsEmpty)
+            }
+            if (ParseShortParam(tokenValue, context, argumentIndex, out advancedCount))
             {
-                char prefixChar = tokenValue[0];
-                var inputValue = tokenValue[1..];
-                var shortParams = Params.Where(p => p.ShortNames.Length > 0
-                                                    && p.Style.HasShortOptionPrefix
-                                                    && p.Style.ShortOptionPrefix[0] == prefixChar);
-                for (var i = 0; i < inputValue.Length; i++)
-                {
-                    var c = inputValue[i];
-                    var p = shortParams.FirstOrDefault(p => p.ShortNames.Contains(c));
-                    if (p is null)
-                        continue;
-
-                    moveToNextArgument = true;
-                    if (p.Type == ArgumentType.Flag)
-                    {
-                        context.AddBoundParameter(p.Name, true);
-                    }
-                    else if (i == inputValue.Length - 1)
-                    {
-                        if (argumentIndex < argumentsCount - 1)
-                        {
-                            // `-abc Value ... |`
-                            //      \          ^ cursor
-                            //       i
-                            // the argument of `c` param is supplied
-                            argumentIndex++;
-                            context.AddBoundParameter(p.Name, context.Arguments[argumentIndex].Value);
-                        }
-                        else
-                        {
-                            // `-abc  |`
-                            //      \ ^ cursor
-                            //       i
-                            // the argument of `c` param is NOT supplied
-                            context.SetPendingParameter(p, $"{c}", p.Style.ShortOptionPrefix);
-                            return context;
-                        }
-                    }
-                    else
-                    {
-                        context.AddBoundParameter(p.Name, $"{inputValue[(i + 1)..]}");
-                        break;
-                    }
-                }
-                if (moveToNextArgument)
-                    continue;
+                argumentIndex += advancedCount;
+                continue;
             }
             if (context.UnboundArguments.Count == DelegateArgumentIndex)
             {
