@@ -177,7 +177,7 @@ public class ParamCompleter
         if (Type == ArgumentType.Flag)
             return;
         bool optional = Type.HasFlag(ArgumentType.FlagOrValue);
-        char valueSeparator = Style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent) ? Style.ValueSeparator : ' ';
+        char valueSeparator = Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent) ? Style.ValueSeparator : ' ';
 
         if (optional)
         {
@@ -258,7 +258,7 @@ public class ParamCompleter
                                  out ReadOnlySpan<char> paramValue)
     {
         ParameterStyle style = Style;
-        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent))
+        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
         {
             var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
             if (separatorPosition >= 0)
@@ -272,7 +272,7 @@ public class ParamCompleter
                 paramValue = default;
                 return false;
             }
-            else if (!style.ValueStyle.HasFlag(ParameterValueStyle.AllowSeparated))
+            else if (!style.ValueStyle.HasFlag(ParameterValueStyle.Separated))
             {
                 // No separate value allowed
                 paramName = default;
@@ -293,7 +293,7 @@ public class ParamCompleter
                                      out ReadOnlySpan<char> paramValue)
     {
         ParameterStyle style = Style;
-        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent))
+        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
         {
             var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
             if (separatorPosition >= 0)
@@ -307,7 +307,7 @@ public class ParamCompleter
                 paramValue = default;
                 return false;
             }
-            else if (!style.ValueStyle.HasFlag(ParameterValueStyle.AllowSeparated))
+            else if (!style.ValueStyle.HasFlag(ParameterValueStyle.Separated))
             {
                 // No separate value allowed
                 paramName = default;
@@ -375,8 +375,8 @@ public class ParamCompleter
         }
         return Style.ValueStyle switch
         {
-            ParameterValueStyle.AllowSeparated => " ",
-            ParameterValueStyle.AllowAdjacent => $"{Style.ValueSeparator}",
+            ParameterValueStyle.Separated => " ",
+            ParameterValueStyle.Adjacent => $"{Style.ValueSeparator}",
             ParameterValueStyle.Both or _=> string.Empty,
         };
     }

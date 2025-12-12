@@ -21,7 +21,7 @@ public class NewParamStyleCommand : PSCmdlet
     public char ValueSeparator { get; set; } = '=';
 
     [Parameter(ParameterSetName = "Custom")]
-    public ParameterValueStyle ValueStyle { get; set; } = ParameterValueStyle.AllowAdjacent;
+    public ParameterValueStyle ValueStyle { get; set; } = ParameterValueStyle.Adjacent;
 
     private ParameterStyle? _style;
 

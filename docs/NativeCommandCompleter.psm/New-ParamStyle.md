@@ -48,7 +48,7 @@ New-ParamStyle -Name GNU
 ### Example 2. Create `Key=Value` parameter style
 
 ```powershell
-New-ParamStyle -ValueSeparator "=" -ValueStyle AllowAdjacent
+New-ParamStyle -ValueSeparator "=" -ValueStyle Adjacent
 ```
 
 ## PARAMETERS
@@ -142,7 +142,7 @@ HelpMessage: 'Specifies the character used to separate options from their values
 
 Specifies the style of parameter values in the custom parameter style.
 
-Valid values are `AllowAdjacent`, `AllowSeparated`, and `Both`.
+Valid values are `Adjacent`, `Separated`, and `Both`.
 
 ```yaml
 Type: MT.Comp.ParameterValueStyle
@@ -157,7 +157,7 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: [AllowAdjacent, AllowSeparated, Both]
+AcceptedValues: [Adjacent, Separated, Both]
 HelpMessage: 'Specifies the style of parameter values.'
 ```
 

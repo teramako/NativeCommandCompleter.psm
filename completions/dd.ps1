@@ -57,7 +57,7 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-$kvStyle = New-ParamStyle -ValueSeparator '=' -ValueStyle AllowAdjacent
+$kvStyle = New-ParamStyle -ValueSeparator '=' -ValueStyle Adjacent
 
 Register-NativeCompleter -Name dd -Description $msg.dd -Metadata @{ msg = $msg } -Parameters @(
     New-ParamCompleter -LongName help -Description $msg.help

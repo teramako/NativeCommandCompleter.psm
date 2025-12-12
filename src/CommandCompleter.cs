@@ -405,7 +405,7 @@ public class CommandCompleter
         Debug($"Start CompleteLongParams('{tokenValue}', {cursorPosition})");
         var longParams = Params.Where(p => p.LongNames.Length > 0);
         foreach (var param in longParams.Where(p => p.Type != ArgumentType.Flag
-                                                    && p.Style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent)))
+                                                    && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
         {
             var optionPrefix = param.Style.LongOptionPrefix;
             if (!tokenValue.StartsWith(optionPrefix, StringComparison.Ordinal))
@@ -480,7 +480,7 @@ public class CommandCompleter
         Debug($"Start CompleteOldStyleParams('{tokenValue}', {cursorPosition})");
         var oldStyleParams = Params.Where(p => p.OldStyleNames.Length > 0);
         foreach (var param in oldStyleParams.Where(p => p.Type != ArgumentType.Flag
-                                                        && p.Style.ValueStyle.HasFlag(ParameterValueStyle.AllowAdjacent)))
+                                                        && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
         {
             var optionPrefix = param.Style.ShortOptionPrefix;
             if (!tokenValue.StartsWith(optionPrefix, StringComparison.Ordinal))
