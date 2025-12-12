@@ -57,148 +57,69 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
+$kvStyle = New-ParamStyle -ValueSeparator '=' -ValueStyle AllowAdjacent
+
 Register-NativeCompleter -Name dd -Description $msg.dd -Metadata @{ msg = $msg } -Parameters @(
     New-ParamCompleter -LongName help -Description $msg.help
     New-ParamCompleter -LongName version -Description $msg.version
-) -NoFileCompletions -ArgumentCompleter {
-    param([int] $position, [int] $argIndex)
-    $msg = $this.Metadata.msg;
-    $word = $_
-    
-    # Check for "option name=" format
-    if ($word -match '^([^=]+)=(.*)$') {
-        $optName = $Matches[1]
-        $optValue = $Matches[2]
-        
-        function Complete-Value {
-            param(
-                [Parameter(Mandatory)] [string] $Name,
-                [Parameter(Mandatory)] [AllowEmptyString()] [string] $Value,
-                [Parameter(Mandatory, ValueFromPipeline)] [MT.Comp.CompletionValue] $CompletionItem
-            )
-            process {
-                if ($CompletionItem.IsMatch($Value, $true)) {
-                    $CompletionItem.SetPrefix("$Name=")
-                }
-
-            }
-        }
-        function Complete-ListValue {
-            param(
-                [Parameter(Mandatory)] [string] $Name,
-                [Parameter(Mandatory)] [AllowEmptyString()] [string] $Value,
-                [Parameter(Mandatory, ValueFromPipeline)] [MT.Comp.CompletionValue] $CompletionItem
-            )
-            begin {
-                $isFirstValue = $true;
-                $list = $Value.Split(',')
-                if ($list.Length -gt 1) {
-                    $isFirstValue = $false
-                    $Value = $list[$list.Length - 1]
-                    $Selected = $list[0.. ($list.Length -2)]
-                } else {
-                    $Selected = @()
-                }
-            }
-            process {
-                if ($Selected -notcontains $CompletionItem.Text -and $CompletionItem.IsMatch($Value, $true)) {
-                    if ($isFirstValue) {
-                        $CompletionItem.SetPrefix("$Name=")
-                    } else {
-                        $CompletionItem
-                    }
-                }
-            }
-        }
-
-        switch ($optName) {
-            'if' {
-                foreach ($item in [MT.Comp.Helper]::CompleteFilename($optValue, $this.CurrentDirectory, $false, $false)) {
-                    $item.SetPrefix("$optName=");
-                }
-            }
-            'of' {
-                foreach ($item in [MT.Comp.Helper]::CompleteFilename($optValue, $this.CurrentDirectory, $false, $false)) {
-                    $item.SetPrefix("$optName=");
-                }
-            }
-            'conv' {
-                @(
-                    "ascii`t{0}" -f $msg.conv_ascii
-                    "ebcdic`t{0}" -f $msg.conv_ebcdic
-                    "ibm`t{0}" -f $msg.conv_ibm
-                    "block`t{0}" -f $msg.conv_block
-                    "unblock`t{0}" -f $msg.conv_unblock
-                    "lcase`t{0}" -f $msg.conv_lcase
-                    "ucase`t{0}" -f $msg.conv_ucase
-                    "sparse`t{0}" -f $msg.conv_sparse
-                    "swab`t{0}" -f $msg.conv_swab
-                    "sync`t{0}" -f $msg.conv_sync
-                    "excl`t{0}" -f $msg.conv_excl
-                    "nocreat`t{0}" -f $msg.conv_nocreat
-                    "notrunc`t{0}" -f $msg.conv_notrunc
-                    "noerror`t{0}" -f $msg.conv_noerror
-                    "fdatasync`t{0}" -f $msg.conv_fdatasync
-                    "fsync`t{0}" -f $msg.conv_fsync
-                ) | Complete-ListValue -Name $optName -Value $optValue
-            }
-            'iflag' {
-                @(
-                    "append`t{0}" -f $msg.flag_append
-                    "direct`t{0}" -f $msg.flag_direct
-                    "directory`t{0}" -f $msg.flag_directory
-                    "dsync`t{0}" -f $msg.flag_dsync
-                    "sync`t{0}" -f $msg.flag_sync
-                    "fullblock`t{0}" -f $msg.flag_fullblock
-                    "nonblock`t{0}" -f $msg.flag_nonblock
-                    "noatime`t{0}" -f $msg.flag_noatime
-                    "nocache`t{0}" -f $msg.flag_nocache
-                    "noctty`t{0}" -f $msg.flag_noctty
-                    "nofollow`t{0}" -f $msg.flag_nofollow
-                    "count_bytes`t{0}" -f $msg.flag_count_bytes
-                    "skip_bytes`t{0}" -f $msg.flag_skip_bytes
-                ) | Complete-ListValue -Name $optName -Value $optValue
-            }
-            'oflag' {
-                @(
-                    "append`t{0}" -f $msg.flag_append
-                    "direct`t{0}" -f $msg.flag_direct
-                    "directory`t{0}" -f $msg.flag_directory
-                    "dsync`t{0}" -f $msg.flag_dsync
-                    "sync`t{0}" -f $msg.flag_sync
-                    "nonblock`t{0}" -f $msg.flag_nonblock
-                    "noatime`t{0}" -f $msg.flag_noatime
-                    "nocache`t{0}" -f $msg.flag_nocache
-                    "noctty`t{0}" -f $msg.flag_noctty
-                    "nofollow`t{0}" -f $msg.flag_nofollow
-                    "seek_bytes`t{0}" -f $msg.flag_seek_bytes
-                ) | Complete-ListValue -Name $optName -Value $optValue
-            }
-            'status' {
-                @(
-                    "none`t{0}" -f $msg.status_none
-                    "noxfer`t{0}" -f $msg.status_noxfer
-                    "progress`t{0}" -f $msg.status_progress
-                ) | Complete-Value -Name $optName -Value $optValue
-            }
-        }
-        return
-    }
-    
-    # Option name completion
-    @(
-        "if=`t{0}" -f $msg.if
-        "of=`t{0}" -f $msg.of
-        "ibs=`t{0}" -f $msg.ibs
-        "obs=`t{0}" -f $msg.obs
-        "bs=`t{0}" -f $msg.bs
-        "cbs=`t{0}" -f $msg.cbs
-        "skip=`t{0}" -f $msg.skip
-        "seek=`t{0}" -f $msg.seek
-        "count=`t{0}" -f $msg.count
-        "conv=`t{0}" -f $msg.conv
-        "iflag=`t{0}" -f $msg.iflag
-        "oflag=`t{0}" -f $msg.oflag
-        "status=`t{0}" -f $msg.status
-    ) | Where-Object { $_ -like "$word*" }
-}
+    New-ParamCompleter -LongName bs -Description $msg.bs -Style $kvStyle -Type Required -VariableName 'BYTES'
+    New-ParamCompleter -LongName cbs -Description $msg.cbs -Style $kvStyle -Type Required -VariableName 'BYTES'
+    New-ParamCompleter -LongName conv -Description $msg.conv -Style $kvStyle -Type List -VariableName 'CONVS' -Arguments @(
+        "ascii`t{0}" -f $msg.conv_ascii
+        "ebcdic`t{0}" -f $msg.conv_ebcdic
+        "ibm`t{0}" -f $msg.conv_ibm
+        "block`t{0}" -f $msg.conv_block
+        "unblock`t{0}" -f $msg.conv_unblock
+        "lcase`t{0}" -f $msg.conv_lcase
+        "ucase`t{0}" -f $msg.conv_ucase
+        "sparse`t{0}" -f $msg.conv_sparse
+        "swab`t{0}" -f $msg.conv_swab
+        "sync`t{0}" -f $msg.conv_sync
+        "excl`t{0}" -f $msg.conv_excl
+        "nocreat`t{0}" -f $msg.conv_nocreat
+        "notrunc`t{0}" -f $msg.conv_notrunc
+        "noerror`t{0}" -f $msg.conv_noerror
+        "fdatasync`t{0}" -f $msg.conv_fdatasync
+        "fsync`t{0}" -f $msg.conv_fsync
+    )
+    New-ParamCompleter -LongName count -Description $msg.count -Style $kvStyle -Type Required -VariableName 'N'
+    New-ParamCompleter -LongName ibs -Description $msg.ibs -Style $kvStyle -Type Required -VariableName 'BYTES'
+    New-ParamCompleter -LongName if -Description $msg.if -Style $kvStyle -Type File -VariableName 'FILE'
+    New-ParamCompleter -LongName iflag -Description $msg.iflag -Style $kvStyle -Type List -VariableName 'FLAGS' -Arguments @(
+        "append`t{0}" -f $msg.flag_append
+        "direct`t{0}" -f $msg.flag_direct
+        "directory`t{0}" -f $msg.flag_directory
+        "dsync`t{0}" -f $msg.flag_dsync
+        "sync`t{0}" -f $msg.flag_sync
+        "fullblock`t{0}" -f $msg.flag_fullblock
+        "nonblock`t{0}" -f $msg.flag_nonblock
+        "noatime`t{0}" -f $msg.flag_noatime
+        "nocache`t{0}" -f $msg.flag_nocache
+        "noctty`t{0}" -f $msg.flag_noctty
+        "nofollow`t{0}" -f $msg.flag_nofollow
+        "count_bytes`t{0}" -f $msg.flag_count_bytes
+        "skip_bytes`t{0}" -f $msg.flag_skip_bytes
+    )
+    New-ParamCompleter -LongName obs -Description $msg.obs -Style $kvStyle -Type Required -VariableName 'BYTES'
+    New-ParamCompleter -LongName of -Description $msg.of -Style $kvStyle -Type File -VariableName 'FILE'
+    New-ParamCompleter -LongName oflag -Description $msg.oflag -Style $kvStyle -Type List -VariableName 'FLAGS' -Arguments @(
+        "append`t{0}" -f $msg.flag_append
+        "direct`t{0}" -f $msg.flag_direct
+        "directory`t{0}" -f $msg.flag_directory
+        "dsync`t{0}" -f $msg.flag_dsync
+        "sync`t{0}" -f $msg.flag_sync
+        "nonblock`t{0}" -f $msg.flag_nonblock
+        "noatime`t{0}" -f $msg.flag_noatime
+        "nocache`t{0}" -f $msg.flag_nocache
+        "noctty`t{0}" -f $msg.flag_noctty
+        "nofollow`t{0}" -f $msg.flag_nofollow
+        "seek_bytes`t{0}" -f $msg.flag_seek_bytes
+    )
+    New-ParamCompleter -LongName seek -Description $msg.seek -Style $kvStyle -Type Required -VariableName 'N'
+    New-ParamCompleter -LongName skip -Description $msg.skip -Style $kvStyle -Type Required -VariableName 'N'
+    New-ParamCompleter -LongName status -Description $msg.status -Style $kvStyle -Type Required -VariableName 'LEVEL' -Arguments @(
+        "none`t{0}" -f $msg.status_none
+        "noxfer`t{0}" -f $msg.status_noxfer
+        "progress`t{0}" -f $msg.status_progress
+    )
+) -NoFileCompletions
