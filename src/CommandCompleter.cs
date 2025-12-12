@@ -326,11 +326,24 @@ public class CommandCompleter
                                int cursorPosition)
     {
         bool completed = false;
-        if (tokenValue.IsEmpty)
-            return completed;
-
         if (Params.Count == 0)
             return completed;
+
+        if (tokenValue.IsEmpty)
+        {
+            if (Params.Any(p => !p.Style.HasShortOptionPrefix || !p.Style.HasLongOptionPrefix))
+            {
+                completed = CompleteAllParams(results, context, tokenValue);
+            }
+            return completed;
+        }
+
+        char c = tokenValue[0];
+        if (tokenValue.Length == 1
+            && Params.Any(p => p.Style.ShortOptionPrefix.StartsWith(c) || p.Style.LongOptionPrefix.StartsWith(c)))
+        {
+            return CompleteAllParams(results, context, tokenValue);
+        }
 
         completed = CompleteLongParams(results, context, tokenValue, cursorPosition)
                     || CompleteOldStyleParams(results, context, tokenValue, cursorPosition)
@@ -651,22 +664,29 @@ public class CommandCompleter
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>
+    /// <param name="tokenValue"></param>
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
     private bool CompleteAllParams(ICollection<CompletionData> results,
-                                   CompletionContext context)
+                                   CompletionContext context,
+                                   ReadOnlySpan<char> tokenValue)
     {
         if (Params.Count == 0)
             return false;
 
+        bool isEmpty = tokenValue.IsEmpty;
+        char c = isEmpty ? default : tokenValue[0];
         foreach (var param in Params)
         {
             var style = param.Style;
-            var text = param.ShortNames.Select(n => $"{style.ShortOptionPrefix}{n}")
+            var texts = param.ShortNames.Select(n => $"{style.ShortOptionPrefix}{n}")
                                        .Union(param.OldStyleNames.Select(n => $"{style.ShortOptionPrefix}{n}"))
                                        .Union(param.LongNames.Select(n => $"{style.LongOptionPrefix}{n}"))
-                                       .First();
+                                       .Where(p => isEmpty || p.StartsWith(c));
+            var text = texts.FirstOrDefault();
+            if (text is null)
+                continue;
             var listItemText = param.GetSyntaxes(" ", false);
             var tooltip = $"""
                 [{param.Type}] {param.GetSyntaxes(expandArguments: true)}
