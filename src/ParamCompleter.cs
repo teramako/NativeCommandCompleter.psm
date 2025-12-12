@@ -181,9 +181,12 @@ public class ParamCompleter
 
         if (optional)
         {
-            sb.Append('[');
-            if (!isShortParam && valueSeparator > 0)
-                sb.Append(valueSeparator);
+            if (isShortParam)
+                sb.Append('[');
+            else if (char.IsWhiteSpace(valueSeparator))
+                sb.Append(" [");
+            else if (valueSeparator > 0)
+                sb.Append($"[{valueSeparator}");
         }
         else
         {
