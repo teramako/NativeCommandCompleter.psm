@@ -10,6 +10,7 @@ $msg = data { ConvertFrom-StringData @'
     _verbose    = Be more verbose
     _version    = Display version information
     _help       = Display help message
+    interface   = The name of the interface.
     up          = Activate the interface
     down        = Deactivate the interface
     arp         = Enable or disable ARP protocol on the interface
@@ -37,55 +38,43 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Metadata @{ msg = $msg } -Parameters @(
+Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Parameters @(
     # Display options
     New-ParamCompleter -OldStyleName a -Description $msg._all
     New-ParamCompleter -OldStyleName s -Description $msg._short
     New-ParamCompleter -OldStyleName v -Description $msg._verbose
     New-ParamCompleter -OldStyleName V -Description $msg._version
     New-ParamCompleter -LongName help -Description $msg._help
+) -SubCommands @(
+    $kvStyle = New-ParamStyle -ValueSeparator ' ' -ValueStyle Separated
+    New-CommandCompleter -Name '*' -Description $msg.interface -CustomStyle $kvStyle -Parameters @(
+        New-ParamCompleter -LongName up -Description $msg.up
+        New-ParamCompleter -LongName down -Description $msg.down
+        New-ParamCompleter -LongName arp,-arp -Description $msg.arp
+        New-ParamCompleter -LongName promisc,-promisc -Description $msg.promisc
+        New-ParamCompleter -LongName allmulti,-allmulti -Description $msg.allmulti
+        New-ParamCompleter -LongName mtu -Description $msg.allmulti -Type Required -VariableName 'N'
+        New-ParamCompleter -LongName dstaddr -Description $msg.dstaddr -Type Required -VariableName 'addr'
+        New-ParamCompleter -LongName netmask -Description $msg.netmask -Type Required -VariableName 'addr'
+        New-ParamCompleter -LongName add -Description $msg.add -Type Required -VariableName 'addr/prefixlen'
+        New-ParamCompleter -LongName del -Description $msg.add -Type Required -VariableName 'addr/prefixlen'
+        New-ParamCompleter -LongName tunnel -Description $msg.tunnel -Type Required -VariableName '::aa.bb.cc.dd'
+        New-ParamCompleter -LongName irq -Description $msg.irq -Type Required -VariableName 'addr'
+        New-ParamCompleter -LongName io_addr -Description $msg.io_addr -Type Required -VariableName 'addr'
+        New-ParamCompleter -LongName mem_start -Description $msg.mem_start -Type Required -VariableName 'addr'
+        New-ParamCompleter -LongName media -Description $msg.media -Type Required -VariableName 'type'
+        New-ParamCompleter -LongName broadcast, -broadcast -Description $msg.broadcast -Type FlagOrValue -VariableName 'addr'
+        New-ParamCompleter -LongName pointopoint, -pointopoint -Description $msg.pointopoint -Type FlagOrValue -VariableName 'addr'
+        New-ParamCompleter -LongName hw -Description $msg.hw -Type Required -VariableName 'class address'
+        New-ParamCompleter -LongName multicast -Description $msg.multicast
+        New-ParamCompleter -LongName address -Description $msg.address
+        New-ParamCompleter -LongName txqueuelen -Description $msg.txqueuelen -Type Required -VariableName 'length'
+        New-ParamCompleter -LongName name -Description $msg.name -Type Required -VariableName 'newname'
+    ) -NoFileCompletions
 ) -NoFileCompletions -ArgumentCompleter {
-    param([int] $position, [int] $argIndex)
-    switch ($argIndex) {
-        0 {
-            # Complete <interface>
-            if (Test-Path -LiteralPath '/sys/class/net' -PathType Container) {
-                Get-ChildItem -LiteralPath '/sys/class/net' | Where-Object Name -Like "$wordToComplete*" |
-                    ForEach-Object { $_.Name }
-            }
-        }
-        1 {
-            $msg = $this.Metadata.msg
-            $cmds = @(
-                "up `t{0}" -f $msg.up
-                "down `t{0}" -f $msg.down
-                "arp `t{0}" -f $msg.arp
-                "-arp `t{0}" -f $msg.arp
-                "promisc `t{0}" -f $msg.promisc
-                "-promisc `t{0}" -f $msg.promisc
-                "allmulti `t{0}" -f $msg.allmulti
-                "-allmulti `t{0}" -f $msg.allmulti
-                "mtu `t{0}" -f $msg.mtu
-                "dstaddr `t{0}" -f $msg.dstaddr
-                "netmask `t{0}" -f $msg.netmask
-                "add `t{0}" -f $msg.add
-                "del `t{0}" -f $msg.del
-                "tunnel `t{0}" -f $msg.tunnel
-                "irq `t{0}" -f $msg.irq
-                "io_addr `t{0}" -f $msg.io_addr
-                "mem_start `t{0}" -f $msg.mem_start
-                "media `t{0}" -f $msg.media
-                "broadcast `t{0}" -f $msg.broadcast
-                "-broadcast `t{0}" -f $msg.broadcast
-                "pointopoint `t{0}" -f $msg.pointopoint
-                "-pointopoint `t{0}" -f $msg.pointopoint
-                "hw `t{0}" -f $msg.hw
-                "multicast `t{0}" -f $msg.multicast
-                "address `t{0}" -f $msg.address
-                "txqueuelen `t{0}" -f $msg.txqueuelen
-                "name `t{0}" -f $msg.name
-            )
-            $cmds | Where-Object { $_ -like "$wordToComplete*" }
-        }
+    # Complete <interface>
+    if (Test-Path -LiteralPath '/sys/class/net' -PathType Container) {
+        Get-ChildItem -LiteralPath '/sys/class/net' | Where-Object Name -Like "$wordToComplete*" |
+            ForEach-Object { $_.Name }
     }
 }
