@@ -5,6 +5,39 @@ using System.Management.Automation;
 
 namespace MT.Comp;
 
+/// <summary>
+/// A command completer which matches command name with wildcard pattern
+/// </summary>
+public class WildcardNameCommandCompleter : CommandCompleter
+{
+    public WildcardNameCommandCompleter(string name, string description = "")
+        : base(name, description)
+    {
+        _wildcard = new WildcardPattern(name, WildcardOptions.IgnoreCase);
+        Hidden = true;
+    }
+    public WildcardNameCommandCompleter(string name,
+                                        string description,
+                                        ParameterStyle defaultParameterStyle,
+                                        IEnumerable<ParamCompleter> parameters,
+                                        IEnumerable<CommandCompleter> subCommands)
+        : base(name, description, defaultParameterStyle, parameters, subCommands)
+    {
+        _wildcard = new WildcardPattern(name, WildcardOptions.IgnoreCase);
+        Hidden = true;
+    }
+
+    private readonly WildcardPattern _wildcard;
+
+    protected override bool IsMatch(ReadOnlySpan<char> tokenValue, out ReadOnlySpan<char> cmdName)
+    {
+        cmdName = tokenValue;
+        if (tokenValue.IsEmpty)
+            return false;
+        return _wildcard.IsMatch($"{tokenValue}");
+    }
+}
+
 public class CommandCompleter
 {
     [Conditional("DEBUG")]
@@ -80,13 +113,15 @@ public class CommandCompleter
         _params.Add(param);
     }
 
+    protected bool Hidden { get; set; }
+
     /// <summary>
     /// Determine whether the token value matches this command completer
     /// </summary>
     /// <param name="tokenValue"></param>
     /// <param name="cmdName">Command name</param>
     /// <returns></returns>
-    protected bool IsMatch(ReadOnlySpan<char> tokenValue, out ReadOnlySpan<char> cmdName)
+    protected virtual bool IsMatch(ReadOnlySpan<char> tokenValue, out ReadOnlySpan<char> cmdName)
     {
         cmdName = default;
         if (tokenValue.Equals(Name, StringComparison.Ordinal))
@@ -285,7 +320,7 @@ public class CommandCompleter
         if (SubCommands.Count == 0)
             return completed;
 
-        foreach (var subCommand in SubCommands)
+        foreach (var subCommand in SubCommands.Where(subCmd => !subCmd.Hidden))
         {
             if (string.IsNullOrEmpty(tokenValue)
                 || subCommand.Name.StartsWith(tokenValue, StringComparison.OrdinalIgnoreCase))

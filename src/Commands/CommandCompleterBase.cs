@@ -50,14 +50,23 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       int delegateArgumentIndex = -1,
                                                       Hashtable? metadata = null)
     {
-        CommandCompleter completer = new(name, description, style, paramCompleters, subCommands)
-        {
-            Aliases = aliases,
-            ArgumentCompleter = argumentCompleter,
-            NoFileCompletions = noFileCompletions,
-            DelegateArgumentIndex = delegateArgumentIndex,
-            Metadata = metadata
-        };
+        CommandCompleter completer = WildcardPattern.ContainsWildcardCharacters(name)
+            ? new WildcardNameCommandCompleter(name, description, style, paramCompleters, subCommands)
+            {
+                Aliases = aliases,
+                ArgumentCompleter = argumentCompleter,
+                NoFileCompletions = noFileCompletions,
+                DelegateArgumentIndex = delegateArgumentIndex,
+                Metadata = metadata
+            }
+            : new CommandCompleter(name, description, style, paramCompleters, subCommands)
+            {
+                Aliases = aliases,
+                ArgumentCompleter = argumentCompleter,
+                NoFileCompletions = noFileCompletions,
+                DelegateArgumentIndex = delegateArgumentIndex,
+                Metadata = metadata
+            };
         return completer;
     }
 
