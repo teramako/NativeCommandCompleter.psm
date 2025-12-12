@@ -87,7 +87,7 @@ $msg = data { ConvertFrom-StringData @'
     type_f             = regular file
     type_l             = symbolic link
     type_s             = socket
-    type_D             = door
+    type_Door          = door
 '@ }
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
@@ -100,7 +100,7 @@ $typeArguments = @(
      "f `t{0}" -f $msg.type_f
      "l `t{0}" -f $msg.type_l
      "s `t{0}" -f $msg.type_s
-     "D `t{0}" -f $msg.type_D
+     "D `t{0}" -f $msg.type_Door
 )
 
 Register-NativeCompleter -Name find -Description $msg.find -Parameters @(
