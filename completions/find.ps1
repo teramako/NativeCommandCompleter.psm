@@ -103,7 +103,7 @@ $typeArguments = @(
      "D `t{0}" -f $msg.type_Door
 )
 
-Register-NativeCompleter -Name find -Description $msg.find -Parameters @(
+Register-NativeCompleter -Name find -Description $msg.find -Style Unix -Parameters @(
     # Options
     New-ParamCompleter -ShortName P -Description "Never follow symbolic links"
     New-ParamCompleter -ShortName L -Description $msg.follow
