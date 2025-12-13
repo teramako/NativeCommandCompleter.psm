@@ -31,10 +31,10 @@ public record ParameterStyle(string LongOptionPrefix,
     /// <summary>
     /// Indicates whether short option prefix is defined.
     /// </summary>
-    public bool HasShortOptionPrefix => !string.IsNullOrEmpty(ShortOptionPrefix);
+    public bool HasShortOptionPrefix { get; } = !string.IsNullOrEmpty(ShortOptionPrefix);
 
     /// <summary>
     /// Indicates whether long option prefix is defined.
     /// </summary>
-    public bool HasLongOptionPrefix => !string.IsNullOrEmpty(LongOptionPrefix);
+    public bool HasLongOptionPrefix { get; } = !string.IsNullOrEmpty(LongOptionPrefix);
 }
