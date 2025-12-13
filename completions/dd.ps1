@@ -59,7 +59,7 @@ foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key
 
 $kvStyle = New-ParamStyle -ValueSeparator '=' -ValueStyle Adjacent
 
-Register-NativeCompleter -Name dd -Description $msg.dd -Metadata @{ msg = $msg } -Parameters @(
+Register-NativeCompleter -Name dd -Description $msg.dd -Parameters @(
     New-ParamCompleter -LongName help -Description $msg.help
     New-ParamCompleter -LongName version -Description $msg.version
     New-ParamCompleter -LongName bs -Description $msg.bs -Style $kvStyle -Type Required -VariableName 'BYTES'
