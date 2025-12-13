@@ -19,7 +19,7 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-Register-NativeCompleter -Name ipconfig -Style TraditionalWindows -Parameters @(
+Register-NativeCompleter -Name ipconfig -Style Windows -Parameters @(
     New-ParamCompleter -OldStyleName allcompartments
 ) -SubCommands @(
     New-CommandCompleter -Name '/all' -Description $msg.all -NoFileCompletions
