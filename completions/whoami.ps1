@@ -24,18 +24,18 @@ foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key
 
 if ($IsWindows)
 {
-    Register-NativeCompleter -Name whoami -Style TraditionalWindows -Description 'print effective user name' -Parameters @(
-        New-ParamCompleter -OldStyleName UPN -Description $msg.upn
-        New-ParamCompleter -OldStyleName FQDN -Description $msg.fqdn
-        New-ParamCompleter -OldStyleName USER -Description $msg.user
-        New-ParamCompleter -OldStyleName GROUPS -Description $msg.groups
-        New-ParamCompleter -OldStyleName CLAIMS -Description $msg.claims
-        New-ParamCompleter -OldStyleName PRIV -Description $msg.priv
-        New-ParamCompleter -OldStyleName LOGONID -Description $msg.logonid
-        New-ParamCompleter -OldStyleName ALL -Description $msg.all
-        New-ParamCompleter -OldStyleName FO -Description $msg.fo -Arguments "TABLE", "LIST", "CSV"
-        New-ParamCompleter -OldStyleName NH -Description $msg.nh
-        New-ParamCompleter -OldStyleName ? -Description $msg.help
+    Register-NativeCompleter -Name whoami -Style Windows -Description 'print effective user name' -Parameters @(
+        New-ParamCompleter -LongName UPN -Description $msg.upn
+        New-ParamCompleter -LongName FQDN -Description $msg.fqdn
+        New-ParamCompleter -LongName USER -Description $msg.user
+        New-ParamCompleter -LongName GROUPS -Description $msg.groups
+        New-ParamCompleter -LongName CLAIMS -Description $msg.claims
+        New-ParamCompleter -LongName PRIV -Description $msg.priv
+        New-ParamCompleter -LongName LOGONID -Description $msg.logonid
+        New-ParamCompleter -LongName ALL -Description $msg.all
+        New-ParamCompleter -LongName FO -Description $msg.fo -Arguments "TABLE", "LIST", "CSV"
+        New-ParamCompleter -LongName NH -Description $msg.nh
+        New-ParamCompleter -LongName ? -Description $msg.help
     ) -NoFileCompletions
 }
 else
