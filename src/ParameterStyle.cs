@@ -37,4 +37,9 @@ public record ParameterStyle(string LongOptionPrefix,
     /// Indicates whether long option prefix is defined.
     /// </summary>
     public bool HasLongOptionPrefix { get; } = !string.IsNullOrEmpty(LongOptionPrefix);
+
+    public override string ToString()
+    {
+        return $"[\"{LongOptionPrefix}\", \"{ShortOptionPrefix}\"], [{ValueStyle}, '{ValueSeparator}']";
+    }
 }
