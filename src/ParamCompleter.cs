@@ -177,7 +177,9 @@ public class ParamCompleter
         if (Type == ArgumentType.Flag)
             return;
         bool optional = Type.HasFlag(ArgumentType.FlagOrValue);
-        char valueSeparator = Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent) ? Style.ValueSeparator : ' ';
+        char valueSeparator = optional
+            ? Style.ValueSeparator
+            : Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent) ? Style.ValueSeparator : ' ';
 
         if (optional)
         {
@@ -258,7 +260,8 @@ public class ParamCompleter
                                  out ReadOnlySpan<char> paramValue)
     {
         ParameterStyle style = Style;
-        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
+        if ((Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
+            || Type.HasFlag(ArgumentType.FlagOrValue))
         {
             var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
             if (separatorPosition >= 0)
@@ -293,7 +296,8 @@ public class ParamCompleter
                                      out ReadOnlySpan<char> paramValue)
     {
         ParameterStyle style = Style;
-        if (Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
+        if ((Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
+            || Type.HasFlag(ArgumentType.FlagOrValue))
         {
             var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
             if (separatorPosition >= 0)

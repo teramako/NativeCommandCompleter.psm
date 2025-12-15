@@ -24,9 +24,9 @@ public record ParameterStyle(string LongOptionPrefix,
 
     /// <summary>
     /// Traditional Unix style.
-    /// Almost same as GNU style, but value must be separated by space.
+    /// Almost same as GNU style, but value must be separated by space (except: FlagOrValue type).
     /// </summary>
-    public static readonly ParameterStyle Unix = new("--", "-", ' ', ParameterValueStyle.Separated);
+    public static readonly ParameterStyle Unix = new("--", "-", '=', ParameterValueStyle.Separated);
 
     /// <summary>
     /// Indicates whether short option prefix is defined.
