@@ -140,7 +140,7 @@ $familyArguments = @(
     "bridge`t{0}" -f $msg._family_bridge
 )
 
-Register-NativeCompleter -Name ip -Description $msg.ip -Parameters @(
+Register-NativeCompleter -Name ip -Description $msg.ip -Style Unix -Parameters @(
     New-ParamCompleter -OldStyleName Version, V -Description $msg._version
     New-ParamCompleter -OldStyleName human-readable, human, h -Description $msg._humanReadable
     New-ParamCompleter -OldStyleName batch, b -Description $msg._batch -Type File -VariableName 'FILE'
@@ -148,7 +148,7 @@ Register-NativeCompleter -Name ip -Description $msg.ip -Parameters @(
     New-ParamCompleter -OldStyleName statistics, stats, s -Description $msg._stats
     New-ParamCompleter -OldStyleName details, d -Description $msg._details
     New-ParamCompleter -OldStyleName loops -Description $msg._loops -Type Required -VariableName 'COUNT'
-    New-ParamCompleter -ShortName f -LongName family -Description $msg._family -Arguments $familyArguments -VariableName 'FAMILY'
+    New-ParamCompleter -OldStyleName family, f -Description $msg._family -Arguments $familyArguments -VariableName 'FAMILY'
     New-ParamCompleter -OldStyleName '4' -Description $msg._family_inet
     New-ParamCompleter -OldStyleName '6' -Description $msg._family_inet6
     New-ParamCompleter -OldStyleName B -Description $msg._family_bridge
@@ -159,8 +159,7 @@ Register-NativeCompleter -Name ip -Description $msg.ip -Parameters @(
     New-ParamCompleter -OldStyleName netns, n -Description $msg._netns -Type Required -VariableName 'NAME'
     New-ParamCompleter -OldStyleName Numeric, N -Description $msg._numeric
     New-ParamCompleter -OldStyleName all, a -Description $msg._all
-    # FIXME: not supported `-c[color][={always|auto|never}`
-    # New-ParamCompleter -OldStyleName color, c -Description $msg.color
+    New-ParamCompleter -OldStyleName color, c -Description $msg._color -Type FlagOrValue -VariableName 'WHEN' -Arguments "always","auto","never"
     New-ParamCompleter -OldStyleName timestamp, t -Description $msg._timestamp
     New-ParamCompleter -OldStyleName tshort, ts -Description $msg._timestampShort
     New-ParamCompleter -OldStyleName rcvbuf, rc -Description $msg._rcvbuf -Type Required -VariableName 'SIZE'
