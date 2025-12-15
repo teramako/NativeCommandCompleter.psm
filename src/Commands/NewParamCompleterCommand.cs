@@ -66,7 +66,7 @@ public class NewParamCompleterCommand : Cmdlet
     {
         ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName, VariableName, Style)
         {
-            Description = Description,
+            Description = Description ?? string.Empty,
             Arguments = Arguments,
             ArgumentCompleter = ArgumentCompleter
         };
