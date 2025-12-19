@@ -73,11 +73,13 @@ If not specified, the `{module directory}/completions` directory is set automati
 |:-----------------------------|:-----------------------------------------------|
 | [New-CommandCompleter]       | Create a CommandCompleter object.              |
 | [New-ParamCompleter]         | Create a parameter's completer.                |
+| [New-ParamStyle]             | Create or get parameter style instance.        |
 | [Register-NativeCompleter]   | Create and register a CommandCompleter object. |
 | [Unregister-NativeCompleter] | Unregister the command completer.              |
 
 [New-CommandCompleter]: docs/NativeCommandCompleter.psm/New-CommandCompleter.md "Cmdlet - New-CommandCompleter"
 [New-ParamCompleter]: docs/NativeCommandCompleter.psm/New-ParamCompleter.md "Cmdlet - New-ParamCompleter"
+[New-ParamStyle]: docs/NativeCommandCompleter.psm/New-ParamStyle.md "Cmdlet - New-ParamStyle"
 [Register-NativeCompleter]: docs/NativeCommandCompleter.psm/Register-NativeCompleter.md "Cmdlet - Register-NativeCompleter"
 [Unregister-NativeCompleter]: docs/NativeCommandCompleter.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
 
