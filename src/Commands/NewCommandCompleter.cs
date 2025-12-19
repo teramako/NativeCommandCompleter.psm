@@ -3,13 +3,10 @@ using System.Management.Automation;
 
 namespace MT.Comp.Commands;
 
-[Cmdlet(VerbsCommon.New, "CommandCompleter", DefaultParameterSetName = DefaultParameeterSet)]
+[Cmdlet(VerbsCommon.New, "CommandCompleter")]
 [OutputType(typeof(CommandCompleter))]
 public class NewCommandCompleterCommand : CommandCompleterBase
 {
-    private const string DefaultParameeterSet = "Default";
-    private const string CustomStyleParameterSet = "CustomStyle";
-
     [Parameter(Mandatory = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Register.Name")]
     [Alias("n")]
@@ -38,13 +35,11 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
     public SwitchParameter NoFileCompletions { get; set; }
 
-    [Parameter(ParameterSetName = DefaultParameeterSet,
-               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
     [Alias("t")]
     public CommandParameterStyle Style { get; set; }
 
-    [Parameter(ParameterSetName = CustomStyleParameterSet, Mandatory = true,
-               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CustomStyle")]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CustomStyle")]
     public ParameterStyle? CustomStyle { get; set; }
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "DelegateArgumentIndex")]
@@ -56,11 +51,10 @@ public class NewCommandCompleterCommand : CommandCompleterBase
 
     protected override void EndProcessing()
     {
-        var defaultParameterStyle = ParameterSetName switch
-        {
-            DefaultParameeterSet => GetStyle(Style),
-            CustomStyleParameterSet or _ => CustomStyle ?? ParameterStyle.GNU
-        };
+        var defaultParameterStyle = CustomStyle is not null
+            ? CustomStyle
+            : GetStyle(Style);
+
         WriteObject(CreateCommandCompleter(Name,
                                            Description,
                                            Aliases,

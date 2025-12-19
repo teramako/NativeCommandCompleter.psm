@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/11/2025
+ms.date: 12/19/2025
 PlatyPS schema version: 2024-05-01
 title: New-CommandCompleter
 ---
@@ -17,22 +17,13 @@ Create a CommandCompleter object.
 
 ## SYNTAX
 
-### Default (Default)
+### __AllParameterSets
 
 ```
 New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
  [-ArgumentCompleter <scriptblock>] [-NoFileCompletions] [-Style <CommandParameterStyle>]
- [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [<CommonParameters>]
-```
-
-### CustomStyle
-
-```
-New-CommandCompleter [-Name] <string> [[-Description] <string>] -CustomStyle <ParameterStyle>
- [-Aliases <string[]>] [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
- [-ArgumentCompleter <scriptblock>] [-NoFileCompletions] [-DelegateArgumentIndex <int>]
- [-Metadata <hashtable>]
+ [-CustomStyle <ParameterStyle>] [-DelegateArgumentIndex <int>] [-Metadata <hashtable>]
 ```
 
 ## ALIASES
@@ -129,9 +120,9 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: CustomStyle
+- Name: (All)
   Position: Named
-  IsRequired: true
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -298,7 +289,7 @@ SupportsWildcards: false
 Aliases:
 - t
 ParameterSets:
-- Name: Default
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
