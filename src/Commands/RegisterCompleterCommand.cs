@@ -9,6 +9,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
 {
     private const string ParameterSetNew = "New";
     private const string ParameterSetInput = "Input";
+    private const string ParameterSetCustomStyle = "CustomStyle";
 
     [Parameter(ParameterSetName = ParameterSetNew, Mandatory = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Register.Name")]
@@ -45,6 +46,10 @@ public class RegisterCompleterCommand : CommandCompleterBase
     public CommandParameterStyle Style { get; set; }
 
     [Parameter(ParameterSetName = ParameterSetNew,
+               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CustomStyle")]
+    public ParameterStyle? CustomStyle { get; set; }
+
+    [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
     public SwitchParameter NoFileCompletions { get; set; }
 
@@ -77,12 +82,16 @@ public class RegisterCompleterCommand : CommandCompleterBase
         if (ParameterSetName != ParameterSetNew)
             return;
 
+        var defaultParameterStyle = CustomStyle is not null
+            ? CustomStyle
+            : GetStyle(Style);
+
         RegisterCompleter(CreateCommandCompleter(Name,
                                                  Description,
                                                  Aliases,
                                                  Parameters,
                                                  SubCommands,
-                                                 GetStyle(Style),
+                                                 defaultParameterStyle,
                                                  ArgumentCompleter,
                                                  NoFileCompletions,
                                                  DelegateArgumentIndex,

@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/11/2025
+ms.date: 12/19/2025
 PlatyPS schema version: 2024-05-01
 title: Register-NativeCompleter
 ---
@@ -22,8 +22,8 @@ Create and register a CommandCompleter object.
 ```
 Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
- [-ArgumentCompleter <scriptblock>] [-Style <CommandParameterStyle>] [-NoFileCompletions]
- [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [-Force] [<CommonParameters>]
+ [-ArgumentCompleter <scriptblock>] [-Style <CommandParameterStyle>] [-CustomStyle <ParameterStyle>]
+ [-NoFileCompletions] [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [-Force]
 ```
 
 ### Input
@@ -127,6 +127,28 @@ ParameterSets:
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -CustomStyle
+
+Sets a special non-standard parameter style.
+This setting is inherited by each parameter.
+
+```yaml
+Type: MT.Comp.ParameterStyle
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: New
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
