@@ -1,6 +1,10 @@
 # NativeCommandCompleter.psm
 PowerShell module for complete native command parameters and arguments
 
+Inspired by the fish shell's advanced completion features, this module dynamically loads completion definition scripts from specific directories for Unix-like shells such as bash, zsh, and fish.
+This approach ensures fast startup times.
+Additionally, the completions provided by this module are designed to have low priority, ensuring they do not interfere with custom completion scripts for specific commands.
+
 ## 🎥 Demo
 
 ![](./docs/demo/demo_0_dotnet_menucomplete.gif)
