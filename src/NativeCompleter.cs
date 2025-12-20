@@ -151,11 +151,14 @@ public static class NativeCompleter
         if (TryGetCommandCompleter(cmdName, scriptParameters, out var commandCompleter, out var loadResults))
         {
             var context = CompletionContext.Create(commandCompleter, wordToComplete, commandAst, cursorPosition, host, cwd);
+            LatestContext = context;
             return context.Complete();
         }
 
         return PSObjectsToCompletionResults(loadResults);
     }
+
+    public static CompletionContext? LatestContext { get; private set; }
 
     internal static IEnumerable<CompletionData> PSObjectsToCompletionData(IEnumerable<PSObject?> psobjects)
     {
