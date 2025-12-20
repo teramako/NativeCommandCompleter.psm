@@ -6,13 +6,13 @@ Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 $msg = data { ConvertFrom-StringData @'
     gnu_showAll            = Escape all unprintables
     gnu_numberNonblank     = Number non-blank lines
-    gnu_showExceptTab      = Escape unprintables except '\t'
+    gnu_showExceptTab      = Escape unprintables except '\\t'
     gnu_showEnds           = Display '$' at line end
     gnu_number             = Enumerate lines
     gnu_squeezeBlank       = Never >1 blank line
-    gnu_showExceptNl       = Escape unprintables except '\n'
+    gnu_showExceptNl       = Escape unprintables except '\\n'
     gnu_showTabs           = Escape tab
-    gnu_showExceptNlAndTab = Escape unprintables except '\n' and '\t'
+    gnu_showExceptNlAndTab = Escape unprintables except '\\n' and '\\t'
     gnu_help               = Display help and exit
     gnu_version            = Display version and exit
     macos_b                = Specify # of non-blank lines
