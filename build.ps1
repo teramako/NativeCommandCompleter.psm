@@ -28,8 +28,9 @@ $commonParam = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose'])
     @{ Verbose = $false }
 }
 
-$ModuleManifest = Test-ModuleManifest -Path $psmDir\NativeCommandCompleter.psm.psd1
-$tmpDir = "$PSScriptRoot\out\{0}" -f $ModuleManifest.Name
+$psdFile = Join-Path -Path $psmDir -ChildPath NativeCommandCompleter.psm.psd1
+$ModuleManifest = Test-ModuleManifest -Path $psdFile
+$tmpDir = Join-Path -Path $PSScriptRoot -ChildPath out, $ModuleManifest.Name
 
 function CreateDest()
 {
@@ -53,11 +54,12 @@ function CreateDest()
 
 function BuildMamlHelp()
 {
-    if (-not (Test-Path -Path "$psmDir/docs"))
+    $docsDir = Join-Path -Path $psmDir -ChildPath docs
+    if (-not (Test-Path -Path $docsDir))
     {
         return
     }
-    $cmdHelpFiles = Get-ChildItem -Recurse -Path "$psmDir/docs" -Include "*-*.md"
+    $cmdHelpFiles = Get-ChildItem -Recurse -Path $docsDir -Include "*-*.md"
     if ($cmdHelpFiles.Count -eq 0)
     {
         return
@@ -89,7 +91,8 @@ if ($CreateZip)
 {
     BuildMamlHelp
     $dir = CreateDest
-    $zipFile = "$PSScriptRoot\out\{0}-{1}.zip" -f $ModuleManifest.Name, $ModuleManifest.Version.ToString()
+    $zipFileName = "{0}-{1}.zip" -f $ModuleManifest.Name, $ModuleManifest.Version.ToString()
+    $zipFile = Join-Path -Path $PSScriptRoot -ChildPath out, $zipFileName
     Compress-Archive -Path $dir -DestinationPath $zipFile -PassThru -Force @commonParam
 }
 
