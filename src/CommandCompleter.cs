@@ -476,7 +476,7 @@ public class CommandCompleter
         foreach (var param in oldStyleParams)
         {
             var shortOptionPrefix = param.Style.ShortOptionPrefix;
-            if (prefixValue.Length < shortOptionPrefix.Length)
+            if (!prefixValue.StartsWith(shortOptionPrefix, StringComparison.Ordinal))
                 continue;
             foreach (ReadOnlySpan<char> name in param.OldStyleNames)
             {
