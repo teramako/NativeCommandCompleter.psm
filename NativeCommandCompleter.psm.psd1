@@ -97,6 +97,7 @@ FileList = @(
     'NativeCommandCompleter.psm.psd1'
     'NativeCommandCompleter.psm1'
     'libs/NativeCommandCompleter.dll'
+    'NativeCommandCompleter.dll-Help.xml'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
