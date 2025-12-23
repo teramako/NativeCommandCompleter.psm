@@ -26,7 +26,7 @@ public static class NativeCompleter
     /// </summary>
     public const string ENV_COMPLETER_PATH_NAME = "PS_COMPLETE_PATH";
 
-    internal static readonly Dictionary<string, CommandCompleter> _completers = new();
+    internal static readonly Dictionary<string, CommandCompleter> _completers = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Registered completers
