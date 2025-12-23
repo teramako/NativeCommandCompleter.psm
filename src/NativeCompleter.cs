@@ -31,7 +31,7 @@ public static class NativeCompleter
     /// <summary>
     /// Registered completers
     /// </summary>
-    public static ReadOnlyDictionary<string, CommandCompleter> Completers => _completers.AsReadOnly();
+    public static ReadOnlyDictionary<string, CommandCompleter> Completers { get; } = _completers.AsReadOnly();
 
     /// <summary>
     /// Find script file path from completion directories
