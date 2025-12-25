@@ -16,6 +16,9 @@ param(
     ,
     [Parameter(ParameterSetName = "Publish", Mandatory)]
     [switch] $Publish
+    ,
+    [Parameter()]
+    [switch] $IncludeCompletions
 )
 $ErrorActionPreference = 'Stop'
 
@@ -31,6 +34,7 @@ $commonParam = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose'])
 $psdFile = Join-Path -Path $psmDir -ChildPath NativeCommandCompleter.psm.psd1
 $ModuleManifest = Test-ModuleManifest -Path $psdFile
 $tmpDir = Join-Path -Path $PSScriptRoot -ChildPath out, $ModuleManifest.Name
+$compltionsDir = Join-Path -Path $PSScriptRoot -ChildPath completions
 
 function CreateDest()
 {
@@ -48,6 +52,10 @@ function CreateDest()
             $null = New-Item -ItemType Directory -Path $destDir @commonParam
         }
         Copy-Item -Path $filePath -Destination $destDir @commonParam
+    }
+    if ($IncludeCompletions)
+    {
+        Copy-Item -Destination $destDir -LiteralPath $compltionsDir -Recurse @commonParam
     }
     return $tmpDir
 }

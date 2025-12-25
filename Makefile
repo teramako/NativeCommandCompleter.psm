@@ -16,7 +16,7 @@ build: $(DLL) ## Build C# Projects
 
 .PHONY: build/zip
 build/zip: build ## Create Zip archived PowerShell module files
-	@$(PWSH) -File build.ps1 -CreateZip
+	@$(PWSH) -File build.ps1 -CreateZip -IncludeCompletions
 
 .PHONY: test
 test: build ## Build and Run tests
