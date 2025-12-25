@@ -62,6 +62,13 @@ public class CommandCompleter
 
     public Hashtable? Metadata { get; set; }
 
+    public override string ToString()
+    {
+        return string.IsNullOrEmpty(Description)
+            ? Name
+            : $"{Name} - {Description}";
+    }
+
     public void AddSubCommand(CommandCompleter subCommand)
     {
         _subCommands.Add(subCommand);
