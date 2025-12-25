@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Management.Automation;
 using System.Management.Automation.Host;
 using System.Management.Automation.Language;
@@ -11,12 +10,6 @@ internal record PendingParamCompleter(ParamCompleter Completer, string ParamName
 
 public sealed class CompletionContext
 {
-    [Conditional("DEBUG")]
-    private void Debug(string msg)
-    {
-        NativeCompleter.Messages.Add($"[{Name}] {msg}");
-    }
-
     public string Name { get; }
     public CommandCompleter CommandCompleter { get; }
 
@@ -128,7 +121,7 @@ public sealed class CompletionContext
     public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
     {
         CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, host, cwd);
-        NativeCompleter.Messages.Add($"[{context.Name}] Create CompletionContext");
+        NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
         int prevEndOffset = -1;
         Token? prevToken = null;
         for (var i = 1; i < ast.CommandElements.Count; i++)
@@ -190,12 +183,12 @@ public sealed class CompletionContext
         if (_boundParameters.TryGetValue(name, out var found))
         {
             found.Add(paramValue);
-            Debug($"[BoundParameter]: Added: '{name}', {paramValue}; (Count = {found.Count})");
+            NativeCompleter.Debug($"[{Name}] BoundParameter: Added: '{name}', {paramValue}; (Count = {found.Count})");
         }
         else
         {
             _boundParameters.Add(name, [paramValue]);
-            Debug($"[BoundParameter]: Added: '{name}', {paramValue} (New)");
+            NativeCompleter.Debug($"[{Name} BoundParameter: Added: '{name}', {paramValue} (New)");
         }
     }
 
@@ -211,7 +204,7 @@ public sealed class CompletionContext
 
     public IEnumerable<CompletionResult?> Complete()
     {
-        Debug($"Start Complete");
+        NativeCompleter.Debug($"[{Name}] Start Complete");
 
         string tokenValue = CurrentToken?.Value ?? string.Empty;
         int cursorPosition = CurrentToken?.Position ?? 0;
@@ -239,13 +232,13 @@ public sealed class CompletionContext
                         || completed;
         }
 
-        Debug($"Completed = {completed}, Count = {results.Count}");
+        NativeCompleter.Debug($"[{Name} Completed = {completed}, Count = {results.Count}");
         if (completed && results.Count == 0)
         {
             // Prevent fallback to filename completion
             return [null];
         }
-        Debug($"Build completion data");
+        NativeCompleter.Debug($"[{Name}] Build completion data");
         return results.Build(Host);
     }
 }

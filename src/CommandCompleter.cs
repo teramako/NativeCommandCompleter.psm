@@ -1,18 +1,11 @@
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Management.Automation;
 
 namespace MT.Comp;
 
 public class CommandCompleter
 {
-    [Conditional("DEBUG")]
-    private void Debug(string msg)
-    {
-        NativeCompleter.Messages.Add($"[{Name}]: {msg}");
-    }
-
     public CommandCompleter(string name,
                             string description = "",
                             ParameterStyle? defaultParameterStyle = null)
@@ -213,7 +206,7 @@ public class CommandCompleter
     /// <returns></returns>
     public CompletionContext ParseArguments(CompletionContext context)
     {
-        NativeCompleter.Messages.Add($"[{Name}] Build CompletionContext");
+        NativeCompleter.Debug($"[{context.Name}] Build CompletionContext");
 
         // Early return if no parameters to analyze
         if (SubCommands.Count == 0
@@ -369,7 +362,7 @@ public class CommandCompleter
                                     ReadOnlySpan<char> tokenValue,
                                     int cursorPosition)
     {
-        Debug($"Start CompleteLongParams('{tokenValue}', {cursorPosition})");
+        NativeCompleter.Debug($"[{context.Name}] Start CompleteLongParams('{tokenValue}', {cursorPosition})");
         var longParams = Params.Where(p => p.LongNames.Length > 0);
         foreach (var param in longParams.Where(p => p.Type != ArgumentType.Flag
                                                     && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
@@ -382,7 +375,7 @@ public class CommandCompleter
                 var separatorPosition = name.Length + optionPrefix.Length;
                 if (separatorPosition >= cursorPosition)
                     break;
-                Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
+                NativeCompleter.Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
                 param.CompleteValue(results,
                                     context,
                                     $"{name}",
@@ -422,7 +415,7 @@ public class CommandCompleter
                                                     listItemText,
                                                     tooltip));
                     completed = true;
-                    Debug($"    Added CompletionParam {{ '{text}{suffix}' }}");
+                    NativeCompleter.Debug($"    Added CompletionParam {{ '{text}{suffix}' }}");
                 }
             }
         }
@@ -444,7 +437,7 @@ public class CommandCompleter
                                         ReadOnlySpan<char> tokenValue,
                                         int cursorPosition)
     {
-        Debug($"Start CompleteOldStyleParams('{tokenValue}', {cursorPosition})");
+        NativeCompleter.Debug($"[{context.Name}] Start CompleteOldStyleParams('{tokenValue}', {cursorPosition})");
         var oldStyleParams = Params.Where(p => p.OldStyleNames.Length > 0);
         foreach (var param in oldStyleParams.Where(p => p.Type != ArgumentType.Flag
                                                         && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
@@ -457,7 +450,7 @@ public class CommandCompleter
                 var separatorPosition = name.Length + optionPrefix.Length;
                 if (separatorPosition >= cursorPosition)
                     break;
-                Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
+                NativeCompleter.Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
                 param.CompleteValue(results,
                                     context,
                                     $"{name}",
@@ -497,7 +490,7 @@ public class CommandCompleter
                                                     listItemText,
                                                     tooltip));
                     completed = true;
-                    Debug($"    Added CompletionParam {{ '{text}{suffix}' }}");
+                    NativeCompleter.Debug($"    Added CompletionParam {{ '{text}{suffix}' }}");
                 }
             }
         }
@@ -524,7 +517,7 @@ public class CommandCompleter
         //
         // attempt to complete parameter's value, and store parameter as candidates when not matched
         //
-        Debug($"ShortParam {{ tokenValue='{tokenValue}', position={offsetPosition} }}");
+        NativeCompleter.Debug($"[{context.Name}] ShortParam {{ tokenValue='{tokenValue}', position={offsetPosition} }}");
         foreach (var param in Params.Where(p => p.Style.HasShortOptionPrefix && p.ShortNames.Length > 0))
         {
             var optionPrefix = param.Style.ShortOptionPrefix;
@@ -533,7 +526,7 @@ public class CommandCompleter
             if (param.IsMatchShortParam(tokenValue[optionPrefix.Length..], out char paramChar, out int position))
             {
                 position += optionPrefix.Length;
-                Debug($"ShortParam Matched {{ '{paramChar}', {position} }}");
+                NativeCompleter.Debug($"  ShortParam Matched {{ '{paramChar}', {position} }}");
                 if (position < offsetPosition
                     && param.Type != ArgumentType.Flag)
                 {
@@ -635,17 +628,17 @@ public class CommandCompleter
             return NoFileCompletions;
         }
 
-        Debug($"CompleterArgument {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
+        NativeCompleter.Debug($"[{context.Name}] CompleterArgument {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
         Collection<PSObject?>? invokeResults = null;
         try
         {
-            Debug($"Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
+            NativeCompleter.Debug($"  Start Argument complete {{ '{tokenValue}', {cursorPosition}, {argumentIndex} }}");
             invokeResults = ArgumentCompleter.GetNewClosure()
                                              .InvokeWithContext(null,
                                                                 [new("_", tokenValue), new("this", context)],
                                                                 cursorPosition,
                                                                 argumentIndex);
-            Debug($"ArgumentCompleter results {{ count = {invokeResults.Count} }}");
+            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
         {
@@ -677,6 +670,7 @@ public class CommandCompleter
         if (Params.Count == 0)
             return false;
 
+        NativeCompleter.Debug($"[{context.Name}] CompleteAllParams {{ '{tokenValue}' }}");
         bool isEmpty = tokenValue.IsEmpty;
         char c = isEmpty ? default : tokenValue[0];
         foreach (var param in Params)
@@ -696,7 +690,6 @@ public class CommandCompleter
                 {param.Description}
                 """;
             results.Add(new CompletionParam(text, param.Description, listItemText, tooltip));
-            Debug($"CompleteAllParams {{ '{text}', '{listItemText}', '{tooltip}' }}");
         }
         return true;
     }

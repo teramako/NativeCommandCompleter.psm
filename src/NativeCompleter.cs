@@ -12,9 +12,9 @@ namespace MT.Comp;
 public static class NativeCompleter
 {
     [Conditional("DEBUG")]
-    private static void Debug(string msg)
+    internal static void Debug(string msg)
     {
-        Messages.Add($"Completer: {msg}");
+        Messages.Add(msg);
     }
     /// <summary>
     /// Debug messages

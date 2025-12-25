@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Text;
@@ -42,12 +41,6 @@ public enum ArgumentType
 
 public class ParamCompleter
 {
-    [Conditional("DEBUG")]
-    private void Debug(string msg)
-    {
-        NativeCompleter.Messages.Add(msg);
-    }
-
     /// <summary>
     /// Initialize a new instance of ParamCompleter class
     /// </summary>
@@ -415,7 +408,7 @@ public class ParamCompleter
     {
         if (Type.HasFlag(ArgumentType.List))
         {
-            Debug($"CompleteValue[List]: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
+            NativeCompleter.Debug($"[{context.Name}] CompleteValue[List]: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
             var commaCount = paramValue.Count(',');
             if (commaCount > 0)
             {
@@ -433,7 +426,7 @@ public class ParamCompleter
                     }
                 }
             }
-            Debug($"CompleteValue[List]: result = {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
+            NativeCompleter.Debug($"  CompleteValue[List]: result = {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
         }
 
         var tooltipPrefix = $"""
@@ -443,7 +436,7 @@ public class ParamCompleter
 
         if (Arguments.Length > 0)
         {
-            Debug($"CompleteValue[Arguments]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
+            NativeCompleter.Debug($"[{context.Name}] CompleteValue[Arguments]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
 
             foreach (ReadOnlySpan<char> value in Arguments)
             {
@@ -451,7 +444,7 @@ public class ParamCompleter
                 if (data.IsMatch(paramValue, ignoreCase: true))
                 {
                     results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
-                    Debug($"Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
+                    NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
                 }
             }
 
@@ -486,7 +479,7 @@ public class ParamCompleter
         {
             if (useFilenameCompletion)
             {
-                Debug($"CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}, prefix: '{prefix}' }}");
+                NativeCompleter.Debug($"[{context.Name}] CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}, prefix: '{prefix}' }}");
                 bool onlyDirectory = !Type.HasFlag(ArgumentType.File);
                 try
                 {
@@ -501,7 +494,7 @@ public class ParamCompleter
                 }
                 catch (Exception e)
                 {
-                    Debug($"CompleteValue[Filename]: [{e.GetType().Name}] {e.Message} }}");
+                    NativeCompleter.Debug($"  CompleteValue[Filename]: [{e.GetType().Name}] {e.Message} }}");
                 }
             }
             return true;
@@ -510,12 +503,12 @@ public class ParamCompleter
         Collection<PSObject?>? invokeResults = null;
         try
         {
-            Debug($"[{Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
+            NativeCompleter.Debug($"[{context.Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
             invokeResults = ArgumentCompleter.GetNewClosure()
                                              .InvokeWithContext(null,
                                                                 [new("_", $"{paramValue}"), new("this", context)],
                                                                 position);
-            Debug($"[{Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
+            NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
         {
