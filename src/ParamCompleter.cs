@@ -58,7 +58,7 @@ public class ParamCompleter
                           string variableName = "Val",
                           ParameterStyle? style = null)
     {
-        Name = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
+        Id = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
         if (type > 0 && !type.HasFlag(ArgumentType.FlagOrValue))
         {
@@ -75,7 +75,7 @@ public class ParamCompleter
         }
     }
 
-    public string Name { get; }
+    public string Id { get; }
 
     public ArgumentType Type { get; }
 

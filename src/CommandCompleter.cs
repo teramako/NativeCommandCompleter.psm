@@ -124,7 +124,7 @@ public class CommandCompleter
                 if (param.Type == ArgumentType.Flag
                     || (param.Type.HasFlag(ArgumentType.FlagOrValue) && paramValue.IsEmpty))
                 {
-                    context.AddBoundParameter(param.Name, true);
+                    context.AddBoundParameter(param.Id, true);
                 }
                 else if (paramValue.IsEmpty)
                 {
@@ -133,7 +133,7 @@ public class CommandCompleter
                         // `-param value ...|`
                         //                  ^ cursor
                         advancedCount = 1;
-                        context.AddBoundParameter(param.Name, context.Arguments[argumentIndex + advancedCount].Value);
+                        context.AddBoundParameter(param.Id, context.Arguments[argumentIndex + advancedCount].Value);
                     }
                     else
                     {
@@ -144,7 +144,7 @@ public class CommandCompleter
                 }
                 else
                 {
-                    context.AddBoundParameter(param.Name, $"{paramValue}");
+                    context.AddBoundParameter(param.Id, $"{paramValue}");
                 }
                 return true;
             }
@@ -175,7 +175,7 @@ public class CommandCompleter
 
             if (p.Type == ArgumentType.Flag)
             {
-                context.AddBoundParameter(p.Name, true);
+                context.AddBoundParameter(p.Id, true);
             }
             else if (i == inputValue.Length - 1)
             {
@@ -186,7 +186,7 @@ public class CommandCompleter
                     //       i
                     // the argument of `c` param is supplied
                     advancedCount = 1;
-                    context.AddBoundParameter(p.Name, context.Arguments[argumentIndex + advancedCount].Value);
+                    context.AddBoundParameter(p.Id, context.Arguments[argumentIndex + advancedCount].Value);
                 }
                 else
                 {
@@ -199,7 +199,7 @@ public class CommandCompleter
             }
             else
             {
-                context.AddBoundParameter(p.Name, $"{inputValue[(i + 1)..]}");
+                context.AddBoundParameter(p.Id, $"{inputValue[(i + 1)..]}");
             }
             return true;
         }
@@ -382,7 +382,7 @@ public class CommandCompleter
                 var separatorPosition = name.Length + optionPrefix.Length;
                 if (separatorPosition >= cursorPosition)
                     break;
-                NativeCompleter.Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
+                NativeCompleter.Debug($"  Matched Param {{ Id='{param.Id}', name='{name}', value='{value}' }}");
                 param.CompleteValue(results,
                                     context,
                                     $"{name}",
@@ -457,7 +457,7 @@ public class CommandCompleter
                 var separatorPosition = name.Length + optionPrefix.Length;
                 if (separatorPosition >= cursorPosition)
                     break;
-                NativeCompleter.Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
+                NativeCompleter.Debug($"  Matched Param {{ Id='{param.Id}', name='{name}', value='{value}' }}");
                 param.CompleteValue(results,
                                     context,
                                     $"{name}",
