@@ -8,6 +8,10 @@ public class NewParamCompleterCommand : Cmdlet
 {
     private const string MessageBaseName = "MT.Comp.resources.ParamCompleter";
 
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "StandardName")]
+    [Alias("Name", "n")]
+    public string[] StandardName { get; set; } = [];
+
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "LongName")]
     [Alias("l")]
     public string[] LongName { get; set; } = [];
@@ -15,10 +19,6 @@ public class NewParamCompleterCommand : Cmdlet
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ShortName")]
     [Alias("s")]
     public char[] ShortName { get; set; } = [];
-
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "OldStyleName")]
-    [Alias("o")]
-    public string[] OldStyleName { get; set; } = [];
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Description")]
     [Alias("d")]
@@ -46,7 +46,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void BeginProcessing()
     {
-        if (LongName.Length == 0 && OldStyleName.Length == 0 && ShortName.Length == 0)
+        if (StandardName.Length == 0 && LongName.Length == 0 && ShortName.Length == 0)
         {
             ThrowTerminatingError(new ErrorRecord(
                 new ArgumentException(GetResourceString(MessageBaseName, "Error.NotSpecifiedAnyParameterNames")),
@@ -64,7 +64,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new(Type, LongName, OldStyleName, ShortName, VariableName, Style)
+        ParamCompleter completer = new(Type, StandardName, LongName, ShortName, VariableName, Style)
         {
             Description = Description ?? string.Empty,
             Arguments = Arguments,

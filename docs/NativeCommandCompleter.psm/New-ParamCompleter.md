@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/10/2025
+ms.date: 12/27/2025
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
 ---
@@ -20,24 +20,24 @@ Create a parameter's completer.
 ### Default (Default)
 
 ```
-New-ParamCompleter [-LongName <string[]>] [-ShortName <char[]>] [-OldStyleName <string[]>]
+New-ParamCompleter [-StandardName <string[]>] [-LongName <string[]>] [-ShortName <char[]>]
  [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>]
 ```
 
 ### WithArguments
 
 ```
-New-ParamCompleter -Arguments <string[]> [-LongName <string[]>] [-ShortName <char[]>]
- [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
+New-ParamCompleter -Arguments <string[]> [-StandardName <string[]>] [-LongName <string[]>]
+ [-ShortName <char[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
  [-Style <ParameterStyle>]
 ```
 
 ### WithArgumentCompleter
 
 ```
-New-ParamCompleter -ArgumentCompleter <scriptblock> [-LongName <string[]>] [-ShortName <char[]>]
- [-OldStyleName <string[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
- [-Style <ParameterStyle>]
+New-ParamCompleter -ArgumentCompleter <scriptblock> [-StandardName <string[]>]
+ [-LongName <string[]>] [-ShortName <char[]>] [-Description <string>] [-Type <ArgumentType>]
+ [-VariableName <string>] [-Style <ParameterStyle>]
 ```
 
 ## ALIASES
@@ -156,34 +156,15 @@ HelpMessage: ''
 
 GNU-style's long parameter names.
 
+Unless you apply a special `Style`, specify the name without the prefix (`--`).
+If the parameter is `--verbose`, specify `verbose`.
+
 ```yaml
 Type: System.String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - l
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -OldStyleName
-
-Old-style short or long parameter names.
-
-```yaml
-Type: System.String[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- o
 ParameterSets:
 - Name: (All)
   Position: Named
@@ -206,6 +187,32 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - s
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -StandardName
+
+Standard parameter names.
+
+Unless you apply a special `Style`, specify the name without the prefix (`-` or `/`).
+If the parameter is `-name`, specify `name`.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Name
+- n
 ParameterSets:
 - Name: (All)
   Position: Named
@@ -288,7 +295,7 @@ This parameter value does not affect the operation. It is only used to display t
 
 ```yaml
 Type: System.String
-DefaultValue: 'Val'
+DefaultValue: Val
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -322,5 +329,5 @@ Created a parameter completer object.
 
 ## RELATED LINKS
 
-- [Register-NativeCompleter](./Register-NativeCompleter.md)
-- [New-CommandCompleter](./New-CommandCompleter.md)
+- [Register-NativeCompleter](Register-NativeCompleter.md)
+- [New-CommandCompleter](New-CommandCompleter.md)

@@ -45,21 +45,21 @@ public class ParamCompleter
     /// Initialize a new instance of ParamCompleter class
     /// </summary>
     /// <param name="type"></param>
-    /// <param name="longNames"></param>
     /// <param name="standardNames"></param>
+    /// <param name="longNames"></param>
     /// <param name="shortNames"></param>
     /// <param name="variableName"></param>
     /// <param name="style"></param>
     /// <exception cref="ArgumentException"></exception>
     public ParamCompleter(ArgumentType type,
-                          string[] longNames,
                           string[] standardNames,
+                          string[] longNames,
                           char[] shortNames,
                           string variableName = "Val",
                           ParameterStyle? style = null)
     {
         Id = longNames.Union(standardNames).Union(shortNames.Select(c => $"{c}")).First()
-            ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
+            ?? throw new ArgumentException("At least one of 'StandardName', 'LongName', or 'ShortName' must be specified");
         if (type > 0 && !type.HasFlag(ArgumentType.FlagOrValue))
         {
             type |= ArgumentType.Required;

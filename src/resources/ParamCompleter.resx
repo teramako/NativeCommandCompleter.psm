@@ -12,25 +12,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="StandardName" xml:space="preserve">
+    <value>Standard parameter name(s).</value>
+  </data>
   <data name="LongName" xml:space="preserve">
     <value>GNU-style's long parameter name(s).</value>
   </data>
   <data name="ShortName" xml:space="preserve">
     <value>GNU-style's short parameter name(s).</value>
   </data>
-  <data name="OldStyleName" xml:space="preserve">
-    <value>Old-style short or long parameter name(s).</value>
-  </data>
   <data name="Description" xml:space="preserve">
     <value>Description for the parameter.</value>
   </data>
   <data name="ArgumentType" xml:space="preserve">
     <value>Parametesr's type(s) for completion.
-           Availables: [Flag|FlagOrValue|Required|File|Directory|List]</value>
+Availables: [Flag | FlagOrValue | Required | File | Directory | List]</value>
   </data>
   <data name="Arguments" xml:space="preserve">
     <value>Completion candidates for the parameter arguments.
-           Can define completion text and its description, separated by a tab (\t) or newline (\n, \r).</value>
+Can define completion text and its description, separated by a tab (\t) or newline (\n, \r).</value>
   </data>
   <data name="ArgumentCompleter" xml:space="preserve">
     <value>ScriptBlock that returns completion candidates for the parameter arguments.</value>
@@ -44,6 +44,6 @@ If ommited, inhertes from the parent CommandCompleter's style.
 </value>
   </data>
   <data name="Error.NotSpecifiedAnyParameterNames" xml:space="preserve">
-    <value>At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified.</value>
+    <value>At least one of 'StarndardName', 'LongName' or 'ShortName' must be specified.</value>
   </data>
 </root>
