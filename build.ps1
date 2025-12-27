@@ -35,16 +35,22 @@ $psdFile = Join-Path -Path $psmDir -ChildPath NativeCommandCompleter.psm.psd1
 $ModuleManifest = Test-ModuleManifest -Path $psdFile
 $tmpDir = Join-Path -Path $PSScriptRoot -ChildPath out, $ModuleManifest.Name
 $compltionsDir = Join-Path -Path $PSScriptRoot -ChildPath completions
-$helpFile = Join-Path -Path $PSScriptRoot -ChildPath 'NativeCommandCompleter.dll-Help.xml'
 
-function CreateDest()
+function CreateDest
 {
+    param(
+        [Parameter()]
+        [string[]] $HelpFile = @()
+        ,
+        [Parameter()]
+        [string[]] $AddtionalDirectory = @()
+    )
     if (Test-Path -Path $tmpDir -PathType Container)
     {
         Remove-Item -Recurse $tmpDir @commonParam
     }
     $null = New-Item -Path $tmpDir -ItemType Directory
-    $ModuleManifest.FileList | ForEach-Object {
+    $ModuleManifest.FileList + $HelpFile | ForEach-Object {
         $filePath = Resolve-Path -Path $_ -Relative -RelativeBasePath $psmDir
         $destFile = [System.IO.FileInfo]::new((Join-Path -Path $tmpDir -ChildPath $filePath));
         $destDir = $destFile.Directory
@@ -54,19 +60,20 @@ function CreateDest()
         }
         Copy-Item -Path $filePath -Destination $destDir @commonParam
     }
-    if (Test-Path -Path $helpFile)
+    if ($AddtionalDirectory.Count -gt 0)
     {
-        Copy-Item -Destination $destDir -LiteralPath $helpFile @commonParam
-    }
-    if ($IncludeCompletions)
-    {
-        Copy-Item -Destination $destDir -LiteralPath $compltionsDir -Recurse @commonParam
+        $AddtionalDirectory | ForEach-Object {
+            Copy-Item -Destination $destDir -LiteralPath $_ -Recurse @commonParam
+        }
     }
     return $tmpDir
 }
 
-function BuildMamlHelp()
+function BuildMamlHelp
 {
+    [OutputType([System.IO.FileInfo])]
+    param()
+
     $docsDir = Join-Path -Path $psmDir -ChildPath docs
     if (-not (Test-Path -Path $docsDir))
     {
@@ -88,7 +95,7 @@ function BuildMamlHelp()
                 default { Join-Path -Path $psmDir -ChildPath $name }
             }
             $_.Group | Export-MamlCommandHelp -OutputFolder $dir @commonParam | ForEach-Object {
-                Move-Item -Path $_ -Destination $dir -Force @commonParam
+                Move-Item -Path $_ -Destination $dir -Force @commonParam -PassThru
             }
             $modules | ForEach-Object {
                 $moduleDir = Join-Path -Path $dir -ChildPath $_
@@ -102,8 +109,9 @@ function BuildMamlHelp()
 
 if ($CreateZip)
 {
-    BuildMamlHelp
-    $dir = CreateDest
+    $helpFiles = BuildMamlHelp
+    $additionalDir = if ($IncludeCompletions) { $compltionsDir } else { @() }
+    $dir = CreateDest -HelpFile $helpFiles -AddtionalDirectory $additionalDir
     $zipFileName = "{0}-{1}.zip" -f $ModuleManifest.Name, $ModuleManifest.Version.ToString()
     $zipFile = Join-Path -Path $PSScriptRoot -ChildPath out, $zipFileName
     Compress-Archive -Path $dir -DestinationPath $zipFile -PassThru -Force @commonParam
@@ -114,8 +122,9 @@ if ($Publish)
     $userName = if ($IsWindows) { $env:USERNAME } else { $env:USER }
     $nugetCredential = Get-Credential -Title "Nuget ApiKey" -UserName $userName
 
-    BuildMamlHelp
-    $dir = CreateDest
+    $helpFiles = BuildMamlHelp
+    $additionalDir = if ($IncludeCompletions) { $compltionsDir } else { @() }
+    $dir = CreateDest -HelpFile $helpFiles -AddtionalDirectory $additionalDir
 
     Publish-Module `
         -Path $dir `
