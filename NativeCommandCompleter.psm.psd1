@@ -118,7 +118,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'https://github.com/teramako/NativeCommandCompleter.psm/releases'
 
         # Prerelease string of this module
         # Prerelease = ''
