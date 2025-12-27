@@ -20,7 +20,7 @@ Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyCon
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 Register-NativeCompleter -Name ipconfig -Style Windows -Parameters @(
-    New-ParamCompleter -OldStyleName allcompartments
+    New-ParamCompleter -Name allcompartments
 ) -SubCommands @(
     New-CommandCompleter -Name '/all' -Description $msg.all -NoFileCompletions
     New-CommandCompleter -Name '/displaydns' -Description $msg.displaydns -NoFileCompletions

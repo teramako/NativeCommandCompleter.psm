@@ -47,12 +47,12 @@ Register-NativeCompleter -Name unzip -Parameters @(
     New-ParamCompleter -ShortName n -Description $msg.never_overwrite
     New-ParamCompleter -ShortName o -Description $msg.overwrite
     New-ParamCompleter -ShortName q -Description $msg.quiet
-    New-ParamCompleter -OldStyleName qq -Description $msg.quieter
+    New-ParamCompleter -Name qq -Description $msg.quieter
     New-ParamCompleter -ShortName a -Description $msg.ascii
     New-ParamCompleter -ShortName U -Description $msg.unicode
-    New-ParamCompleter -OldStyleName UU -Description $msg.ignore_unicode
+    New-ParamCompleter -Name UU -Description $msg.ignore_unicode
     New-ParamCompleter -ShortName j -Description $msg.junk_paths
-    New-ParamCompleter -OldStyleName aa -Description $msg.all_ascii
+    New-ParamCompleter -Name aa -Description $msg.all_ascii
     New-ParamCompleter -ShortName C -Description $msg.case_insensitive
     New-ParamCompleter -ShortName L -Description $msg.to_lower_case
     New-ParamCompleter -ShortName X -Description $msg.restore_owner_info

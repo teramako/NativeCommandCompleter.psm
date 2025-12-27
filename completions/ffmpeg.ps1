@@ -111,134 +111,134 @@ foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key
 
 Register-NativeCompleter -Name ffmpeg -Description $msg.ffmpeg -Style Unix -Parameters @(
     # Main options
-    New-ParamCompleter -OldStyleName f -Description $msg.format -Type Required -VariableName 'fmt'
-    New-ParamCompleter -OldStyleName i -Description $msg.input_file -Type File -VariableName 'input'
-    New-ParamCompleter -OldStyleName y -Description $msg.overwrite
-    New-ParamCompleter -OldStyleName n -Description $msg.no_overwrite
+    New-ParamCompleter -Name f -Description $msg.format -Type Required -VariableName 'fmt'
+    New-ParamCompleter -Name i -Description $msg.input_file -Type File -VariableName 'input'
+    New-ParamCompleter -Name y -Description $msg.overwrite
+    New-ParamCompleter -Name n -Description $msg.no_overwrite
     
     # Codec options
-    New-ParamCompleter -OldStyleName c -Description $msg.codec -Type Required -VariableName 'codec'
-    New-ParamCompleter -OldStyleName codec -Description $msg.codec -Type Required -VariableName 'codec'
-    New-ParamCompleter -OldStyleName acodec -Description $msg.acodec -Type Required -VariableName 'codec'
-    New-ParamCompleter -OldStyleName vcodec -Description $msg.vcodec -Type Required -VariableName 'codec'
-    New-ParamCompleter -OldStyleName scodec -Description $msg.scodec -Type Required -VariableName 'codec'
-    New-ParamCompleter -OldStyleName dcodec -Description $msg.dcodec -Type Required -VariableName 'codec'
+    New-ParamCompleter -Name c -Description $msg.codec -Type Required -VariableName 'codec'
+    New-ParamCompleter -Name codec -Description $msg.codec -Type Required -VariableName 'codec'
+    New-ParamCompleter -Name acodec -Description $msg.acodec -Type Required -VariableName 'codec'
+    New-ParamCompleter -Name vcodec -Description $msg.vcodec -Type Required -VariableName 'codec'
+    New-ParamCompleter -Name scodec -Description $msg.scodec -Type Required -VariableName 'codec'
+    New-ParamCompleter -Name dcodec -Description $msg.dcodec -Type Required -VariableName 'codec'
     
     # Bitrate options
-    New-ParamCompleter -OldStyleName b -Description $msg.bitrate -Type Required -VariableName 'bitrate'
-    New-ParamCompleter -OldStyleName ab -Description $msg.bitrate_audio -Type Required -VariableName 'bitrate'
-    New-ParamCompleter -OldStyleName vb -Description $msg.bitrate_video -Type Required -VariableName 'bitrate'
+    New-ParamCompleter -Name b -Description $msg.bitrate -Type Required -VariableName 'bitrate'
+    New-ParamCompleter -Name ab -Description $msg.bitrate_audio -Type Required -VariableName 'bitrate'
+    New-ParamCompleter -Name vb -Description $msg.bitrate_video -Type Required -VariableName 'bitrate'
     
     # Filter options
-    New-ParamCompleter -OldStyleName filter -Description $msg.filter -Type Required -VariableName 'filtergraph'
-    New-ParamCompleter -OldStyleName af -Description $msg.filter_audio -Type Required -VariableName 'filtergraph'
-    New-ParamCompleter -OldStyleName vf -Description $msg.filter_video -Type Required -VariableName 'filtergraph'
-    New-ParamCompleter -OldStyleName filter_complex -Description $msg.filter_complex -Type Required -VariableName 'filtergraph'
+    New-ParamCompleter -Name filter -Description $msg.filter -Type Required -VariableName 'filtergraph'
+    New-ParamCompleter -Name af -Description $msg.filter_audio -Type Required -VariableName 'filtergraph'
+    New-ParamCompleter -Name vf -Description $msg.filter_video -Type Required -VariableName 'filtergraph'
+    New-ParamCompleter -Name filter_complex -Description $msg.filter_complex -Type Required -VariableName 'filtergraph'
     
     # Frame options
-    New-ParamCompleter -OldStyleName frames -Description $msg.frames -Type Required -VariableName 'number'
-    New-ParamCompleter -OldStyleName r -Description $msg.frame_rate -Type Required -VariableName 'rate'
-    New-ParamCompleter -OldStyleName s -Description $msg.video_size -Type Required -VariableName 'size'
-    New-ParamCompleter -OldStyleName aspect -Description $msg.aspect_ratio -Type Required -VariableName 'aspect'
-    New-ParamCompleter -OldStyleName pix_fmt -Description $msg.pixel_format -Type Required -VariableName 'format'
+    New-ParamCompleter -Name frames -Description $msg.frames -Type Required -VariableName 'number'
+    New-ParamCompleter -Name r -Description $msg.frame_rate -Type Required -VariableName 'rate'
+    New-ParamCompleter -Name s -Description $msg.video_size -Type Required -VariableName 'size'
+    New-ParamCompleter -Name aspect -Description $msg.aspect_ratio -Type Required -VariableName 'aspect'
+    New-ParamCompleter -Name pix_fmt -Description $msg.pixel_format -Type Required -VariableName 'format'
     
     # Audio options
-    New-ParamCompleter -OldStyleName ar -Description $msg.sample_rate -Type Required -VariableName 'rate'
-    New-ParamCompleter -OldStyleName ac -Description $msg.channels -Type Required -VariableName 'channels'
-    New-ParamCompleter -OldStyleName sample_fmt -Description $msg.sample_format -Type Required -VariableName 'format'
-    New-ParamCompleter -OldStyleName channel_layout -Description $msg.channel_layout -Type Required -VariableName 'layout'
+    New-ParamCompleter -Name ar -Description $msg.sample_rate -Type Required -VariableName 'rate'
+    New-ParamCompleter -Name ac -Description $msg.channels -Type Required -VariableName 'channels'
+    New-ParamCompleter -Name sample_fmt -Description $msg.sample_format -Type Required -VariableName 'format'
+    New-ParamCompleter -Name channel_layout -Description $msg.channel_layout -Type Required -VariableName 'layout'
     
     # Quality options
-    New-ParamCompleter -OldStyleName q -Description $msg.quality -Type Required -VariableName 'quality'
-    New-ParamCompleter -OldStyleName qscale -Description $msg.quality -Type Required -VariableName 'quality'
+    New-ParamCompleter -Name q -Description $msg.quality -Type Required -VariableName 'quality'
+    New-ParamCompleter -Name qscale -Description $msg.quality -Type Required -VariableName 'quality'
     
     # Time options
-    New-ParamCompleter -OldStyleName ss -Description $msg.start_time -Type Required -VariableName 'position'
-    New-ParamCompleter -OldStyleName t -Description $msg.duration -Type Required -VariableName 'duration'
-    New-ParamCompleter -OldStyleName to -Description $msg.duration -Type Required -VariableName 'position'
-    New-ParamCompleter -OldStyleName timestamp -Description $msg.timestamp -Type Required -VariableName 'date'
+    New-ParamCompleter -Name ss -Description $msg.start_time -Type Required -VariableName 'position'
+    New-ParamCompleter -Name t -Description $msg.duration -Type Required -VariableName 'duration'
+    New-ParamCompleter -Name to -Description $msg.duration -Type Required -VariableName 'position'
+    New-ParamCompleter -Name timestamp -Description $msg.timestamp -Type Required -VariableName 'date'
     
     # Metadata options
-    New-ParamCompleter -OldStyleName metadata -Description $msg.metadata -Type Required -VariableName 'key=value'
-    New-ParamCompleter -OldStyleName disposition -Description $msg.disposition -Type Required -VariableName 'value'
-    New-ParamCompleter -OldStyleName program -Description $msg.program -Type Required -VariableName 'title=program'
+    New-ParamCompleter -Name metadata -Description $msg.metadata -Type Required -VariableName 'key=value'
+    New-ParamCompleter -Name disposition -Description $msg.disposition -Type Required -VariableName 'value'
+    New-ParamCompleter -Name program -Description $msg.program -Type Required -VariableName 'title=program'
     
     # Stream selection
-    New-ParamCompleter -OldStyleName map -Description $msg.map -Type Required -VariableName 'stream'
-    New-ParamCompleter -OldStyleName map_chapters -Description $msg.map_chapters -Type Required -VariableName 'input'
-    New-ParamCompleter -OldStyleName map_metadata -Description $msg.map_metadata -Type Required -VariableName 'spec'
+    New-ParamCompleter -Name map -Description $msg.map -Type Required -VariableName 'stream'
+    New-ParamCompleter -Name map_chapters -Description $msg.map_chapters -Type Required -VariableName 'input'
+    New-ParamCompleter -Name map_metadata -Description $msg.map_metadata -Type Required -VariableName 'spec'
     
     # Stream disable
-    New-ParamCompleter -OldStyleName an -Description $msg.an
-    New-ParamCompleter -OldStyleName vn -Description $msg.vn
-    New-ParamCompleter -OldStyleName sn -Description $msg.sn
-    New-ParamCompleter -OldStyleName dn -Description $msg.dn
+    New-ParamCompleter -Name an -Description $msg.an
+    New-ParamCompleter -Name vn -Description $msg.vn
+    New-ParamCompleter -Name sn -Description $msg.sn
+    New-ParamCompleter -Name dn -Description $msg.dn
     
     # Advanced options
-    New-ParamCompleter -OldStyleName threads -Description $msg.threads -Type Required -VariableName 'count'
-    New-ParamCompleter -OldStyleName preset -Description $msg.preset -Type Required -VariableName 'preset'
-    New-ParamCompleter -OldStyleName target -Description $msg.target -Type Required -VariableName 'type'
-    New-ParamCompleter -OldStyleName pass -Description $msg.pass -Type Required -VariableName 'n'
-    New-ParamCompleter -OldStyleName passlogfile -Description $msg.passlogfile -Type File -VariableName 'prefix'
-    New-ParamCompleter -OldStyleName shortest -Description $msg.shortest
-    New-ParamCompleter -OldStyleName accurate_seek -Description $msg.accurate_seek
-    New-ParamCompleter -OldStyleName seek_timestamp -Description $msg.seek_timestamp
-    New-ParamCompleter -OldStyleName thread_queue_size -Description $msg.thread_queue_size -Type Required -VariableName 'size'
-    New-ParamCompleter -OldStyleName stream_loop -Description $msg.stream_loop -Type Required -VariableName 'count'
-    New-ParamCompleter -OldStyleName loop -Description $msg.loop_output -Type Required -VariableName 'count'
+    New-ParamCompleter -Name threads -Description $msg.threads -Type Required -VariableName 'count'
+    New-ParamCompleter -Name preset -Description $msg.preset -Type Required -VariableName 'preset'
+    New-ParamCompleter -Name target -Description $msg.target -Type Required -VariableName 'type'
+    New-ParamCompleter -Name pass -Description $msg.pass -Type Required -VariableName 'n'
+    New-ParamCompleter -Name passlogfile -Description $msg.passlogfile -Type File -VariableName 'prefix'
+    New-ParamCompleter -Name shortest -Description $msg.shortest
+    New-ParamCompleter -Name accurate_seek -Description $msg.accurate_seek
+    New-ParamCompleter -Name seek_timestamp -Description $msg.seek_timestamp
+    New-ParamCompleter -Name thread_queue_size -Description $msg.thread_queue_size -Type Required -VariableName 'size'
+    New-ParamCompleter -Name stream_loop -Description $msg.stream_loop -Type Required -VariableName 'count'
+    New-ParamCompleter -Name loop -Description $msg.loop_output -Type Required -VariableName 'count'
     
     # Sync options
-    New-ParamCompleter -OldStyleName vsync -Description $msg.video_sync -Type Required -VariableName 'method'
-    New-ParamCompleter -OldStyleName async -Description $msg.audio_sync -Type Required -VariableName 'samples'
+    New-ParamCompleter -Name vsync -Description $msg.video_sync -Type Required -VariableName 'method'
+    New-ParamCompleter -Name async -Description $msg.audio_sync -Type Required -VariableName 'samples'
     
     # Format options
-    New-ParamCompleter -OldStyleName fmt -Description $msg.input_format -Type Required -VariableName 'format'
+    New-ParamCompleter -Name fmt -Description $msg.input_format -Type Required -VariableName 'format'
     
     # Statistics and logging
-    New-ParamCompleter -OldStyleName stats -Description $msg.stats
-    New-ParamCompleter -OldStyleName progress -Description $msg.progress -Type Required -VariableName 'url'
-    New-ParamCompleter -OldStyleName stdin -Description $msg.stdin
-    New-ParamCompleter -OldStyleName debug -Description $msg.debug -Type Required -VariableName 'flags'
-    New-ParamCompleter -OldStyleName loglevel -Description $msg.loglevel -Type Required -VariableName 'level'
-    New-ParamCompleter -OldStyleName report -Description $msg.report
-    New-ParamCompleter -OldStyleName vstats -Description $msg.vstats
-    New-ParamCompleter -OldStyleName vstats_file -Description $msg.vstats_file -Type File -VariableName 'file'
-    New-ParamCompleter -OldStyleName vstats_version -Description $msg.vstats_version -Type Required -VariableName 'version'
+    New-ParamCompleter -Name stats -Description $msg.stats
+    New-ParamCompleter -Name progress -Description $msg.progress -Type Required -VariableName 'url'
+    New-ParamCompleter -Name stdin -Description $msg.stdin
+    New-ParamCompleter -Name debug -Description $msg.debug -Type Required -VariableName 'flags'
+    New-ParamCompleter -Name loglevel -Description $msg.loglevel -Type Required -VariableName 'level'
+    New-ParamCompleter -Name report -Description $msg.report
+    New-ParamCompleter -Name vstats -Description $msg.vstats
+    New-ParamCompleter -Name vstats_file -Description $msg.vstats_file -Type File -VariableName 'file'
+    New-ParamCompleter -Name vstats_version -Description $msg.vstats_version -Type Required -VariableName 'version'
     
     # Benchmark options
-    New-ParamCompleter -OldStyleName benchmark -Description $msg.benchmark
-    New-ParamCompleter -OldStyleName benchmark_all -Description $msg.benchmark_all
-    New-ParamCompleter -OldStyleName timelimit -Description $msg.timelimit -Type Required -VariableName 'duration'
+    New-ParamCompleter -Name benchmark -Description $msg.benchmark
+    New-ParamCompleter -Name benchmark_all -Description $msg.benchmark_all
+    New-ParamCompleter -Name timelimit -Description $msg.timelimit -Type Required -VariableName 'duration'
     
     # Debug options
-    New-ParamCompleter -OldStyleName dump -Description $msg.dump
-    New-ParamCompleter -OldStyleName hex -Description $msg.hex
+    New-ParamCompleter -Name dump -Description $msg.dump
+    New-ParamCompleter -Name hex -Description $msg.hex
     
     # Other options
-    New-ParamCompleter -OldStyleName re -Description $msg.re
-    New-ParamCompleter -OldStyleName stream_group -Description $msg.stream_group -Type Required -VariableName 'spec'
-    New-ParamCompleter -OldStyleName max_alloc -Description $msg.max_alloc -Type Required -VariableName 'bytes'
-    New-ParamCompleter -OldStyleName cpuflags -Description $msg.cpuflags -Type Required -VariableName 'flags'
-    New-ParamCompleter -OldStyleName cpucount -Description $msg.cpucount -Type Required -VariableName 'count'
+    New-ParamCompleter -Name re -Description $msg.re
+    New-ParamCompleter -Name stream_group -Description $msg.stream_group -Type Required -VariableName 'spec'
+    New-ParamCompleter -Name max_alloc -Description $msg.max_alloc -Type Required -VariableName 'bytes'
+    New-ParamCompleter -Name cpuflags -Description $msg.cpuflags -Type Required -VariableName 'flags'
+    New-ParamCompleter -Name cpucount -Description $msg.cpucount -Type Required -VariableName 'count'
     
     # Display options
-    New-ParamCompleter -OldStyleName hide_banner -Description $msg.hide_banner
-    New-ParamCompleter -OldStyleName h -Description $msg.help -Type FlagOrValue -VariableName 'topic'
-    New-ParamCompleter -OldStyleName version -Description $msg.version
-    New-ParamCompleter -OldStyleName formats -Description $msg.formats
-    New-ParamCompleter -OldStyleName devices -Description $msg.devices
-    New-ParamCompleter -OldStyleName codecs -Description $msg.codecs
-    New-ParamCompleter -OldStyleName decoders -Description $msg.decoders
-    New-ParamCompleter -OldStyleName encoders -Description $msg.encoders
-    New-ParamCompleter -OldStyleName bsfs -Description $msg.bsfs
-    New-ParamCompleter -OldStyleName protocols -Description $msg.protocols
-    New-ParamCompleter -OldStyleName filters -Description $msg.filters
-    New-ParamCompleter -OldStyleName pix_fmts -Description $msg.pix_fmts
-    New-ParamCompleter -OldStyleName layouts -Description $msg.layouts
-    New-ParamCompleter -OldStyleName sample_fmts -Description $msg.sample_fmts
-    New-ParamCompleter -OldStyleName dispositions -Description $msg.dispositions
-    New-ParamCompleter -OldStyleName colors -Description $msg.colors
-    New-ParamCompleter -OldStyleName sources -Description $msg.sources -Type Required -VariableName 'device'
-    New-ParamCompleter -OldStyleName sinks -Description $msg.sinks -Type Required -VariableName 'device'
-    New-ParamCompleter -OldStyleName hwaccels -Description $msg.hwaccels
+    New-ParamCompleter -Name hide_banner -Description $msg.hide_banner
+    New-ParamCompleter -Name h -Description $msg.help -Type FlagOrValue -VariableName 'topic'
+    New-ParamCompleter -Name version -Description $msg.version
+    New-ParamCompleter -Name formats -Description $msg.formats
+    New-ParamCompleter -Name devices -Description $msg.devices
+    New-ParamCompleter -Name codecs -Description $msg.codecs
+    New-ParamCompleter -Name decoders -Description $msg.decoders
+    New-ParamCompleter -Name encoders -Description $msg.encoders
+    New-ParamCompleter -Name bsfs -Description $msg.bsfs
+    New-ParamCompleter -Name protocols -Description $msg.protocols
+    New-ParamCompleter -Name filters -Description $msg.filters
+    New-ParamCompleter -Name pix_fmts -Description $msg.pix_fmts
+    New-ParamCompleter -Name layouts -Description $msg.layouts
+    New-ParamCompleter -Name sample_fmts -Description $msg.sample_fmts
+    New-ParamCompleter -Name dispositions -Description $msg.dispositions
+    New-ParamCompleter -Name colors -Description $msg.colors
+    New-ParamCompleter -Name sources -Description $msg.sources -Type Required -VariableName 'device'
+    New-ParamCompleter -Name sinks -Description $msg.sinks -Type Required -VariableName 'device'
+    New-ParamCompleter -Name hwaccels -Description $msg.hwaccels
 )

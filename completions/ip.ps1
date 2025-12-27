@@ -141,33 +141,33 @@ $familyArguments = @(
 )
 
 Register-NativeCompleter -Name ip -Description $msg.ip -Style Unix -Parameters @(
-    New-ParamCompleter -OldStyleName Version, V -Description $msg._version
-    New-ParamCompleter -OldStyleName human-readable, human, h -Description $msg._humanReadable
-    New-ParamCompleter -OldStyleName batch, b -Description $msg._batch -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName force -Description $msg._force
-    New-ParamCompleter -OldStyleName statistics, stats, s -Description $msg._stats
-    New-ParamCompleter -OldStyleName details, d -Description $msg._details
-    New-ParamCompleter -OldStyleName loops -Description $msg._loops -Type Required -VariableName 'COUNT'
-    New-ParamCompleter -OldStyleName family, f -Description $msg._family -Arguments $familyArguments -VariableName 'FAMILY'
-    New-ParamCompleter -OldStyleName '4' -Description $msg._family_inet
-    New-ParamCompleter -OldStyleName '6' -Description $msg._family_inet6
-    New-ParamCompleter -OldStyleName B -Description $msg._family_bridge
-    New-ParamCompleter -OldStyleName M -Description $msg._family_mpls
-    New-ParamCompleter -OldStyleName '0' -Description $msg._family_link
-    New-ParamCompleter -OldStyleName oneline, o -Description $msg._oneline
-    New-ParamCompleter -OldStyleName resolve, r -Description $msg._resolve
-    New-ParamCompleter -OldStyleName netns, n -Description $msg._netns -Type Required -VariableName 'NAME'
-    New-ParamCompleter -OldStyleName Numeric, N -Description $msg._numeric
-    New-ParamCompleter -OldStyleName all, a -Description $msg._all
-    New-ParamCompleter -OldStyleName color, c -Description $msg._color -Type FlagOrValue -VariableName 'WHEN' -Arguments "always","auto","never"
-    New-ParamCompleter -OldStyleName timestamp, t -Description $msg._timestamp
-    New-ParamCompleter -OldStyleName tshort, ts -Description $msg._timestampShort
-    New-ParamCompleter -OldStyleName rcvbuf, rc -Description $msg._rcvbuf -Type Required -VariableName 'SIZE'
-    New-ParamCompleter -OldStyleName iec -Description $msg._iecUnits
-    New-ParamCompleter -OldStyleName brief, br -Description $msg._brief
-    New-ParamCompleter -OldStyleName json, j -Description $msg._json
-    New-ParamCompleter -OldStyleName pretty, p -Description $msg._pretty
-    New-ParamCompleter -OldStyleName help -Description $msg._help
+    New-ParamCompleter -Name Version, V -Description $msg._version
+    New-ParamCompleter -Name human-readable, human, h -Description $msg._humanReadable
+    New-ParamCompleter -Name batch, b -Description $msg._batch -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name force -Description $msg._force
+    New-ParamCompleter -Name statistics, stats, s -Description $msg._stats
+    New-ParamCompleter -Name details, d -Description $msg._details
+    New-ParamCompleter -Name loops -Description $msg._loops -Type Required -VariableName 'COUNT'
+    New-ParamCompleter -Name family, f -Description $msg._family -Arguments $familyArguments -VariableName 'FAMILY'
+    New-ParamCompleter -Name '4' -Description $msg._family_inet
+    New-ParamCompleter -Name '6' -Description $msg._family_inet6
+    New-ParamCompleter -Name B -Description $msg._family_bridge
+    New-ParamCompleter -Name M -Description $msg._family_mpls
+    New-ParamCompleter -Name '0' -Description $msg._family_link
+    New-ParamCompleter -Name oneline, o -Description $msg._oneline
+    New-ParamCompleter -Name resolve, r -Description $msg._resolve
+    New-ParamCompleter -Name netns, n -Description $msg._netns -Type Required -VariableName 'NAME'
+    New-ParamCompleter -Name Numeric, N -Description $msg._numeric
+    New-ParamCompleter -Name all, a -Description $msg._all
+    New-ParamCompleter -Name color, c -Description $msg._color -Type FlagOrValue -VariableName 'WHEN' -Arguments "always","auto","never"
+    New-ParamCompleter -Name timestamp, t -Description $msg._timestamp
+    New-ParamCompleter -Name tshort, ts -Description $msg._timestampShort
+    New-ParamCompleter -Name rcvbuf, rc -Description $msg._rcvbuf -Type Required -VariableName 'SIZE'
+    New-ParamCompleter -Name iec -Description $msg._iecUnits
+    New-ParamCompleter -Name brief, br -Description $msg._brief
+    New-ParamCompleter -Name json, j -Description $msg._json
+    New-ParamCompleter -Name pretty, p -Description $msg._pretty
+    New-ParamCompleter -Name help -Description $msg._help
 ) -SubCommands @(
     # address
     New-CommandCompleter -Name address -Aliases addr, a -Description $msg.address -SubCommands @(

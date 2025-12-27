@@ -96,8 +96,8 @@ Register-NativeCompleter -Name tcpdump -Description $msg.tcpdump -Parameters @(
     New-ParamCompleter -LongName count -Description $msg.count
     New-ParamCompleter -ShortName C -Description $msg.maxFileSize -Type Required -VariableName 'file_size'
     New-ParamCompleter -ShortName d -Description $msg.dumpPacket
-    New-ParamCompleter -OldStyleName dd -Description $msg.dumpPacketAsCFormat
-    New-ParamCompleter -OldStyleName ddd -Description $msg.dumpPacketAsDecimalFormat
+    New-ParamCompleter -Name dd -Description $msg.dumpPacketAsCFormat
+    New-ParamCompleter -Name ddd -Description $msg.dumpPacketAsDecimalFormat
     New-ParamCompleter -ShortName D -LongName list-interfaces -Description $msg.listInterfaces
     New-ParamCompleter -ShortName e -Description $msg.printLinkLevelHeader
     New-ParamCompleter -ShortName E -Description $msg.setIPsecDecryptOption -Type Required -VariableName 'algo:secret'
@@ -133,22 +133,22 @@ Register-NativeCompleter -Name tcpdump -Description $msg.tcpdump -Parameters @(
     New-ParamCompleter -ShortName s -LongName snapshot-length -Description $msg.snapshotLength -Type Required -VariableName 'snaplen'
     New-ParamCompleter -ShortName T -Description $msg.type -VariableName 'type' -Arguments "vat","rtp","rtcp","cnfp","wb","aodv"
     New-ParamCompleter -ShortName t -Description $msg.timestamp
-    New-ParamCompleter -OldStyleName tt -Description $msg.timestampAsEpoch
-    New-ParamCompleter -OldStyleName ttt -Description $msg.timestampAsDelta
-    New-ParamCompleter -OldStyleName tttt -Description $msg.timestampAsHMS
-    New-ParamCompleter -OldStyleName ttttt -Description $msg.timestampAsDeltaFromFirst
+    New-ParamCompleter -Name tt -Description $msg.timestampAsEpoch
+    New-ParamCompleter -Name ttt -Description $msg.timestampAsDelta
+    New-ParamCompleter -Name tttt -Description $msg.timestampAsHMS
+    New-ParamCompleter -Name ttttt -Description $msg.timestampAsDeltaFromFirst
     New-ParamCompleter -ShortName u -Description $msg.undecodedNFS
     New-ParamCompleter -ShortName U -LongName packet-buffered -Description $msg.packetBuffered
     New-ParamCompleter -ShortName v -LongName verbose -Description $msg.verbose
-    New-ParamCompleter -OldStyleName vv -Description $msg.verbose2
-    New-ParamCompleter -OldStyleName vvv -Description $msg.verbose3
+    New-ParamCompleter -Name vv -Description $msg.verbose2
+    New-ParamCompleter -Name vvv -Description $msg.verbose3
     New-ParamCompleter -ShortName V -Description $msg.readListOfFilenames -Type File -VariableName 'file'
     New-ParamCompleter -ShortName w -Description $msg.writeFile -Type File -VariableName 'file'
     New-ParamCompleter -ShortName W -Description $msg.filecount -Type Required -VariableName 'filecount'
     New-ParamCompleter -ShortName x -Description $msg.hexDump
-    New-ParamCompleter -OldStyleName xx -Description $msg.hexDump2
+    New-ParamCompleter -Name xx -Description $msg.hexDump2
     New-ParamCompleter -ShortName X -Description $msg.hexDumpASCII
-    New-ParamCompleter -OldStyleName XX -Description $msg.hexDumpASCII2
+    New-ParamCompleter -Name XX -Description $msg.hexDumpASCII2
     New-ParamCompleter -ShortName y -Description $msg.linkType -Type Required -VariableName 'datalinktype'
     New-ParamCompleter -ShortName z -Description $msg.postrotateCommand -Type Required -VariableName 'postrotate-command'
     New-ParamCompleter -ShortName Z -Description $msg.relinquishPrivileges -Type Required -VariableName 'user'
