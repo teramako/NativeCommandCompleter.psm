@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutDir>../libs</OutDir>
-    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionPrefix>0.0.2</VersionPrefix>
 
     <AssemblyName>NativeCommandCompleter</AssemblyName>
     <RootNamespace>MT.Comp</RootNamespace>
