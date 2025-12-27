@@ -30,25 +30,25 @@ Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyCon
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
 Register-NativeCompleter -Name findstr -Description $msg.findstr -Style Windows -Parameters @(
-    New-ParamCompleter -OldStyleName B -Description $msg.beginning_line
-    New-ParamCompleter -OldStyleName E -Description $msg.end_line
-    New-ParamCompleter -OldStyleName L -Description $msg.literal
-    New-ParamCompleter -OldStyleName R -Description $msg.regex
-    New-ParamCompleter -OldStyleName S -Description $msg.recursive
-    New-ParamCompleter -OldStyleName I -Description $msg.ignore_case
-    New-ParamCompleter -OldStyleName X -Description $msg.exact_line
-    New-ParamCompleter -OldStyleName V -Description $msg.no_match_line
-    New-ParamCompleter -OldStyleName N -Description $msg.number_line
-    New-ParamCompleter -OldStyleName M -Description $msg.print_only_file
-    New-ParamCompleter -OldStyleName O -Description $msg.print_offset
-    New-ParamCompleter -OldStyleName P -Description $msg.skip_binary
-    New-ParamCompleter -OldStyleName OFF,OFFLINE -Description $msg.offline
-    New-ParamCompleter -OldStyleName A -Description $msg.color -Type Required -VariableName 'color'
-    New-ParamCompleter -OldStyleName F -Description $msg.file_list -Type File -VariableName 'file'
-    New-ParamCompleter -OldStyleName C -Description $msg.string -Type Required -VariableName 'string'
-    New-ParamCompleter -OldStyleName G -Description $msg.strings_file -Type File -VariableName 'file'
-    New-ParamCompleter -OldStyleName D -Description $msg.dir_list -Type Required -VariableName 'dir_list'
-    New-ParamCompleter -OldStyleName ? -Description $msg.help
+    New-ParamCompleter -Name B -Description $msg.beginning_line
+    New-ParamCompleter -Name E -Description $msg.end_line
+    New-ParamCompleter -Name L -Description $msg.literal
+    New-ParamCompleter -Name R -Description $msg.regex
+    New-ParamCompleter -Name S -Description $msg.recursive
+    New-ParamCompleter -Name I -Description $msg.ignore_case
+    New-ParamCompleter -Name X -Description $msg.exact_line
+    New-ParamCompleter -Name V -Description $msg.no_match_line
+    New-ParamCompleter -Name N -Description $msg.number_line
+    New-ParamCompleter -Name M -Description $msg.print_only_file
+    New-ParamCompleter -Name O -Description $msg.print_offset
+    New-ParamCompleter -Name P -Description $msg.skip_binary
+    New-ParamCompleter -Name OFF,OFFLINE -Description $msg.offline
+    New-ParamCompleter -Name A -Description $msg.color -Type Required -VariableName 'color'
+    New-ParamCompleter -Name F -Description $msg.file_list -Type File -VariableName 'file'
+    New-ParamCompleter -Name C -Description $msg.string -Type Required -VariableName 'string'
+    New-ParamCompleter -Name G -Description $msg.strings_file -Type File -VariableName 'file'
+    New-ParamCompleter -Name D -Description $msg.dir_list -Type Required -VariableName 'dir_list'
+    New-ParamCompleter -Name ? -Description $msg.help
 ) -ArgumentCompleter {
     param([int] $position, [int] $argIndex)
     if ($argIndex -eq 0 -and -not $this.BoundParameters.ContainsKey('C') -and

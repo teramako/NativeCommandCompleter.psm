@@ -126,17 +126,17 @@ $msg = data { ConvertFrom-StringData @'
 Import-LocalizedData -BindingVariable localizedMessages -ErrorAction SilentlyContinue;
 foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key] }
 
-$exactParam = New-ParamCompleter -OldStyleName e -LongName exact -Description $msg._exact
-$queryParam = New-ParamCompleter -OldStyleName q -LongName query -Description $msg._query -Type Required -VariableName 'query'
-$manifestParam = New-ParamCompleter -OldStyleName m -LongName manifest -Description $msg._manifest -Type File -VariableName 'manifest'
+$exactParam = New-ParamCompleter -Name e -LongName exact -Description $msg._exact
+$queryParam = New-ParamCompleter -Name q -LongName query -Description $msg._query -Type Required -VariableName 'query'
+$manifestParam = New-ParamCompleter -Name m -LongName manifest -Description $msg._manifest -Type File -VariableName 'manifest'
 $idParam = New-ParamCompleter -LongName id -Description $msg._id -Type Required -VariableName 'id'
 $nameParam = New-ParamCompleter -LongName name -Description $msg._name -Type Required -VariableName 'name'
 $monikerParam = New-ParamCompleter -LongName moniker -Description $msg._moniker -Type Required -VariableName 'moniker'
-$versionParam = New-ParamCompleter -OldStyleName v -LongName version -Description $msg._version -Type Required -VariableName 'version'
-$archParam = New-ParamCompleter -OldStyleName a -LongName architecture -Description $msg._arch -Arguments "x86","x64","arm","arm64" -VariableName 'architecture'
-$logParam = New-ParamCompleter -OldStyleName o -LongName log -Description $msg._log -Type File -VariableName 'path'
+$versionParam = New-ParamCompleter -Name v -LongName version -Description $msg._version -Type Required -VariableName 'version'
+$archParam = New-ParamCompleter -Name a -LongName architecture -Description $msg._arch -Arguments "x86","x64","arm","arm64" -VariableName 'architecture'
+$logParam = New-ParamCompleter -Name o -LongName log -Description $msg._log -Type File -VariableName 'path'
 $verboseLogsParam = New-ParamCompleter -LongName verbose,verbose-logs -Description $msg._verbose_logs
-$sourceParam = New-ParamCompleter -OldStyleName s -LongName source -Description $msg._source -Type Required -VariableName 'source'
+$sourceParam = New-ParamCompleter -Name s -LongName source -Description $msg._source -Type Required -VariableName 'source'
 $localeParam = New-ParamCompleter -LongName locale -Description $msg._locale -Type Required -VariableName 'locale'
 $customParam = New-ParamCompleter -LongName custom -Description $msg.install_custom -Type Required -VariableName 'arguments'
 $waitParam = New-ParamCompleter -LongName wait -Description $msg.install_wait
@@ -150,13 +150,13 @@ $proxyParam = New-ParamCompleter -LongName proxy -Description $msg._proxy -Type 
 $noProxyParam = New-ParamCompleter -LongName no-proxy -Description $msg._no_proxy
 $acceptPackageAgreementsParam = New-ParamCompleter -LongName accept-package-agreements -Description $msg._accept_package_agreements
 $acceptSourceAgreementsParam = New-ParamCompleter -LongName accept-source-agreements -Description $msg._accept_source_agreements
-$interactiveParam = New-ParamCompleter -OldStyleName i -LongName interactive -Description $msg._interactive
-$silentParam = New-ParamCompleter -OldStyleName h -LongName silent -Description $msg._silent
+$interactiveParam = New-ParamCompleter -Name i -LongName interactive -Description $msg._interactive
+$silentParam = New-ParamCompleter -Name h -LongName silent -Description $msg._silent
 $installerTypeParam = New-ParamCompleter -LongName installer-type -Description $msg._installer_type -Arguments @(
     "msix","msi","appx","exe","zip","inno","nullsoft","wix","burn","pwa"
 ) -VariableName 'type'
 $overrideParam = New-ParamCompleter -LongName override -Description $msg._override -Type Required -VariableName 'arguments'
-$locationParam = New-ParamCompleter -OldStyleName l -LongName location -Description $msg._location -Type Directory -VariableName 'path'
+$locationParam = New-ParamCompleter -Name l -LongName location -Description $msg._location -Type Directory -VariableName 'path'
 $ignoreSecurityHashParam = New-ParamCompleter -LongName ignore-security-hash -Description $msg._ignore_security_hash
 $forceParam = New-ParamCompleter -LongName force -Description $msg._force
 $allowRebootParam = New-ParamCompleter -LongName allow-reboot -Description $msg._allow_reboot
@@ -169,9 +169,9 @@ $authenticationAccountParam = New-ParamCompleter -LongName authentication-accoun
 $openLogsParam = New-ParamCompleter -LongName logs, open-logs -Description $msg._open_logs
 $nowwarnParam = New-ParamCompleter -LongName nowarn, ignore-warnings -Description $msg._no_warn
 $uninstallPreviousParam = New-ParamCompleter -LongName uninstall-previous -Description $msg._uninstall_previous
-$helpParam = New-ParamCompleter -OldStyleName '?' -LongName help -Description $msg._help
+$helpParam = New-ParamCompleter -Name '?' -LongName help -Description $msg._help
 
-$sourceNameParam = New-ParamCompleter -OldStyleName n -LongName name -Description $msg.source_name -Type Required -VariableName 'name'
+$sourceNameParam = New-ParamCompleter -Name n -LongName name -Description $msg.source_name -Type Required -VariableName 'name'
 
 Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
     # install
@@ -240,8 +240,8 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
     New-CommandCompleter -Name source -Description $msg.source -SubCommands @(
         New-CommandCompleter -Name add -Description $msg.source_add -Parameters @(
             $sourceNameParam
-            New-ParamCompleter -OldStyleName a -LongName arg -Description $msg.source_arg -Type Required -VariableName 'arg'
-            New-ParamCompleter -OldStyleName t -LongName type -Description $msg.source_type -Type Required -VariableName 'type'
+            New-ParamCompleter -Name a -LongName arg -Description $msg.source_arg -Type Required -VariableName 'arg'
+            New-ParamCompleter -Name t -LongName type -Description $msg.source_type -Type Required -VariableName 'type'
             New-ParamCompleter -LongName trust-level -Description $msg.source_trust_level -Arguments "none","trusted" -VariableName 'level'
             New-ParamCompleter -LongName explicit -Description $msg.source_explicit
             $acceptSourceAgreementsParam
@@ -298,7 +298,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
         New-ParamCompleter -LongName tag -Description $msg.search_tag -Type Required -VariableName 'tag'
         New-ParamCompleter -LongName command,cmd -Description $msg.search_command -Type Required -VariableName 'command'
         $sourceParam
-        New-ParamCompleter -OldStyleName n -LongName count -Description $msg.search_count -Type Required -VariableName 'count'
+        New-ParamCompleter -Name n -LongName count -Description $msg.search_count -Type Required -VariableName 'count'
         $exactParam
         $acceptSourceAgreementsParam
         $headerParam
@@ -317,7 +317,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
         New-ParamCompleter -LongName tag -Description $msg.list_tag -Type Required -VariableName 'tag'
         New-ParamCompleter -LongName command,cmd -Description $msg.list_command -Type Required -VariableName 'command'
         $sourceParam
-        New-ParamCompleter -OldStyleName n -LongName count -Description $msg.list_count -Type Required -VariableName 'count'
+        New-ParamCompleter -Name n -LongName count -Description $msg.list_count -Type Required -VariableName 'count'
         $exactParam
         $acceptSourceAgreementsParam
         $headerParam
@@ -357,8 +357,8 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
         $headerParam
         $authenticationModeParam
         $authenticationAccountParam
-        New-ParamCompleter -OldStyleName r -LongName recurse, all -Description $msg.upgrade_all
-        New-ParamCompleter -OldStyleName u -LongName unknown, include-unknown -Description $msg.upgrade_include_unknown
+        New-ParamCompleter -Name r -LongName recurse, all -Description $msg.upgrade_all
+        New-ParamCompleter -Name u -LongName unknown, include-unknown -Description $msg.upgrade_include_unknown
         New-ParamCompleter -LongName pinned, include-pinned -Description $msg.upgrade_include_pinned
         $uninstallPreviousParam
         $forceParam
@@ -405,7 +405,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
 
     # hash
     New-CommandCompleter -Name hash -Description $msg.hash -Parameters @(
-        New-ParamCompleter -OldStyleName f -LongName file -Description $msg.hash_file -Type File -VariableName 'file'
+        New-ParamCompleter -Name f -LongName file -Description $msg.hash_file -Type File -VariableName 'file'
         New-ParamCompleter -LongName msix -Description $msg.hash_msix
         $disableInteractivityParam
         $waitParam
@@ -440,7 +440,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
 
     # export
     New-CommandCompleter -Name export -Description $msg.export -Parameters @(
-        New-ParamCompleter -OldStyleName o -LongName output -Description $msg.export_output -Type File -VariableName 'file'
+        New-ParamCompleter -Name o -LongName output -Description $msg.export_output -Type File -VariableName 'file'
         $sourceParam
         New-ParamCompleter -LongName include-versions -Description $msg.export_include_versions
         $acceptSourceAgreementsParam
@@ -453,7 +453,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
 
     # import
     New-CommandCompleter -Name import -Description $msg.import -Parameters @(
-        New-ParamCompleter -OldStyleName i -LongName import-file -Description $msg.import_import_file -Type File -VariableName 'file'
+        New-ParamCompleter -Name i -LongName import-file -Description $msg.import_import_file -Type File -VariableName 'file'
         New-ParamCompleter -LongName ignore-unavailable -Description $msg.import_ignore_unavailable
         New-ParamCompleter -LongName ignore-versions -Description $msg.import_ignore_versions
         $acceptPackageAgreementsParam
@@ -483,8 +483,8 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
             $monikerParam
             $sourceParam
             $exactParam
-            New-ParamCompleter -OldStyleName v -LongName version -Description $msg.pin_version -Type Required -VariableName 'version'
-            New-ParamCompleter -OldStyleName b -LongName blocking -Description $msg.pin_blocking
+            New-ParamCompleter -Name v -LongName version -Description $msg.pin_version -Type Required -VariableName 'version'
+            New-ParamCompleter -Name b -LongName blocking -Description $msg.pin_blocking
             New-ParamCompleter -LongName installed -Description $msg.pin_installed
             $forceParam
             $acceptSourceAgreementsParam
@@ -527,7 +527,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
 
     # configure
     New-CommandCompleter -Name configure -Description $msg.configure -Parameters @(
-        New-ParamCompleter -OldStyleName f -LongName file -Description $msg.configure_file -Type File -VariableName 'file'
+        New-ParamCompleter -Name f -LongName file -Description $msg.configure_file -Type File -VariableName 'file'
         New-ParamCompleter -LongName accept-configuration-agreements -Description $msg.configure_accept_configuration_agreements
         $disableInteractivityParam
         $waitParam
@@ -538,7 +538,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
     # download
     New-CommandCompleter -Name download -Description $msg.download -Parameters @(
         $queryParam
-        New-ParamCompleter -OldStyleName d -LongName download-directory -Description $msg.download_download_directory -Type Directory -VariableName 'path'
+        New-ParamCompleter -Name d -LongName download-directory -Description $msg.download_download_directory -Type Directory -VariableName 'path'
         $manifestParam
         $idParam
         $nameParam
@@ -572,7 +572,7 @@ Register-NativeCompleter -Name winget -Description $msg.winget -SubCommands @(
     }
 
 ) -Parameters @(
-    New-ParamCompleter -OldStyleName v -LongName version -Description $msg.version
+    New-ParamCompleter -Name v -LongName version -Description $msg.version
     New-ParamCompleter -LongName info -Description $msg._info
     $helpParam
     $waitParam

@@ -124,7 +124,7 @@ public class CommandCompleter
                 if (param.Type == ArgumentType.Flag
                     || (param.Type.HasFlag(ArgumentType.FlagOrValue) && paramValue.IsEmpty))
                 {
-                    context.AddBoundParameter(param.Name, true);
+                    context.AddBoundParameter(param.Id, true);
                 }
                 else if (paramValue.IsEmpty)
                 {
@@ -133,7 +133,7 @@ public class CommandCompleter
                         // `-param value ...|`
                         //                  ^ cursor
                         advancedCount = 1;
-                        context.AddBoundParameter(param.Name, context.Arguments[argumentIndex + advancedCount].Value);
+                        context.AddBoundParameter(param.Id, context.Arguments[argumentIndex + advancedCount].Value);
                     }
                     else
                     {
@@ -144,7 +144,7 @@ public class CommandCompleter
                 }
                 else
                 {
-                    context.AddBoundParameter(param.Name, $"{paramValue}");
+                    context.AddBoundParameter(param.Id, $"{paramValue}");
                 }
                 return true;
             }
@@ -175,7 +175,7 @@ public class CommandCompleter
 
             if (p.Type == ArgumentType.Flag)
             {
-                context.AddBoundParameter(p.Name, true);
+                context.AddBoundParameter(p.Id, true);
             }
             else if (i == inputValue.Length - 1)
             {
@@ -186,7 +186,7 @@ public class CommandCompleter
                     //       i
                     // the argument of `c` param is supplied
                     advancedCount = 1;
-                    context.AddBoundParameter(p.Name, context.Arguments[argumentIndex + advancedCount].Value);
+                    context.AddBoundParameter(p.Id, context.Arguments[argumentIndex + advancedCount].Value);
                 }
                 else
                 {
@@ -199,7 +199,7 @@ public class CommandCompleter
             }
             else
             {
-                context.AddBoundParameter(p.Name, $"{inputValue[(i + 1)..]}");
+                context.AddBoundParameter(p.Id, $"{inputValue[(i + 1)..]}");
             }
             return true;
         }
@@ -244,7 +244,7 @@ public class CommandCompleter
                 }
             }
 
-            // Attempt to parse as long parameter or old-style parameter
+            // Attempt to parse as long parameter or standard parameter
             if (ParseParameter(tokenValue, context, argumentIndex, out var advancedCount))
             {
                 argumentIndex += advancedCount;
@@ -348,7 +348,7 @@ public class CommandCompleter
         }
 
         completed = CompleteLongParams(results, context, tokenValue, cursorPosition)
-                    || CompleteOldStyleParams(results, context, tokenValue, cursorPosition)
+                    || CompleteStandardParams(results, context, tokenValue, cursorPosition)
                     || CompleteShortParams(results, context, tokenValue, cursorPosition);
 
         return completed;
@@ -382,7 +382,7 @@ public class CommandCompleter
                 var separatorPosition = name.Length + optionPrefix.Length;
                 if (separatorPosition >= cursorPosition)
                     break;
-                NativeCompleter.Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
+                NativeCompleter.Debug($"  Matched Param {{ Id='{param.Id}', name='{name}', value='{value}' }}");
                 param.CompleteValue(results,
                                     context,
                                     $"{name}",
@@ -430,7 +430,7 @@ public class CommandCompleter
     }
 
     /// <summary>
-    /// Complete old-style parameters
+    /// Complete standard parameters
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>
@@ -439,25 +439,25 @@ public class CommandCompleter
     /// <returns>
     /// <see langword="true"/> if completion is end; otherwise, <see langword="false"/>.
     /// </returns>
-    private bool CompleteOldStyleParams(ICollection<CompletionData> results,
+    private bool CompleteStandardParams(ICollection<CompletionData> results,
                                         CompletionContext context,
                                         ReadOnlySpan<char> tokenValue,
                                         int cursorPosition)
     {
-        NativeCompleter.Debug($"[{context.Name}] Start CompleteOldStyleParams('{tokenValue}', {cursorPosition})");
-        var oldStyleParams = Params.Where(p => p.OldStyleNames.Length > 0);
-        foreach (var param in oldStyleParams.Where(p => p.Type != ArgumentType.Flag
+        NativeCompleter.Debug($"[{context.Name}] Start CompleteStandardParams('{tokenValue}', {cursorPosition})");
+        var standardParams = Params.Where(p => p.StandardNames.Length > 0);
+        foreach (var param in standardParams.Where(p => p.Type != ArgumentType.Flag
                                                         && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
         {
             var optionPrefix = param.Style.ShortOptionPrefix;
             if (!tokenValue.StartsWith(optionPrefix, StringComparison.Ordinal))
                 continue;
-            if (param.ParseOldStyleParam(tokenValue[optionPrefix.Length..], out var name, out var value))
+            if (param.ParseStandardParam(tokenValue[optionPrefix.Length..], out var name, out var value))
             {
                 var separatorPosition = name.Length + optionPrefix.Length;
                 if (separatorPosition >= cursorPosition)
                     break;
-                NativeCompleter.Debug($"  Matched Param {{ Name='{param.Name}', name='{name}', value='{value}' }}");
+                NativeCompleter.Debug($"  Matched Param {{ Id='{param.Id}', name='{name}', value='{value}' }}");
                 param.CompleteValue(results,
                                     context,
                                     $"{name}",
@@ -473,12 +473,12 @@ public class CommandCompleter
         //
         bool completed = false;
         var prefixValue = tokenValue[..cursorPosition];
-        foreach (var param in oldStyleParams)
+        foreach (var param in standardParams)
         {
             var shortOptionPrefix = param.Style.ShortOptionPrefix;
             if (!prefixValue.StartsWith(shortOptionPrefix, StringComparison.Ordinal))
                 continue;
-            foreach (ReadOnlySpan<char> name in param.OldStyleNames)
+            foreach (ReadOnlySpan<char> name in param.StandardNames)
             {
                 if (prefixValue.Length - shortOptionPrefix.Length > name.Length)
                     continue;
@@ -685,7 +685,7 @@ public class CommandCompleter
             var style = param.Style;
             var suffix = param.GetParamNameSuffix();
             var texts = param.ShortNames.Select(n => $"{style.ShortOptionPrefix}{n}")
-                                       .Union(param.OldStyleNames.Select(n => $"{style.ShortOptionPrefix}{n}{suffix}"))
+                                       .Union(param.StandardNames.Select(n => $"{style.ShortOptionPrefix}{n}{suffix}"))
                                        .Union(param.LongNames.Select(n => $"{style.LongOptionPrefix}{n}{suffix}"))
                                        .Where(p => isEmpty || p.StartsWith(c));
             var text = texts.FirstOrDefault();

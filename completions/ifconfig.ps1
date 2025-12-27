@@ -40,10 +40,10 @@ foreach ($key in $localizedMessages.Keys) { $msg[$key] = $localizedMessages[$key
 
 Register-NativeCompleter -Name ifconfig -Description $msg.ifconfig -Parameters @(
     # Display options
-    New-ParamCompleter -OldStyleName a -Description $msg._all
-    New-ParamCompleter -OldStyleName s -Description $msg._short
-    New-ParamCompleter -OldStyleName v -Description $msg._verbose
-    New-ParamCompleter -OldStyleName V -Description $msg._version
+    New-ParamCompleter -Name a -Description $msg._all
+    New-ParamCompleter -Name s -Description $msg._short
+    New-ParamCompleter -Name v -Description $msg._verbose
+    New-ParamCompleter -Name V -Description $msg._version
     New-ParamCompleter -LongName help -Description $msg._help
 ) -SubCommands @(
     $kvStyle = New-ParamStyle -ValueSeparator ' ' -ValueStyle Separated

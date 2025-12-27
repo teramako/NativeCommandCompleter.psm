@@ -45,28 +45,28 @@ public class ParamCompleter
     /// Initialize a new instance of ParamCompleter class
     /// </summary>
     /// <param name="type"></param>
+    /// <param name="standardNames"></param>
     /// <param name="longNames"></param>
-    /// <param name="oldStyleNames"></param>
     /// <param name="shortNames"></param>
     /// <param name="variableName"></param>
     /// <param name="style"></param>
     /// <exception cref="ArgumentException"></exception>
     public ParamCompleter(ArgumentType type,
+                          string[] standardNames,
                           string[] longNames,
-                          string[] oldStyleNames,
                           char[] shortNames,
                           string variableName = "Val",
                           ParameterStyle? style = null)
     {
-        Name = longNames.Union(oldStyleNames).Union(shortNames.Select(c => $"{c}")).First()
-            ?? throw new ArgumentException("At least one of 'ShortName', 'OldStyleName' or 'LongName' must be specified");
+        Id = longNames.Union(standardNames).Union(shortNames.Select(c => $"{c}")).First()
+            ?? throw new ArgumentException("At least one of 'StandardName', 'LongName', or 'ShortName' must be specified");
         if (type > 0 && !type.HasFlag(ArgumentType.FlagOrValue))
         {
             type |= ArgumentType.Required;
         }
         Type = type;
         LongNames = longNames;
-        OldStyleNames = oldStyleNames;
+        StandardNames = standardNames;
         ShortNames = shortNames;
         VariableName = type > 0 ? variableName : string.Empty;
         if (style is not null)
@@ -75,37 +75,45 @@ public class ParamCompleter
         }
     }
 
-    public string Name { get; }
+    public string Id { get; }
 
     public ArgumentType Type { get; }
-
-    private ParameterStyle? _style;
-    public ParameterStyle Style
-    {
-        get {
-            _style ??= ParameterStyle.GNU;
-            return _style;
-        }
-        set
-        {
-            _style ??= value;
-        }
-    }
 
     /// <summary>
     /// One character parameter names.
     /// </summary>
+    /// <remarks>
+    /// e.g)
+    /// <list type="bullet">
+    ///     <item><c>-a</c></item>
+    ///     <item><c>-v</c></item>
+    /// </list>
+    /// </remarks>
     public char[] ShortNames { get; internal set; }
+
+    /// <summary>
+    /// Standard parameter names.
+    /// </summary>
+    /// <remarks>
+    /// e.g)
+    /// <list type="bullet">
+    ///     <item><c>-name</c></item>
+    ///     <item><c>/recursive</c></item>
+    /// </list>
+    /// </remarks>
+    public string[] StandardNames { get; internal set; }
 
     /// <summary>
     /// Long parameter names.
     /// </summary>
+    /// <remarks>
+    /// e.g)
+    /// <list type="bullet">
+    ///     <item><c>--all</c></item>
+    ///     <item><c>--verbose</c></item>
+    /// </list>
+    /// </remarks>
     public string[] LongNames { get; internal set; }
-
-    /// <summary>
-    /// Old styles parameter names.
-    /// </summary>
-    public string[] OldStyleNames { get; internal set; }
 
     /// <summary>
     /// Parameter description.
@@ -121,6 +129,19 @@ public class ParamCompleter
 
     public string VariableName { get; set; }
 
+    private ParameterStyle? _style;
+    public ParameterStyle Style
+    {
+        get {
+            _style ??= ParameterStyle.GNU;
+            return _style;
+        }
+        set
+        {
+            _style ??= value;
+        }
+    }
+
     public string GetSyntaxes(string delimiter = ", ", bool expandArguments = false)
     {
         ParameterStyle style = Style;
@@ -135,7 +156,7 @@ public class ParamCompleter
             count++;
         }
 
-        foreach (var name in OldStyleNames)
+        foreach (var name in StandardNames)
         {
             if (count > 0)
                 sb.Append(delimiter);
@@ -239,7 +260,7 @@ public class ParamCompleter
         if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
         {
             var nameSpan = inputValue[optionPrefix.Length..];
-            if (ParseOldStyleParam(nameSpan, out paramName, out paramValue))
+            if (ParseStandardParam(nameSpan, out paramName, out paramValue))
                 return true;
         }
 
@@ -284,7 +305,7 @@ public class ParamCompleter
         paramName = default;
         return false;
     }
-    internal bool ParseOldStyleParam(ReadOnlySpan<char> inputValue,
+    internal bool ParseStandardParam(ReadOnlySpan<char> inputValue,
                                      out ReadOnlySpan<char> paramName,
                                      out ReadOnlySpan<char> paramValue)
     {
@@ -296,7 +317,7 @@ public class ParamCompleter
             if (separatorPosition >= 0)
             {
                 ReadOnlySpan<char> nameSpan = inputValue[..separatorPosition];
-                if (IsMatchOldStyleParam(nameSpan, out paramName))
+                if (IsMatchStandardParam(nameSpan, out paramName))
                 {
                     paramValue = inputValue[(separatorPosition + 1)..];
                     return true;
@@ -313,7 +334,7 @@ public class ParamCompleter
             }
         }
         paramValue = default;
-        if (IsMatchOldStyleParam(inputValue, out paramName))
+        if (IsMatchStandardParam(inputValue, out paramName))
         {
             return true;
         }
@@ -333,9 +354,9 @@ public class ParamCompleter
         paramName = default;
         return false;
     }
-    private bool IsMatchOldStyleParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
+    private bool IsMatchStandardParam(ReadOnlySpan<char> inputValue, out ReadOnlySpan<char> paramName)
     {
-        foreach (ReadOnlySpan<char> name in OldStyleNames)
+        foreach (ReadOnlySpan<char> name in StandardNames)
         {
             if (name.Equals(inputValue, StringComparison.OrdinalIgnoreCase))
             {

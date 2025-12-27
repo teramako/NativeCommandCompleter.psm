@@ -65,24 +65,24 @@ if ($IsWindows)
     $style = New-ParamStyle -ValueStyle Separated
 
     Register-NativeCompleter -Name ping -Description $msg.ping -Parameters @(
-        New-ParamCompleter -OldStyleName '-t','/t' -Style $style -Description $msg.win_continuous
-        New-ParamCompleter -OldStyleName '-a','/a' -Style $style -Description $msg.win_resolve
-        New-ParamCompleter -OldStyleName '-n','/n' -Style $style -Description $msg.win_count -Type Required -VariableName 'count'
-        New-ParamCompleter -OldStyleName '-l','/l' -Style $style -Description $msg.win_size -Type Required -VariableName 'size'
-        New-ParamCompleter -OldStyleName '-f','/f' -Style $style -Description $msg.win_fragment
-        New-ParamCompleter -OldStyleName '-i','/i' -Style $style -Description $msg.win_ttl -Type Required -VariableName 'TTL'
-        New-ParamCompleter -OldStyleName '-v','/v' -Style $style -Description $msg.win_typeOfService -Type Required -VariableName 'TOS'
-        New-ParamCompleter -OldStyleName '-r','/r' -Style $style -Description $msg.win_recordRoute -Type Required -VariableName 'count'
-        New-ParamCompleter -OldStyleName '-s','/s' -Style $style -Description $msg.win_timestamp -Type Required -VariableName 'count'
-        New-ParamCompleter -OldStyleName '-j','/j' -Style $style -Description $msg.win_looseHostList -Type Required -VariableName 'host-list'
-        New-ParamCompleter -OldStyleName '-k','/k' -Style $style -Description $msg.win_strictHostList -Type Required -VariableName 'host-list'
-        New-ParamCompleter -OldStyleName '-w','/w' -Style $style -Description $msg.win_timeout -Type Required -VariableName 'timeout'
-        New-ParamCompleter -OldStyleName '-R','/R' -Style $style -Description $msg.win_roundTrip
-        New-ParamCompleter -OldStyleName '-S','/S' -Style $style -Description $msg.win_sourceAddr -Type Required -VariableName 'src-addr'
-        New-ParamCompleter -OldStyleName '-c','/c' -Style $style -Description $msg.win_compartment -Type Required -VariableName 'compartment'
-        New-ParamCompleter -OldStyleName '-4','/4' -Style $style -Description $msg.ipv4
-        New-ParamCompleter -OldStyleName '-6','/6' -Style $style -Description $msg.ipv6
-        New-ParamCompleter -OldStyleName '-?','/?' -Style $style -Description $msg.help
+        New-ParamCompleter -Name '-t','/t' -Style $style -Description $msg.win_continuous
+        New-ParamCompleter -Name '-a','/a' -Style $style -Description $msg.win_resolve
+        New-ParamCompleter -Name '-n','/n' -Style $style -Description $msg.win_count -Type Required -VariableName 'count'
+        New-ParamCompleter -Name '-l','/l' -Style $style -Description $msg.win_size -Type Required -VariableName 'size'
+        New-ParamCompleter -Name '-f','/f' -Style $style -Description $msg.win_fragment
+        New-ParamCompleter -Name '-i','/i' -Style $style -Description $msg.win_ttl -Type Required -VariableName 'TTL'
+        New-ParamCompleter -Name '-v','/v' -Style $style -Description $msg.win_typeOfService -Type Required -VariableName 'TOS'
+        New-ParamCompleter -Name '-r','/r' -Style $style -Description $msg.win_recordRoute -Type Required -VariableName 'count'
+        New-ParamCompleter -Name '-s','/s' -Style $style -Description $msg.win_timestamp -Type Required -VariableName 'count'
+        New-ParamCompleter -Name '-j','/j' -Style $style -Description $msg.win_looseHostList -Type Required -VariableName 'host-list'
+        New-ParamCompleter -Name '-k','/k' -Style $style -Description $msg.win_strictHostList -Type Required -VariableName 'host-list'
+        New-ParamCompleter -Name '-w','/w' -Style $style -Description $msg.win_timeout -Type Required -VariableName 'timeout'
+        New-ParamCompleter -Name '-R','/R' -Style $style -Description $msg.win_roundTrip
+        New-ParamCompleter -Name '-S','/S' -Style $style -Description $msg.win_sourceAddr -Type Required -VariableName 'src-addr'
+        New-ParamCompleter -Name '-c','/c' -Style $style -Description $msg.win_compartment -Type Required -VariableName 'compartment'
+        New-ParamCompleter -Name '-4','/4' -Style $style -Description $msg.ipv4
+        New-ParamCompleter -Name '-6','/6' -Style $style -Description $msg.ipv6
+        New-ParamCompleter -Name '-?','/?' -Style $style -Description $msg.help
     ) -NoFileCompletions
     return
 }

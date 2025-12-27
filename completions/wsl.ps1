@@ -115,9 +115,9 @@ $onlineDistributionCompleter = {
 
 Register-NativeCompleter -Name wsl -Description $msg.wsl -Parameters @(
     New-ParamCompleter -LongName cd -Description $msg.cd -Type Directory
-    New-ParamCompleter -OldStyleName d -LongName distribution -Description $msg.distribution -VariableName 'distro' -ArgumentCompleter $distributionCompleter
-    New-ParamCompleter -OldStyleName u -LongName user -Description $msg.user -Type Required -VariableName 'username'
-    New-ParamCompleter -OldStyleName e -LongName exec -Description $msg.exec -Type Required -VariableName 'command'
+    New-ParamCompleter -Name d -LongName distribution -Description $msg.distribution -VariableName 'distro' -ArgumentCompleter $distributionCompleter
+    New-ParamCompleter -Name u -LongName user -Description $msg.user -Type Required -VariableName 'username'
+    New-ParamCompleter -Name e -LongName exec -Description $msg.exec -Type Required -VariableName 'command'
     New-ParamCompleter -LongName system -Description $msg.systemDistribution
     New-ParamCompleter -LongName shell-type -Description $msg.shellType -Arguments "standard","login","none" -VariableName 'type'
 ) -SubCommands @(
@@ -131,7 +131,7 @@ Register-NativeCompleter -Name wsl -Description $msg.wsl -Parameters @(
         New-ParamCompleter -LongName location -Description $msg.install_location -Type Directory
         New-ParamCompleter -LongName name -Description $msg.install_name -Type Required -VariableName 'name'
         New-ParamCompleter -LongName no-distribution -Description $msg.install_noDistribution
-        New-ParamCompleter -OldStyleName n -LongName no-launch -Description $msg.install_noLaunch
+        New-ParamCompleter -Name n -LongName no-launch -Description $msg.install_noLaunch
         New-ParamCompleter -LongName version -Description $msg.install_version -Type Required -VariableName 'version'
         New-ParamCompleter -LongName vhd-size -Description $msg.install_vhdSize -Type Required -VariableName 'size'
         New-ParamCompleter -LongName web-download -Description $msg.install_webDownload
@@ -139,7 +139,7 @@ Register-NativeCompleter -Name wsl -Description $msg.wsl -Parameters @(
 
     New-CommandCompleter -Name '--manage' -Description $msg.manage -Parameters @(
         New-ParamCompleter -LongName move -Description $msg.manage_move -Type Directory -VariableName 'location'
-        New-ParamCompleter -OldStyleName s -LongName set-sparse -Description $msg.manage_setSparse -Arguments "true", "false"
+        New-ParamCompleter -Name s -LongName set-sparse -Description $msg.manage_setSparse -Arguments "true", "false"
         New-ParamCompleter -LongName set-default-user -Description $msg.manage_setDefaultUser -Type Required -VariableName 'username'
         New-ParamCompleter -LongName resize -Description $msg.manage_resize -Type Required -VariableName 'size'
     ) -NoFileCompletions -ArgumentCompleter $distributionCompleter
@@ -214,9 +214,9 @@ Register-NativeCompleter -Name wsl -Description $msg.wsl -Parameters @(
     New-CommandCompleter -Name '--list' -Aliases '-l' -Description $msg.list -Parameters @(
         New-ParamCompleter -LongName all -Description $msg.list_all
         New-ParamCompleter -LongName running -Description $msg.list_running
-        New-ParamCompleter -OldStyleName q -LongName quiet -Description $msg.list_quiet
-        New-ParamCompleter -OldStyleName v -LongName verbose -Description $msg.list_verbose
-        New-ParamCompleter -OldStyleName o -LongName online -Description $msg.list_online
+        New-ParamCompleter -Name q -LongName quiet -Description $msg.list_quiet
+        New-ParamCompleter -Name v -LongName verbose -Description $msg.list_verbose
+        New-ParamCompleter -Name o -LongName online -Description $msg.list_online
     ) -NoFileCompletions
 
     New-CommandCompleter -Name '--set-default' -Aliases '-s' -Description $msg.setDefault -NoFileCompletions -ArgumentCompleter $distributionCompleter

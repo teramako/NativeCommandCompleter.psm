@@ -112,77 +112,77 @@ Register-NativeCompleter -Name find -Description $msg.find -Style Unix -Paramete
     New-ParamCompleter -ShortName O -Description "Enable query optimisation"
 
     # Global options
-    New-ParamCompleter -OldStyleName daystart -Description $msg.daystart
-    New-ParamCompleter -OldStyleName depth -Description $msg.depth
-    New-ParamCompleter -OldStyleName follow -Description $msg.follow
-    New-ParamCompleter -OldStyleName help -LongName help -Description $msg.help
-    New-ParamCompleter -OldStyleName ignore_readdir_race -Description $msg.ignore_readdir_race
-    New-ParamCompleter -OldStyleName maxdepth -Description $msg.maxdepth -Type Required -VariableName 'LEVELS'
-    New-ParamCompleter -OldStyleName mindepth -Description $msg.mindepth -Type Required -VariableName 'LEVELS'
-    New-ParamCompleter -OldStyleName mount -Description $msg.mount
-    New-ParamCompleter -OldStyleName noleaf -Description $msg.noleaf
-    New-ParamCompleter -OldStyleName version -LongName version -Description $msg.version
-    New-ParamCompleter -OldStyleName xdev -Description $msg.xdev
+    New-ParamCompleter -Name daystart -Description $msg.daystart
+    New-ParamCompleter -Name depth -Description $msg.depth
+    New-ParamCompleter -Name follow -Description $msg.follow
+    New-ParamCompleter -Name help -LongName help -Description $msg.help
+    New-ParamCompleter -Name ignore_readdir_race -Description $msg.ignore_readdir_race
+    New-ParamCompleter -Name maxdepth -Description $msg.maxdepth -Type Required -VariableName 'LEVELS'
+    New-ParamCompleter -Name mindepth -Description $msg.mindepth -Type Required -VariableName 'LEVELS'
+    New-ParamCompleter -Name mount -Description $msg.mount
+    New-ParamCompleter -Name noleaf -Description $msg.noleaf
+    New-ParamCompleter -Name version -LongName version -Description $msg.version
+    New-ParamCompleter -Name xdev -Description $msg.xdev
 
     # Tests
-    New-ParamCompleter -OldStyleName amin -Description $msg.amin -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName anewer -Description $msg.anewer -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName atime -Description $msg.atime -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName cmin -Description $msg.cmin -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName cnewer -Description $msg.cnewer -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName ctime -Description $msg.ctime -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName empty -Description $msg.empty
-    New-ParamCompleter -OldStyleName executable -Description $msg.executable
-    New-ParamCompleter -OldStyleName false -Description $msg.false
-    New-ParamCompleter -OldStyleName fstype -Description $msg.fstype -Type Required -VariableName 'TYPE'
-    New-ParamCompleter -OldStyleName gid -Description $msg.gid -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName group -Description $msg.group -Type Required -VariableName 'GNAME'
-    New-ParamCompleter -OldStyleName ilname -Description $msg.ilname -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName iname -Description $msg.iname -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName inum -Description $msg.inum -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName ipath -Description $msg.ipath -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName iregex -Description $msg.iregex -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName iwholename -Description $msg.iwholename -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName links -Description $msg.links -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName lname -Description $msg.lname -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName mmin -Description $msg.mmin -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName mtime -Description $msg.mtime -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName name -Description $msg.name -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName newer -Description $msg.newer -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName newerXY -Description $msg.newerXY -Type Required -VariableName 'REFERENCE'
-    New-ParamCompleter -OldStyleName nogroup -Description $msg.nogroup
-    New-ParamCompleter -OldStyleName nouser -Description $msg.nouser
-    New-ParamCompleter -OldStyleName path -Description $msg.path -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName perm -Description $msg.perm -Type Required -VariableName 'MODE'
-    New-ParamCompleter -OldStyleName readable -Description $msg.readable
-    New-ParamCompleter -OldStyleName regex -Description $msg.regex -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName regextype -Description $msg.regextype -Type Required -Arguments "emacs","posix-awk","posix-basic","posix-egrep","posix-extended" -VariableName 'TYPE'
-    New-ParamCompleter -OldStyleName samefile -Description $msg.samefile -Type File -VariableName 'NAME'
-    New-ParamCompleter -OldStyleName size -Description $msg.size -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName true -Description $msg.true
-    New-ParamCompleter -OldStyleName type -Description $msg.type -Type Required -Arguments $typeArguments -VariableName 'C'
-    New-ParamCompleter -OldStyleName uid -Description $msg.uid -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName used -Description $msg.used -Type Required -VariableName 'N'
-    New-ParamCompleter -OldStyleName user -Description $msg.user -Type Required -VariableName 'UNAME'
-    New-ParamCompleter -OldStyleName wholename -Description $msg.wholename -Type Required -VariableName 'PATTERN'
-    New-ParamCompleter -OldStyleName writable -Description $msg.writable
-    New-ParamCompleter -OldStyleName xtype -Description $msg.xtype -Type Required -Arguments $typeArguments -VariableName 'C'
-    New-ParamCompleter -OldStyleName context -Description $msg.context -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name amin -Description $msg.amin -Type Required -VariableName 'N'
+    New-ParamCompleter -Name anewer -Description $msg.anewer -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name atime -Description $msg.atime -Type Required -VariableName 'N'
+    New-ParamCompleter -Name cmin -Description $msg.cmin -Type Required -VariableName 'N'
+    New-ParamCompleter -Name cnewer -Description $msg.cnewer -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name ctime -Description $msg.ctime -Type Required -VariableName 'N'
+    New-ParamCompleter -Name empty -Description $msg.empty
+    New-ParamCompleter -Name executable -Description $msg.executable
+    New-ParamCompleter -Name false -Description $msg.false
+    New-ParamCompleter -Name fstype -Description $msg.fstype -Type Required -VariableName 'TYPE'
+    New-ParamCompleter -Name gid -Description $msg.gid -Type Required -VariableName 'N'
+    New-ParamCompleter -Name group -Description $msg.group -Type Required -VariableName 'GNAME'
+    New-ParamCompleter -Name ilname -Description $msg.ilname -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name iname -Description $msg.iname -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name inum -Description $msg.inum -Type Required -VariableName 'N'
+    New-ParamCompleter -Name ipath -Description $msg.ipath -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name iregex -Description $msg.iregex -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name iwholename -Description $msg.iwholename -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name links -Description $msg.links -Type Required -VariableName 'N'
+    New-ParamCompleter -Name lname -Description $msg.lname -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name mmin -Description $msg.mmin -Type Required -VariableName 'N'
+    New-ParamCompleter -Name mtime -Description $msg.mtime -Type Required -VariableName 'N'
+    New-ParamCompleter -Name name -Description $msg.name -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name newer -Description $msg.newer -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name newerXY -Description $msg.newerXY -Type Required -VariableName 'REFERENCE'
+    New-ParamCompleter -Name nogroup -Description $msg.nogroup
+    New-ParamCompleter -Name nouser -Description $msg.nouser
+    New-ParamCompleter -Name path -Description $msg.path -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name perm -Description $msg.perm -Type Required -VariableName 'MODE'
+    New-ParamCompleter -Name readable -Description $msg.readable
+    New-ParamCompleter -Name regex -Description $msg.regex -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name regextype -Description $msg.regextype -Type Required -Arguments "emacs","posix-awk","posix-basic","posix-egrep","posix-extended" -VariableName 'TYPE'
+    New-ParamCompleter -Name samefile -Description $msg.samefile -Type File -VariableName 'NAME'
+    New-ParamCompleter -Name size -Description $msg.size -Type Required -VariableName 'N'
+    New-ParamCompleter -Name true -Description $msg.true
+    New-ParamCompleter -Name type -Description $msg.type -Type Required -Arguments $typeArguments -VariableName 'C'
+    New-ParamCompleter -Name uid -Description $msg.uid -Type Required -VariableName 'N'
+    New-ParamCompleter -Name used -Description $msg.used -Type Required -VariableName 'N'
+    New-ParamCompleter -Name user -Description $msg.user -Type Required -VariableName 'UNAME'
+    New-ParamCompleter -Name wholename -Description $msg.wholename -Type Required -VariableName 'PATTERN'
+    New-ParamCompleter -Name writable -Description $msg.writable
+    New-ParamCompleter -Name xtype -Description $msg.xtype -Type Required -Arguments $typeArguments -VariableName 'C'
+    New-ParamCompleter -Name context -Description $msg.context -Type Required -VariableName 'PATTERN'
 
     # Actions
-    New-ParamCompleter -OldStyleName delete -Description $msg.delete
-    New-ParamCompleter -OldStyleName exec -Description $msg.exec -Type Required -VariableName 'COMMAND ;'
-    New-ParamCompleter -OldStyleName execdir -Description $msg.execdir -Type Required -VariableName 'COMMAND ;'
-    New-ParamCompleter -OldStyleName fls -Description $msg.fls -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName fprint -Description $msg.fprint -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName fprint0 -Description $msg.fprint0 -Type File -VariableName 'FILE'
-    New-ParamCompleter -OldStyleName fprintf -Description $msg.fprintf -Type Required -VariableName 'FILE FORMAT'
-    New-ParamCompleter -OldStyleName ls -Description $msg.ls
-    New-ParamCompleter -OldStyleName ok -Description $msg.ok -Type Required -VariableName 'COMMAND ;'
-    New-ParamCompleter -OldStyleName okdir -Description $msg.okdir -Type Required -VariableName 'COMMAND ;'
-    New-ParamCompleter -OldStyleName print -Description $msg.print
-    New-ParamCompleter -OldStyleName print0 -Description $msg.print0
-    New-ParamCompleter -OldStyleName printf -Description $msg.printf -Type Required -VariableName 'FORMAT'
-    New-ParamCompleter -OldStyleName prune -Description $msg.prune
-    New-ParamCompleter -OldStyleName quit -Description $msg.quit
+    New-ParamCompleter -Name delete -Description $msg.delete
+    New-ParamCompleter -Name exec -Description $msg.exec -Type Required -VariableName 'COMMAND ;'
+    New-ParamCompleter -Name execdir -Description $msg.execdir -Type Required -VariableName 'COMMAND ;'
+    New-ParamCompleter -Name fls -Description $msg.fls -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name fprint -Description $msg.fprint -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name fprint0 -Description $msg.fprint0 -Type File -VariableName 'FILE'
+    New-ParamCompleter -Name fprintf -Description $msg.fprintf -Type Required -VariableName 'FILE FORMAT'
+    New-ParamCompleter -Name ls -Description $msg.ls
+    New-ParamCompleter -Name ok -Description $msg.ok -Type Required -VariableName 'COMMAND ;'
+    New-ParamCompleter -Name okdir -Description $msg.okdir -Type Required -VariableName 'COMMAND ;'
+    New-ParamCompleter -Name print -Description $msg.print
+    New-ParamCompleter -Name print0 -Description $msg.print0
+    New-ParamCompleter -Name printf -Description $msg.printf -Type Required -VariableName 'FORMAT'
+    New-ParamCompleter -Name prune -Description $msg.prune
+    New-ParamCompleter -Name quit -Description $msg.quit
 )

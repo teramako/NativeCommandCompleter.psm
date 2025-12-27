@@ -48,7 +48,7 @@ Register-NativeCompleter -Name zip -Parameters @(
     New-ParamCompleter -ShortName j -Description $msg.junk_paths
     New-ParamCompleter -ShortName '0' -Description $msg.no_compression
     New-ParamCompleter -ShortName l -Description $msg.to_crlf
-    New-ParamCompleter -OldStyleName ll -Description $msg.from_crlf
+    New-ParamCompleter -Name ll -Description $msg.from_crlf
     New-ParamCompleter -ShortName '1' -Description $msg.compress_level_1
     New-ParamCompleter -ShortName '6' -Description $msg.compress_level_6
     New-ParamCompleter -ShortName '9' -Description $msg.compress_level_9
@@ -61,7 +61,7 @@ Register-NativeCompleter -Name zip -Parameters @(
     New-ParamCompleter -ShortName x -Description $msg.exclude -Type Required
     New-ParamCompleter -ShortName i -Description $msg.include -Type Required
     New-ParamCompleter -ShortName F -Description $msg.fix
-    New-ParamCompleter -OldStyleName FF -Description $msg.fixfix
+    New-ParamCompleter -Name FF -Description $msg.fixfix
     New-ParamCompleter -ShortName A -Description $msg.adjust_sfx
     New-ParamCompleter -ShortName J -Description $msg.junk_sfx
     New-ParamCompleter -ShortName T -Description $msg.test
