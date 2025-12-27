@@ -79,28 +79,17 @@ public class ParamCompleter
 
     public ArgumentType Type { get; }
 
-    private ParameterStyle? _style;
-    public ParameterStyle Style
-    {
-        get {
-            _style ??= ParameterStyle.GNU;
-            return _style;
-        }
-        set
-        {
-            _style ??= value;
-        }
-    }
-
     /// <summary>
     /// One character parameter names.
     /// </summary>
+    /// <remarks>
+    /// e.g)
+    /// <list type="bullet">
+    ///     <item><c>-a</c></item>
+    ///     <item><c>-v</c></item>
+    /// </list>
+    /// </remarks>
     public char[] ShortNames { get; internal set; }
-
-    /// <summary>
-    /// Long parameter names.
-    /// </summary>
-    public string[] LongNames { get; internal set; }
 
     /// <summary>
     /// Standard parameter names.
@@ -115,6 +104,18 @@ public class ParamCompleter
     public string[] StandardNames { get; internal set; }
 
     /// <summary>
+    /// Long parameter names.
+    /// </summary>
+    /// <remarks>
+    /// e.g)
+    /// <list type="bullet">
+    ///     <item><c>--all</c></item>
+    ///     <item><c>--verbose</c></item>
+    /// </list>
+    /// </remarks>
+    public string[] LongNames { get; internal set; }
+
+    /// <summary>
     /// Parameter description.
     /// </summary>
     public string Description { get; set; } = string.Empty;
@@ -127,6 +128,19 @@ public class ParamCompleter
     public string[] Arguments { get; internal set; } = [];
 
     public string VariableName { get; set; }
+
+    private ParameterStyle? _style;
+    public ParameterStyle Style
+    {
+        get {
+            _style ??= ParameterStyle.GNU;
+            return _style;
+        }
+        set
+        {
+            _style ??= value;
+        }
+    }
 
     public string GetSyntaxes(string delimiter = ", ", bool expandArguments = false)
     {
