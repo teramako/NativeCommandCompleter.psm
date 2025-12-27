@@ -97,7 +97,6 @@ FileList = @(
     'NativeCommandCompleter.psm.psd1'
     'NativeCommandCompleter.psm1'
     'libs/NativeCommandCompleter.dll'
-    'NativeCommandCompleter.dll-Help.xml'
     'README.md'
 )
 

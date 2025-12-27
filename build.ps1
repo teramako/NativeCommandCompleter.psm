@@ -35,6 +35,7 @@ $psdFile = Join-Path -Path $psmDir -ChildPath NativeCommandCompleter.psm.psd1
 $ModuleManifest = Test-ModuleManifest -Path $psdFile
 $tmpDir = Join-Path -Path $PSScriptRoot -ChildPath out, $ModuleManifest.Name
 $compltionsDir = Join-Path -Path $PSScriptRoot -ChildPath completions
+$helpFile = Join-Path -Path $PSScriptRoot -ChildPath 'NativeCommandCompleter.dll-Help.xml'
 
 function CreateDest()
 {
@@ -52,6 +53,10 @@ function CreateDest()
             $null = New-Item -ItemType Directory -Path $destDir @commonParam
         }
         Copy-Item -Path $filePath -Destination $destDir @commonParam
+    }
+    if (Test-Path -Path $helpFile)
+    {
+        Copy-Item -Destination $destDir -LiteralPath $helpFile @commonParam
     }
     if ($IncludeCompletions)
     {
