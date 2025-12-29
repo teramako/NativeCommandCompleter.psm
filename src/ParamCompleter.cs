@@ -50,13 +50,15 @@ public class ParamCompleter
     /// <param name="shortNames"></param>
     /// <param name="variableName"></param>
     /// <param name="style"></param>
+    /// <param name="nargs"></param>
     /// <exception cref="ArgumentException"></exception>
     public ParamCompleter(ArgumentType type,
                           string[] standardNames,
                           string[] longNames,
                           char[] shortNames,
                           string variableName = "Val",
-                          ParameterStyle? style = null)
+                          ParameterStyle? style = null,
+                          Nargs nargs = default)
     {
         Id = longNames.Union(standardNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'StandardName', 'LongName', or 'ShortName' must be specified");
@@ -68,6 +70,11 @@ public class ParamCompleter
         LongNames = longNames;
         StandardNames = standardNames;
         ShortNames = shortNames;
+        Nargs = type is 0
+                ? default
+                : type.HasFlag(ArgumentType.FlagOrValue)
+                  ? Nargs.ZeroOrOne
+                  : nargs.MinCount > 0 ? nargs : Nargs.One;
         VariableName = type > 0 ? variableName : string.Empty;
         if (style is not null)
         {
@@ -119,6 +126,11 @@ public class ParamCompleter
     /// Parameter description.
     /// </summary>
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Represents a constraint on the number of argument values accepted by a parameter.
+    /// </summary>
+    public Nargs Nargs { get; }
 
     /// <summary>
     /// Completer for the parameter's argument.
