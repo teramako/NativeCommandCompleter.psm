@@ -43,6 +43,16 @@ Can define completion text and its description, separated by a tab (\t) or newli
 If ommited, inhertes from the parent CommandCompleter's style.
 </value>
   </data>
+  <data name="Nargs" xml:space="preserve">
+    <value>Specifies how many argument values the parameter accepts.
+
+e.g.:
+- "2" — exactly two values
+- "1+" — one or more values
+- "2-4" — between two and four values
+
+CAUTION: This value does not affect the parsing of the short options.</value>
+  </data>
   <data name="Error.NotSpecifiedAnyParameterNames" xml:space="preserve">
     <value>At least one of 'StarndardName', 'LongName' or 'ShortName' must be specified.</value>
   </data>
