@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/27/2025
+ms.date: 12/30/2025
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
 ---
@@ -22,6 +22,7 @@ Create a parameter's completer.
 ```
 New-ParamCompleter [-StandardName <string[]>] [-LongName <string[]>] [-ShortName <char[]>]
  [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>]
+ [-Nargs <Nargs>]
 ```
 
 ### WithArguments
@@ -29,7 +30,7 @@ New-ParamCompleter [-StandardName <string[]>] [-LongName <string[]>] [-ShortName
 ```
 New-ParamCompleter -Arguments <string[]> [-StandardName <string[]>] [-LongName <string[]>]
  [-ShortName <char[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
- [-Style <ParameterStyle>]
+ [-Style <ParameterStyle>] [-Nargs <Nargs>]
 ```
 
 ### WithArgumentCompleter
@@ -37,7 +38,7 @@ New-ParamCompleter -Arguments <string[]> [-StandardName <string[]>] [-LongName <
 ```
 New-ParamCompleter -ArgumentCompleter <scriptblock> [-StandardName <string[]>]
  [-LongName <string[]>] [-ShortName <char[]>] [-Description <string>] [-Type <ArgumentType>]
- [-VariableName <string>] [-Style <ParameterStyle>]
+ [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
 ```
 
 ## ALIASES
@@ -165,6 +166,39 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - l
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Nargs
+
+Specifies how many argument values the parameter accepts.
+
+e.g.:
+
+- "2" — exactly two values
+- "1+" — one or more values
+- "2-4" — between two and four values
+
+> [!NOTE]
+> This parameter will be ignored when -Type is `Flag` or `FlagOrValue`.
+>
+> And does not affect the parsing of the short options.
+> The number of arguments for the short option is always zero or one.
+
+```yaml
+Type: MT.Comp.Nargs
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
 ParameterSets:
 - Name: (All)
   Position: Named
