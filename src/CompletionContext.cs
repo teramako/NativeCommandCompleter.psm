@@ -240,6 +240,13 @@ public sealed class CompletionContext
                                                               _pendingParam.ParamArgs,
                                                               cursorPosition,
                                                               _pendingParam.OptionPrefix);
+            if (!_pendingParam.CompleteOnly)
+            {
+                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+
+                completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition)
+                            || completed;
+            }
         }
         else
         {
