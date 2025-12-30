@@ -6,7 +6,11 @@ using System.Management.Automation.Language;
 
 namespace MT.Comp;
 
-internal record PendingParamCompleter(ParamCompleter Completer, string ParamName, string OptionPrefix);
+internal record PendingParamCompleter(ParamCompleter Completer,
+                                      string ParamName,
+                                      string[] ParamArgs,
+                                      string OptionPrefix,
+                                      bool CompleteOnly);
 
 public sealed class CompletionContext
 {
@@ -178,7 +182,7 @@ public sealed class CompletionContext
         return CreateNestedContext(commandCompleter, commandCompleter.Name, argumentIndex);
     }
 
-    internal void AddBoundParameter(string name, PSObject? paramValue = null)
+    internal void AddBoundParameter(string name, object? paramValue = null)
     {
         if (_boundParameters.TryGetValue(name, out var found))
         {
@@ -197,9 +201,24 @@ public sealed class CompletionContext
         _unboundArguments.Add(token);
     }
 
-    internal void SetPendingParameter(ParamCompleter parameter, string paramName, string optionPrefix)
+    /// <summary>
+    /// Set up data for later processing of parameter argument completions
+    /// </summary>
+    /// <param name="parameter">The parameter object</param>
+    /// <param name="paramName">Parameter name of the parameter</param>
+    /// <param name="paramArgs">Arguments of the parameter</param>
+    /// <param name="optionPrefix">Prefix of the prameter name. e.g) <c>-</c>, <c>--</c></param>
+    /// <param name="completeOnly">
+    /// <see langword="true"/> for only completion of this parameter argument,
+    /// <see langword="false"/> for completion of other parameters as well
+    /// </param>
+    internal void SetPendingParameter(ParamCompleter parameter,
+                                      string paramName,
+                                      string[] paramArgs,
+                                      string optionPrefix,
+                                      bool completeOnly = true)
     {
-        _pendingParam = new(parameter, paramName, optionPrefix);
+        _pendingParam = new(parameter, paramName, paramArgs, optionPrefix, completeOnly);
     }
 
     public IEnumerable<CompletionResult?> Complete()
@@ -218,6 +237,7 @@ public sealed class CompletionContext
                                                               this,
                                                               _pendingParam.ParamName,
                                                               tokenValue,
+                                                              _pendingParam.ParamArgs,
                                                               cursorPosition,
                                                               _pendingParam.OptionPrefix);
         }

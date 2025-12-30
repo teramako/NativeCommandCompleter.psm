@@ -128,18 +128,49 @@ public class CommandCompleter
                 }
                 else if (paramValue.IsEmpty)
                 {
-                    if (argumentIndex < context.Arguments.Count - 1)
+                    List<Token> paramArgs = [];
+                    for (var count = 1; count < context.Arguments.Count - argumentIndex; count++)
                     {
-                        // `-param value ...|`
-                        //                  ^ cursor
-                        advancedCount = 1;
-                        context.AddBoundParameter(param.Id, context.Arguments[argumentIndex + advancedCount].Value);
+                        if (count <= param.Nargs.MinCount)
+                        {
+                            advancedCount++;
+                            paramArgs.Add(context.Arguments[argumentIndex + count]);
+                        }
+                        else if (param.Nargs.ConsumeRest || count <= param.Nargs.MaxCount)
+                        {
+                            var token = context.Arguments[argumentIndex + count];
+                            // Short options are not taken into account. This is a specification.
+                            if (Params.Any(p => p.ParseParam(token.Value, out _, out _, out _)))
+                            {
+                                break;
+                            }
+                            advancedCount++;
+                            paramArgs.Add(token);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    var args = paramArgs.Select(token => token.Value).ToArray();
+                    if (args.Length >= param.Nargs.MinCount)
+                    {
+                        // `-param ..value(minCount) ...|`
+                        //                              ^ cursor
+                        context.AddBoundParameter(param.Id, args);
+                        if (param.Nargs.ConsumeRest || args.Length < param.Nargs.MaxCount)
+                        {
+                            // `-param ..value(minCount) .. | .. valueN(maxCount)
+                            //                              ^ cursor
+                            context.SetPendingParameter(param, $"{paramName}", args, optionPrefix, false);
+                        }
                     }
                     else
                     {
-                        // `-param |`
-                        //         ^ cursor
-                        context.SetPendingParameter(param, $"{paramName}", optionPrefix);
+                        // `-param |`      or `-param value1 .. | ..valueN(minCount)
+                        //         ^ cursor                     ^ cursor
+                        context.SetPendingParameter(param, $"{paramName}", args, optionPrefix, true);
                     }
                 }
                 else
@@ -194,7 +225,7 @@ public class CommandCompleter
                     //      \ ^ cursor
                     //       i
                     // the argument of `c` param is NOT supplied
-                    context.SetPendingParameter(p, $"{c}", p.Style.ShortOptionPrefix);
+                    context.SetPendingParameter(p, $"{c}", [], p.Style.ShortOptionPrefix);
                 }
             }
             else
@@ -387,6 +418,7 @@ public class CommandCompleter
                                     context,
                                     $"{name}",
                                     $"{value}",
+                                    [],
                                     cursorPosition - separatorPosition - 1,
                                     param.Style.LongOptionPrefix,
                                     $"{tokenValue[..(separatorPosition + 1)]}");
@@ -462,6 +494,7 @@ public class CommandCompleter
                                     context,
                                     $"{name}",
                                     $"{value}",
+                                    [],
                                     cursorPosition - separatorPosition - 1,
                                     param.Style.ShortOptionPrefix,
                                     $"{tokenValue[..(separatorPosition + 1)]}");
@@ -573,6 +606,7 @@ public class CommandCompleter
                                                    context,
                                                    $"{pending.ParamChar}",
                                                    tokenValue[pending.Position..],
+                                                   [],
                                                    offsetPosition - pending.Position,
                                                    pending.Completer.Style.ShortOptionPrefix,
                                                    $"{tokenValue[..pending.Position]}");

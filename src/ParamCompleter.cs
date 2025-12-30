@@ -418,6 +418,7 @@ public class ParamCompleter
     /// <param name="context">Completion context</param>
     /// <param name="paramName">Parameter name</param>
     /// <param name="paramValue">Parameter value to be completed</param>
+    /// <param name="paramArgs">Other parameter arguments</param>.
     /// <param name="position">Position of cursor in <paramref name="paramValue"/></param>.
     /// <param name="optionPrefix">
     /// <see cref="CommandCompleter.LongOptionPrefix"/> or <see cref="CommandCompleter.ShortOptionPrefix"/>
@@ -435,6 +436,7 @@ public class ParamCompleter
                               CompletionContext context,
                               ReadOnlySpan<char> paramName,
                               ReadOnlySpan<char> paramValue,
+                              string[] paramArgs,
                               int position,
                               string optionPrefix,
                               string prefix = "")
@@ -540,7 +542,9 @@ public class ParamCompleter
             invokeResults = ArgumentCompleter.GetNewClosure()
                                              .InvokeWithContext(null,
                                                                 [new("_", $"{paramValue}"), new("this", context)],
-                                                                position);
+                                                                position,
+                                                                paramArgs.Length,
+                                                                paramArgs);
             NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
         }
         catch
