@@ -54,7 +54,7 @@ $integrityArguments = @(
 
 $sidCompleter = {
     param([int]$position, [int] $argIndex)
-    if ($wordToComplete -match '^*') {
+    if ($wordToComplete -match '^\*') {
         $w = $wordToComplete.Substring(1);
         Get-LocalUser | Where-Object { $_.SID -like "$w*" } | ForEach-Object {
             $desc = if ([string]::IsNullOrEmpty($_.Description)) { $_.Name } else { "{0} - {1}" -f $_.Name, $_.Description }
@@ -81,7 +81,7 @@ Register-NativeCompleter -Name icacls -Description $msg.icacls -Style Windows -S
         New-ParamCompleter -Name inheritance -Description $msg.inheritance -Type Required -Arguments $inheritanceArguments -VariableName 'e|d|r'
         New-ParamCompleter -Name setowner -Description $msg.setowner -Style $winStyle2 -Type Required -VariableName 'USER'
         New-ParamCompleter -Name restore -Description $msg.restore -Style $winStyle2 -Type File -VariableName 'ACLFILE'
-        New-ParamCompleter -Name substitute -Description $msg.substitute -Style $winStyle2 -Type Required -ArgumentsCount 2 -VariableName 'SID1 SID2' -ArgumentCompleter $sidCompleter
+        New-ParamCompleter -Name substitute -Description $msg.substitute -Style $winStyle2 -Type Required -Nargs 2 -VariableName 'SID1 SID2' -ArgumentCompleter $sidCompleter
         New-ParamCompleter -Name T -Description $msg.recurse
         New-ParamCompleter -Name C -Description $msg.continue
         New-ParamCompleter -Name L -Description $msg.tree
