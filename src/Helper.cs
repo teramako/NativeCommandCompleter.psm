@@ -157,6 +157,10 @@ public static class Helper
             {
                 text = $"'{text}'";
             }
+            else if (text[0] is '@' or '$')
+            {
+                text = $"'{text}'";
+            }
 
             if (file.Attributes.HasFlag(FileAttributes.Directory))
             {
