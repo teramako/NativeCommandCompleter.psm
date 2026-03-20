@@ -67,7 +67,7 @@ Path(s) of the directory where the completion scripts for each command are locat
 The target file (`{command-name}.ps1`) is searched and read during completion dymanically.
 Once loaded and registered, the completion code is cached and will not be reloaded until it is unregistered.
 
-If not specified, the `{module directory}/completions` directory is set automatically.
+If not specified, the `{profile directory}/completions` and `{module directory}/completions` directories are set automatically.
 
 ## 📚 Write completion scripts
 
@@ -93,7 +93,7 @@ Write the definition of command completion using the Cmdlets above.
 
 #### Example 1. Define basic options
 
-Edit: `${env:PS_COMPLETE_PATH}`/completions/example1.ps1
+Edit: example1.ps1 in `${env:PS_COMPLETE_PATH}`
 
 ```powershell
 Register-NativeCompleter -Name example1 -Parameters @(
@@ -114,7 +114,7 @@ Register-NativeCompleter -Name example1 -Parameters @(
 
 #### Example 2. Define subcommands
 
-Edit: `${env:PS_COMPLETE_PATH}`/completions/example2.ps1
+Edit: example2.ps1 in `${env:PS_COMPLETE_PATH}`
 
 ```powershell
 Register-NativeCompleter -Name example2 -SubCommands @(

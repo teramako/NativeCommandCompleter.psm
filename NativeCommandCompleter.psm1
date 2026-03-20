@@ -4,7 +4,12 @@
 
  if ([string]::IsNullOrEmpty($env:PS_COMPLETE_PATH))
  {
-     $env:PS_COMPLETE_PATH = Join-Path $PSScriptRoot completions
+     # Set default environment variable: PS_COMPLETE_PATH
+     #      1. <Profile Directory>/completions
+     #      2. <Module Directory>/completions
+     $dirs = (Join-Path -Path ([System.IO.Path]::GetDirectoryName($PROFILE)) -ChildPath completions),
+             (Join-Path -Path $PSScriptRoot -ChildPath completions)
+     $env:PS_COMPLETE_PATH = $dirs -join [System.IO.Path]::PathSeparator;
  }
 
  Register-ArgumentCompleter -NativeFallback -ScriptBlock {
