@@ -6,15 +6,17 @@ namespace MT.Comp;
 public static class Helper
 {
     /// <param name="context">Completion context</param>
-    /// <inheritdoc cref="CompleteFilename(string, string, bool, bool, Func{FileInfo, bool}?)"/>
+    /// <inheritdoc cref="CompleteFilename(string, string, bool, bool, ScriptBlock?, string?, string?)"/>
     public static Collection<CompletionData> CompleteFilename(CompletionContext context,
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
-                                                              ScriptBlock? filter = null)
+                                                              ScriptBlock? filter = null,
+                                                              string? prefix = null,
+                                                              string? suffix = null)
     {
         string pathToComplete = context.CurrentToken?.Value ?? string.Empty;
         string cwd = context.CurrentDirectory.Path;
-        return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter);
+        return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter, prefix, suffix);
     }
 
     /// <summary>
@@ -27,12 +29,16 @@ public static class Helper
     /// <param name="includeHidden">Complete hidden files or directories</param>
     /// <param name="onlyDirectory">Complete only directories</param>
     /// <param name="filter">Addtional fileter function</param>
+    /// <param name="prefix">Prefix string of the completion text</param>
+    /// <param name="suffix">Suffix string of the completion text</param>
     /// <returns>Completion candidates</returns>
     public static Collection<CompletionData> CompleteFilename(string pathToComplete,
                                                               string cwd,
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
-                                                              ScriptBlock? filter = null)
+                                                              ScriptBlock? filter = null,
+                                                              string? prefix = null,
+                                                              string? suffix = null)
     {
         bool isStartsWithTilde = false;
         char quote = default;
@@ -40,6 +46,16 @@ public static class Helper
         {
             quote = pathToComplete[0];
             pathToComplete = pathToComplete.Replace($"{quote}", string.Empty);
+        }
+        if (!string.IsNullOrEmpty(prefix)
+            && pathToComplete.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            pathToComplete = pathToComplete.Substring(prefix.Length);
+        }
+        if (!string.IsNullOrEmpty(suffix)
+            && pathToComplete.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            pathToComplete = pathToComplete.Substring(0, pathToComplete.Length - suffix.Length);
         }
         bool isAbsolutePath = Path.IsPathFullyQualified(pathToComplete);
         string homeDir = string.Empty;
@@ -113,24 +129,24 @@ public static class Helper
                 var relativePath = Path.GetRelativePath(cwd, path);
                 if (relativePath == ".")
                 {
-                    text = $"..{Path.DirectorySeparatorChar}{file.Name}";
+                    text = $"{prefix}..{Path.DirectorySeparatorChar}{file.Name}{suffix}";
                 }
                 else if (relativePath.StartsWith("..", StringComparison.Ordinal))
                 {
-                    text = relativePath;
+                    text = $"{prefix}{relativePath}{suffix}";
                 }
                 else
                 {
-                    text = $".{Path.DirectorySeparatorChar}{relativePath}";
+                    text = $"{prefix}.{Path.DirectorySeparatorChar}{relativePath}{suffix}";
                 }
             }
             else if (isStartsWithTilde)
             {
-                text = $"~{path.Substring(homeDir.Length)}";
+                text = $"{prefix}~{path.Substring(homeDir.Length)}{suffix}";
             }
             else
             {
-                text = file.FullName;
+                text = $"{prefix}{file.FullName}{suffix}";
             }
 
             if (quote > 0)
