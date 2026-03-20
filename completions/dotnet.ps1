@@ -1,6 +1,24 @@
 <#
  # dotnet completion
  #>
+
+# If you want to use native `dotnet complete` for completion, add the following code to <`$PROFILE` dir>/completions/dotnet.ps1
+<#
+param($wordToComplete, $commandAst, $cursorPosition)
+
+Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+    dotnet complete --position $cursorPosition $commandAst.ToString() | ForEach-Object {
+        [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+}
+
+# The first time, generate the completion list manually
+TabExpansion2 -inputScript $commandAst.ToString().PadRight($cursorPosition) `
+              -cursorColumn $cursorPosition `
+    | Select-Object -ExpandProperty CompletionMatches
+#>
+
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $msg = data { ConvertFrom-StringData @'

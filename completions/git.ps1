@@ -1,6 +1,21 @@
 <#
  # git completion
  #>
+
+# If you want to use `posh-git` for completion, add the following code to <`$PROFILE` dir>/completions/git.ps1
+<#
+param($wordToComplete, $commandAst, $cursorPosition)
+Import-Module posh-git
+
+# Reset the variable in the global scope
+$global:GitPromptScriptBlock = $GitPromptScriptBlock
+
+# The first time, generate the completion list manually
+TabExpansion2 -inputScript $commandAst.ToString().PadRight($cursorPosition) `
+              -cursorColumn $cursorPosition `
+    | Select-Object -ExpandProperty CompletionMatches
+#>
+
 Import-Module NativeCommandCompleter.psm -ErrorAction SilentlyContinue
 
 $msg = data { ConvertFrom-StringData @'
