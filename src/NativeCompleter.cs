@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Host;
 using System.Management.Automation.Language;
-using System.Management.Automation.Runspaces;
 
 namespace MT.Comp;
 
@@ -212,24 +211,7 @@ public static class NativeCompleter
         }
     }
 
-    private static Lazy<PowerShell> _shell = new(() =>
-    {
-        var initialSessionState = InitialSessionState.CreateDefault();
-        var assembly = typeof(NativeCompleter).Assembly;
-        var moduleDir = Directory.GetParent(assembly.Location)?.Parent?.FullName;
-        Debug($"Module dir: {moduleDir}");
-        if (moduleDir is not null)
-        {
-            var psd1File = new FileInfo(Path.Combine(moduleDir, @"NativeCommandCompleter.psm.psd1"));
-            Debug($"psd1 path: {psd1File}");
-            initialSessionState.ImportPSModule(psd1File.FullName);
-        }
-        var runspace = RunspaceFactory.CreateRunspace(initialSessionState);
-        runspace.Name = assembly.GetName().Name;
-        runspace.Open();
-        var shell = PowerShell.Create(runspace);
-        return shell;
-    });
+    private static Lazy<PowerShell> _shell = new(() => PowerShell.Create(RunspaceMode.CurrentRunspace));
 
     /// <summary>
     /// PowerShell running on dedicated Runspace named "CommandCompleter"
