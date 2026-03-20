@@ -26,6 +26,7 @@ public static class NativeCompleter
     public const string ENV_COMPLETER_PATH_NAME = "PS_COMPLETE_PATH";
 
     internal static readonly Dictionary<string, CommandCompleter> _completers = new(StringComparer.OrdinalIgnoreCase);
+    internal static readonly Dictionary<string, string> _scripts = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Registered completers
@@ -33,10 +34,43 @@ public static class NativeCompleter
     public static ReadOnlyDictionary<string, CommandCompleter> Completers { get; } = _completers.AsReadOnly();
 
     /// <summary>
+    /// Enumerate completer script files
+    /// </summary>
+    /// <param name="all">
+    /// if <see langword="true"/> enumerate all script files even if not loaded, otherwise only loaded/cached files
+    /// </param>
+    public static IEnumerable<CompleterScript> GetCompleterScripts(bool all = false)
+    {
+        if (!all)
+        {
+            return _scripts.Values.Select(p => new CompleterScript(p));
+        }
+        string? envPath = Environment.GetEnvironmentVariable(ENV_COMPLETER_PATH_NAME);
+        if (string.IsNullOrEmpty(envPath))
+        {
+            return [];
+        }
+        return envPath.Split(Path.PathSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                      .SelectMany(d => Directory.EnumerateFiles(d, "*.ps1"))
+                      .Select(p => new CompleterScript(p));
+    }
+
+    /// <summary>
     /// Find script file path from completion directories
     /// </summary>
     public static bool TryGetCompleterScript(string scriptName, [MaybeNullWhen(false)] out string scriptPath)
     {
+        if (_scripts.TryGetValue(scriptName, out scriptPath))
+        {
+            if (Path.Exists(scriptPath))
+            {
+                return true;
+            }
+            else
+            {
+                _scripts.Remove(scriptName);
+            }
+        }
         var envPath = Environment.GetEnvironmentVariable(ENV_COMPLETER_PATH_NAME);
         if (string.IsNullOrEmpty(envPath))
         {
@@ -48,7 +82,12 @@ public static class NativeCompleter
         scriptPath = envPath.Split(Path.PathSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                             .Select(d => Path.Combine(d, searchFile))
                             .FirstOrDefault(File.Exists);
-        return !string.IsNullOrEmpty(scriptPath);
+        if (!string.IsNullOrEmpty(scriptPath))
+        {
+            _scripts.Add(scriptName, scriptPath);
+            return true;
+        }
+        return false;
     }
 
     private static bool TryLoadScript(string scriptPath,

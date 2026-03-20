@@ -102,6 +102,7 @@ public abstract class CommandCompleterBase : PSCmdlet
             if (pattern.IsMatch(key))
             {
                 NativeCompleter._completers.Remove(key);
+                NativeCompleter._scripts.Remove(key);
                 WriteVerbose(string.Format(GetResourceString(MessageBaseName, "Message.Removed"), key));
             }
         }
