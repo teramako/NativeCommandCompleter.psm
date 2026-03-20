@@ -27,6 +27,7 @@ public static class NativeCompleter
     public const string ENV_COMPLETER_PATH_NAME = "PS_COMPLETE_PATH";
 
     internal static readonly Dictionary<string, CommandCompleter> _completers = new(StringComparer.OrdinalIgnoreCase);
+    internal static readonly Dictionary<string, string> _scripts = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Registered completers
@@ -38,6 +39,17 @@ public static class NativeCompleter
     /// </summary>
     public static bool TryGetCompleterScript(string scriptName, [MaybeNullWhen(false)] out string scriptPath)
     {
+        if (_scripts.TryGetValue(scriptName, out scriptPath))
+        {
+            if (Path.Exists(scriptPath))
+            {
+                return true;
+            }
+            else
+            {
+                _scripts.Remove(scriptName);
+            }
+        }
         var envPath = Environment.GetEnvironmentVariable(ENV_COMPLETER_PATH_NAME);
         if (string.IsNullOrEmpty(envPath))
         {
@@ -49,7 +61,12 @@ public static class NativeCompleter
         scriptPath = envPath.Split(Path.PathSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                             .Select(d => Path.Combine(d, searchFile))
                             .FirstOrDefault(File.Exists);
-        return !string.IsNullOrEmpty(scriptPath);
+        if (!string.IsNullOrEmpty(scriptPath))
+        {
+            _scripts.Add(scriptName, scriptPath);
+            return true;
+        }
+        return false;
     }
 
     private static bool TryLoadScript(string scriptPath,
