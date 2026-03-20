@@ -18,6 +18,10 @@ Native Command Completer
 
 ## NativeCommandCompleter.psm Cmdlets
 
+### [Get-NativeCompleterScript](Get-NativeCompleterScript.md)
+
+Enumerate completer script files.
+
 ### [New-CommandCompleter](New-CommandCompleter.md)
 
 Create a CommandCompleter object.
