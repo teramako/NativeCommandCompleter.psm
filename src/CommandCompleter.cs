@@ -188,9 +188,10 @@ public class CommandCompleter
                                  int argumentIndex,
                                  out int advancedCount)
     {
+        bool result = false;
         advancedCount = 0;
         if (tokenValue.IsEmpty)
-            return false;
+            return result;
 
         char prefixChar = tokenValue[0];
         var inputValue = tokenValue[1..];
@@ -232,9 +233,9 @@ public class CommandCompleter
             {
                 context.AddBoundParameter(p.Id, $"{inputValue[(i + 1)..]}");
             }
-            return true;
+            result = true;
         }
-        return false;
+        return result;
     }
 
     /// <summary>
