@@ -131,3 +131,32 @@ Register-NativeCompleter -Name example2 -SubCommands @(
     )
 )
 ```
+
+#### Example 3. Use `posh-git`'s completion
+
+Edit: `git.ps1` in `<profile directory>/completions`
+
+```powershell
+<#
+.SYNOPSIS
+    Regsiter `git` command completer with `posh-git`
+.DESCRIPTION
+    This script will be loaded by `NativeCommandCompleter.psm` poershell module.
+.LINK
+    dahlbyk/posh-git: A PowerShell environment for Git
+    https://github.com/dahlbyk/posh-git
+#>
+param($wordToComplete, $commandAst, $cursorPosition)
+Import-Module posh-git
+
+# Reset the variable in the global scope
+$global:GitPromptScriptBlock = $GitPromptScriptBlock
+
+# The first time, generate the completion list manually
+TabExpansion2 -inputScript $commandAst.ToString().PadRight($cursorPosition) `
+              -cursorColumn $cursorPosition `
+    | Select-Object -ExpandProperty CompletionMatches
+```
+
+This code is not executed when PowerShell starts up and loads the profile.
+It is loaded the first time tab completion for the `git` command is triggered.
