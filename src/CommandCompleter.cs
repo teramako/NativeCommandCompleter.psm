@@ -401,7 +401,7 @@ public class CommandCompleter
                                     ReadOnlySpan<char> tokenValue,
                                     int cursorPosition)
     {
-        NativeCompleter.Debug($"[{context.Name}] Start CompleteLongParams('{tokenValue}', {cursorPosition})");
+        NativeCompleter.Debug($"[{context.Name}] Start CompleteLongParams {{ '{tokenValue}', {cursorPosition} }}");
         var longParams = Params.Where(p => p.LongNames.Length > 0);
         foreach (var param in longParams.Where(p => p.Type != ArgumentType.Flag
                                                     && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
@@ -477,7 +477,7 @@ public class CommandCompleter
                                         ReadOnlySpan<char> tokenValue,
                                         int cursorPosition)
     {
-        NativeCompleter.Debug($"[{context.Name}] Start CompleteStandardParams('{tokenValue}', {cursorPosition})");
+        NativeCompleter.Debug($"[{context.Name}] Start CompleteStandardParams {{ '{tokenValue}', {cursorPosition} }}");
         var standardParams = Params.Where(p => p.StandardNames.Length > 0);
         foreach (var param in standardParams.Where(p => p.Type != ArgumentType.Flag
                                                         && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
@@ -558,7 +558,7 @@ public class CommandCompleter
         //
         // attempt to complete parameter's value, and store parameter as candidates when not matched
         //
-        NativeCompleter.Debug($"[{context.Name}] ShortParam {{ tokenValue='{tokenValue}', position={offsetPosition} }}");
+        NativeCompleter.Debug($"[{context.Name}] Start CompleteShortParams {{ '{tokenValue}', {offsetPosition} }}");
         foreach (var param in Params.Where(p => p.Style.HasShortOptionPrefix && p.ShortNames.Length > 0))
         {
             var optionPrefix = param.Style.ShortOptionPrefix;

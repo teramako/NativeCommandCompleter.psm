@@ -187,12 +187,12 @@ public sealed class CompletionContext
         if (_boundParameters.TryGetValue(name, out var found))
         {
             found.Add(paramValue);
-            NativeCompleter.Debug($"[{Name}] BoundParameter: Added: '{name}', {paramValue}; (Count = {found.Count})");
+            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{paramValue}', (Count = {found.Count}) }}");
         }
         else
         {
             _boundParameters.Add(name, [paramValue]);
-            NativeCompleter.Debug($"[{Name} BoundParameter: Added: '{name}', {paramValue} (New)");
+            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{paramValue}' (New) }}");
         }
     }
 
@@ -219,6 +219,7 @@ public sealed class CompletionContext
                                       bool completeOnly = true)
     {
         _pendingParam = new(parameter, paramName, paramArgs, optionPrefix, completeOnly);
+        NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}], Prefix='{optionPrefix}' }}");
     }
 
     public IEnumerable<CompletionResult?> Complete()
@@ -259,7 +260,7 @@ public sealed class CompletionContext
                         || completed;
         }
 
-        NativeCompleter.Debug($"[{Name} Completed = {completed}, Count = {results.Count}");
+        NativeCompleter.Debug($"[{Name}] Completed = {completed}, Count = {results.Count}");
         if (completed && results.Count == 0)
         {
             // Prevent fallback to filename completion
