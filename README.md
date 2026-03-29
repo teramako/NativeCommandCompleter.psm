@@ -21,6 +21,16 @@ Additionally, the completions provided by this module are designed to have low p
 Install-Module -Name NativeCommandCompleter.psm
 ```
 
+> [!NOTE]
+> `NativeCommandCompleter.psm` provides only the completion framework.
+> To install completion definitions for individual commands, please install [NativeCommandCompleter.completions].
+>
+> ```powershell
+> Install-Module -Name NativeCommandCompleter.completions
+> ```
+
+[NativeCommandCompleter.completions]: https://github.com/teramako/NativeCommandCompleter.completions
+
 ### 1.b. Build from this repository
 
 #### 1.b.1. Clone this repository
@@ -58,6 +68,13 @@ Add the following code:
 Import-Module -Name NativeCommandCompleter.psm
 ```
 
+> [!NOTE]
+> If you have installed [NativeCommandCompleter.completions], please import that module as well.
+>
+> ```powershell
+> Import-Module -Name NativeCommandCompleter.completions
+> ```
+
 > [!TIP]
 > I recommend changing the style of the selection.
 > ```powershell
@@ -76,6 +93,10 @@ The target file (`{command-name}.ps1`) is searched and read during completion dy
 Once loaded and registered, the completion code is cached and will not be reloaded until it is unregistered.
 
 If not specified, the `{profile directory}/completions` and `{module directory}/completions` directories are set automatically.
+
+## Completion definitions
+
+Completion definitions for common commands are available as a separate module: [NativeCommandCompleter.completions]
 
 ## 📚 Write completion scripts
 
