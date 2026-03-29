@@ -16,9 +16,6 @@ param(
     ,
     [Parameter(ParameterSetName = "Publish", Mandatory)]
     [switch] $Publish
-    ,
-    [Parameter()]
-    [switch] $IncludeCompletions
 )
 $ErrorActionPreference = 'Stop'
 
@@ -34,16 +31,12 @@ $commonParam = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose'])
 $psdFile = Join-Path -Path $psmDir -ChildPath NativeCommandCompleter.psm.psd1
 $ModuleManifest = Test-ModuleManifest -Path $psdFile
 $tmpDir = Join-Path -Path $PSScriptRoot -ChildPath out, $ModuleManifest.Name
-$compltionsDir = Join-Path -Path $PSScriptRoot -ChildPath completions
 
 function CreateDest
 {
     param(
         [Parameter()]
         [string[]] $HelpFile = @()
-        ,
-        [Parameter()]
-        [string[]] $AddtionalDirectory = @()
     )
     if (Test-Path -Path $tmpDir -PathType Container)
     {
@@ -59,12 +52,6 @@ function CreateDest
             $null = New-Item -ItemType Directory -Path $destDir @commonParam
         }
         Copy-Item -Path $filePath -Destination $destDir @commonParam
-    }
-    if ($AddtionalDirectory.Count -gt 0)
-    {
-        $AddtionalDirectory | ForEach-Object {
-            Copy-Item -Destination $destDir -LiteralPath $_ -Recurse @commonParam
-        }
     }
     return $tmpDir
 }
@@ -110,8 +97,7 @@ function BuildMamlHelp
 if ($CreateZip)
 {
     $helpFiles = BuildMamlHelp
-    $additionalDir = if ($IncludeCompletions) { $compltionsDir } else { @() }
-    $dir = CreateDest -HelpFile $helpFiles -AddtionalDirectory $additionalDir
+    $dir = CreateDest -HelpFile $helpFiles
     $zipFileName = "{0}-{1}.zip" -f $ModuleManifest.Name, $ModuleManifest.Version.ToString()
     $zipFile = Join-Path -Path $PSScriptRoot -ChildPath out, $zipFileName
     Compress-Archive -Path $dir -DestinationPath $zipFile -PassThru -Force @commonParam
@@ -123,8 +109,7 @@ if ($Publish)
     $nugetCredential = Get-Credential -Title "Nuget ApiKey" -UserName $userName
 
     $helpFiles = BuildMamlHelp
-    $additionalDir = if ($IncludeCompletions) { $compltionsDir } else { @() }
-    $dir = CreateDest -HelpFile $helpFiles -AddtionalDirectory $additionalDir
+    $dir = CreateDest -HelpFile $helpFiles
 
     Publish-Module `
         -Path $dir `
