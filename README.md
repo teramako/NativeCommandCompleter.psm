@@ -98,6 +98,47 @@ If not specified, the `{profile directory}/completions` and `{module directory}/
 
 Completion definitions for common commands are available as a separate module: [NativeCommandCompleter.completions]
 
+## 📊 Module Workflow
+
+```mermaid
+flowchart TD
+    START@{ shape: manual-input, label: "PSReadLine\nTab key pressed"}
+    B[Determine completion type]
+    C{What type?}
+    D[Standard completion\npath, parameter name, etc.]
+    E[Check Register-ArgumentCompleter\nfor command-specific completer]
+    F{Specific completer\nregistered?}
+    G[Run command-specific\nScriptBlock]
+    END([Show completion candidates])
+    START ==> B ==> C
+    C -->|PS / Cmdlet| D --> END
+    C ==>|Native command| E ==> F
+    F -->|Yes| G --> END
+    F ==>|No - fallback| RunCompleter
+    subgraph NativeCommandCompleter.psm
+        RunCompleter[NativeCommandCompleter\nRun completer]
+        SearchCache{Search completer definition}
+        SearchCache2{Search completer definition}
+        BuildCompletionCandidates[Build completion candidates]
+        BuildCompletionCandidates2[Build completion candidates\nfrom return values]
+        SearchCompleterScript{Search PS_COMPLETE_PATH for .ps1 script}
+        RunCompletionScript[Run the completion script]
+        CompleterCache[(Completer Cahe)]
+        CompleterCache -.- SearchCache
+        CompleterCache -.- SearchCache2
+        RunCompleter ==> SearchCache
+        RunCompletionScript -.->|Register| CompleterCache
+        SearchCache ==>|Found| BuildCompletionCandidates
+        SearchCache ==>|Not found| SearchCompleterScript
+        SearchCompleterScript ==>|Found| RunCompletionScript
+        RunCompletionScript ==> SearchCache2
+        SearchCache2 ==>|Found| BuildCompletionCandidates
+        SearchCache2 ==>|Not found| BuildCompletionCandidates2
+    end
+    BuildCompletionCandidates ==> END
+    BuildCompletionCandidates2 ==> END
+```
+
 ## 📚 Write completion scripts
 
 ### Cmdlets
