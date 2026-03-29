@@ -15,28 +15,36 @@ Additionally, the completions provided by this module are designed to have low p
 
 ## 🚀 Build & Install
 
-### 1. Clone this repository
+### 1.a. Install from PowerShell Gallery
+
+```powershell
+Install-Module -Name NativeCommandCompleter.psm
+```
+
+### 1.b. Build from this repository
+
+#### 1.b.1. Clone this repository
 
 ```powershell
 cd path/to/dir
 git clone https://github.com/teramako/NativeCommandCompleter.psm.git
 ```
 
-### 2. Build
+#### 1.b.2. Build
 
 ```powershell
 cd NativeCommandCompleter.psm
 dotnet build ./src
 ```
 
-### 3. Put the module into `$env:PSModulePath`
+#### 1.b.3. Put the module into `$env:PSModulePath`
 
 ```powershell
 cd ($env:PSModulePath -split [System.IO.Path]::PathSeparator)[0]
 ln -s path/to/dir/NativeCommandCompleter.psm
 ```
 
-### 4. Edit profile
+### 2. Edit profile
 
 Edit the profile loaded at PowerShell startup
 
