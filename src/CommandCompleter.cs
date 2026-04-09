@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.Management.Automation;
+using System.Text;
 
 namespace MT.Comp;
 
@@ -45,7 +45,7 @@ public class CommandCompleter
     public ReadOnlyCollection<ParamCompleter> Params { get; }
     private readonly Collection<CommandCompleter> _subCommands = [];
     public ReadOnlyCollection<CommandCompleter> SubCommands { get; }
-    public ScriptBlock? ArgumentCompleter { get; set; }
+    public IArgumentCompleter[]? Arguments { get; set; }
     public bool NoFileCompletions { get; set; }
     /// <summary>
     /// Argument index of a command to delegate completions.
@@ -640,6 +640,35 @@ public class CommandCompleter
         return completed;
     }
 
+    private string GetSyntax()
+    {
+        if (Arguments is null or { Length: 0 })
+        {
+            return string.Empty;
+        }
+        StringBuilder sb = new();
+        int optionalCount = 0;
+        for (var i = 0; i < Arguments.Length; i++)
+        {
+            var completer = Arguments[i];
+            if (!completer.Required)
+            {
+                sb.Append('[');
+                optionalCount++;
+            }
+            sb.Append(completer.ToString());
+            if (i == Arguments.Length - 1)
+            {
+                sb.Append(']', optionalCount);
+            }
+            else
+            {
+                sb.Append(' ');
+            }
+        }
+        return sb.ToString();
+    }
+
     /// <summary>
     /// Complete remaining argumet's value (non parameter, non parameter value and non subcommand)
     /// </summary>
@@ -657,7 +686,7 @@ public class CommandCompleter
                                  int offsetPosition,
                                  int argumentIndex)
     {
-        if (ArgumentCompleter is null)
+        if (Arguments is null or { Length: 0 })
         {
             if (argumentIndex == DelegateArgumentIndex)
             {
@@ -669,29 +698,34 @@ public class CommandCompleter
             }
             return NoFileCompletions;
         }
-
-        NativeCompleter.Debug($"[{context.Name}] CompleterArgument {{ '{tokenValue}', {offsetPosition}, {argumentIndex} }}");
-        Collection<PSObject?>? invokeResults = null;
-        try
+        else
         {
-            NativeCompleter.Debug($"  Start Argument complete {{ '{tokenValue}', {offsetPosition}, {argumentIndex} }}");
-            invokeResults = ArgumentCompleter.GetNewClosure()
-                                             .InvokeWithContext(null,
-                                                                [new("_", tokenValue), new("this", context)],
-                                                                offsetPosition,
-                                                                argumentIndex);
-            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {invokeResults.Count} }}");
-        }
-        catch
-        {
-        }
-        if (invokeResults is not null && invokeResults.Count > 0)
-        {
-            foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
+            IArgumentCompleter ac;
+            if (argumentIndex < Arguments.Length)
             {
-                results.Add(item);
+                ac = Arguments[argumentIndex];
             }
-            return true;
+            else
+            {
+                ac = Arguments[^1];
+                if (!ac.Remainings)
+                {
+                    return NoFileCompletions;
+                }
+            }
+            var tooltipPrefix = $"""
+                {context.Name} {GetSyntax()}{(string.IsNullOrEmpty(ac.Description) ? string.Empty : $" : {ac.Description}")}
+                [{argumentIndex + 1}]: 
+                """;
+
+            NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: '{tokenValue}', index: {argumentIndex} }}");
+            int count = 0;
+            foreach (var data in ac.Complete(context, tokenValue, offsetPosition, argumentIndex))
+            {
+                results.Add(data.SetTooltipPrefix(tooltipPrefix));
+                count++;
+            }
+            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
         }
         return NoFileCompletions;
     }

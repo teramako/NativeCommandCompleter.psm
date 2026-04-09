@@ -32,6 +32,9 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("a")]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
+    [Parameter()]
+    public object[]? Arguments { get; set; }
+
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
     public SwitchParameter NoFileCompletions { get; set; }
 
@@ -55,13 +58,17 @@ public class NewCommandCompleterCommand : CommandCompleterBase
             ? CustomStyle
             : GetStyle(Style);
 
+        var arguments = Arguments is null
+            ? ArgumentCompleter is null ? null : [ArgumentCompleter]
+            : Arguments;
+
         WriteObject(CreateCommandCompleter(Name,
                                            Description,
                                            Aliases,
                                            Parameters,
                                            SubCommands,
                                            defaultParameterStyle,
-                                           ArgumentCompleter,
+                                           arguments,
                                            NoFileCompletions,
                                            DelegateArgumentIndex,
                                            Metadata),

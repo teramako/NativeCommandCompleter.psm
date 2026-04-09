@@ -40,6 +40,9 @@ public class RegisterCompleterCommand : CommandCompleterBase
     [Alias("a")]
     public ScriptBlock? ArgumentCompleter { get; set; }
 
+    [Parameter()]
+    public object[]? Arguments { get; set; }
+
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
     [Alias("t")]
@@ -86,13 +89,17 @@ public class RegisterCompleterCommand : CommandCompleterBase
             ? CustomStyle
             : GetStyle(Style);
 
+        var arguments = Arguments is null
+            ? ArgumentCompleter is null ? null : [ArgumentCompleter]
+            : Arguments;
+
         RegisterCompleter(CreateCommandCompleter(Name,
                                                  Description,
                                                  Aliases,
                                                  Parameters,
                                                  SubCommands,
                                                  defaultParameterStyle,
-                                                 ArgumentCompleter,
+                                                 arguments,
                                                  NoFileCompletions,
                                                  DelegateArgumentIndex,
                                                  Metadata),
