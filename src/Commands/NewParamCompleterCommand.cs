@@ -61,6 +61,16 @@ public class NewParamCompleterCommand : Cmdlet
                 this));
         }
 
+        if (string.IsNullOrEmpty(VariableName) && ArgumentType is not ArgumentType.Normal)
+        {
+            if (ArgumentType.HasFlag(ArgumentType.File))
+                VariableName = "file";
+            else if (ArgumentType.HasFlag(ArgumentType.Directory))
+                VariableName = "dir";
+            else if (ArgumentType.HasFlag(ArgumentType.List))
+                VariableName = "list";
+        }
+
         if (Type == ParameterType.Flag
             && (Arguments.Length != 0 || ArgumentCompleter is not null || !string.IsNullOrEmpty(VariableName)))
         {
