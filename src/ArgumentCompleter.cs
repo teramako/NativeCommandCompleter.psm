@@ -44,14 +44,13 @@ public class ArgumentCompleterScript : ArgumentCompleter
 
 public class ArgumentCompleterList : ArgumentCompleter
 {
-    public required string[] Candidates { get; init; }
+    public required CompletionValue[] Candidates { get; init; }
 
     public override IEnumerable<CompletionData> Complete(CompletionContext context,
                                                          string tokenValue,
                                                          int offsetPosition,
                                                          int argumentIndex)
     {
-        return Candidates.Select(val => CompletionValue.Parse(val, null))
-                         .Where(data => data.IsMatch(tokenValue, ignoreCase: true));
+        return Candidates.Where(data => data.IsMatch(tokenValue, ignoreCase: true));
     }
 }

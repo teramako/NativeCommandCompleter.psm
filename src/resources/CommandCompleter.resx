@@ -30,8 +30,16 @@
   <data name="SubCommands" xml:space="preserve">
     <value>Subcommand list for the command.</value>
   </data>
-  <data name="ArgumentCompleter" xml:space="preserve">
-    <value>ScriptBlock that returns completion candidates for command arguments.</value>
+  <data name="Arguments" xml:space="preserve">
+    <value>Positional argument specifications. Following values are acceptable:
+- `IArgumentCompleter` implementation object
+- list candidates of `string`|`CompletionValue`
+- `ScriptBlock`
+- HashTable (can be converted to `IArgumentCompleter`)
+    e.g.)
+    - `@{ Name = "VariableName"; Script = { &lt;# CompletionScript #&gt; } }`
+    - `@{ Name = "VariableName"; Candidates = "list", "of", "candidates" }`
+</value>
   </data>
   <data name="NoFileCompletions" xml:space="preserve">
     <value>No file or directory completion in command argument completion.</value>

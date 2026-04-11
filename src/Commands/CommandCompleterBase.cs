@@ -45,7 +45,7 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       ParamCompleter[] paramCompleters,
                                                       CommandCompleter[] subCommands,
                                                       ParameterStyle style,
-                                                      object[]? argumentCompleters = null,
+                                                      IArgumentCompleter[]? argumentCompleters = null,
                                                       bool noFileCompletions = false,
                                                       int delegateArgumentIndex = -1,
                                                       Hashtable? metadata = null)
@@ -54,7 +54,7 @@ public abstract class CommandCompleterBase : PSCmdlet
             ? new WildcardNameCommandCompleter(name, description, style, paramCompleters, subCommands)
             {
                 Aliases = aliases,
-                Arguments = GetArgumentCompleters(argumentCompleters),
+                Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
                 DelegateArgumentIndex = delegateArgumentIndex,
                 Metadata = metadata
@@ -62,69 +62,12 @@ public abstract class CommandCompleterBase : PSCmdlet
             : new CommandCompleter(name, description, style, paramCompleters, subCommands)
             {
                 Aliases = aliases,
-                Arguments = GetArgumentCompleters(argumentCompleters),
+                Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
                 DelegateArgumentIndex = delegateArgumentIndex,
                 Metadata = metadata
             };
         return completer;
-    }
-
-    protected IArgumentCompleter[]? GetArgumentCompleters(object[]? arguments)
-    {
-        if (arguments is null)
-            return null;
-
-        List<IArgumentCompleter> results = [];
-        int lastIndex = arguments.Length - 1;
-        for (int i = 0; i < arguments.Length; i++)
-        {
-            var obj = arguments[i];
-            var ac = GetArgumentCompleter(obj is PSObject pso ? pso.BaseObject : obj,
-                                          i,
-                                          i == lastIndex);
-            results.Add(ac);
-        }
-        return results.ToArray();
-    }
-
-    private IArgumentCompleter GetArgumentCompleter(object obj, int index, bool isLast)
-    {
-        switch (obj)
-        {
-            case ScriptBlock sb:
-                return new ArgumentCompleterScript()
-                {
-                    Name = $"ARG{index + 1}",
-                    Required = true,
-                    Remainings = isLast,
-                    Script = sb,
-                };
-            case IList list:
-                List<string> candidates = [];
-                foreach (var item in list)
-                {
-                    candidates.Add($"{item}");
-                }
-                return new ArgumentCompleterList()
-                {
-                    Name = $"ARG{index + 1}",
-                    Required = true,
-                    Remainings = isLast,
-                    Candidates = candidates.ToArray()
-                };
-            case IDictionary dict:
-                if (LanguagePrimitives.TryConvertTo<ArgumentCompleterList>(dict, out var acList))
-                {
-                    return acList;
-                }
-                else if (LanguagePrimitives.TryConvertTo<ArgumentCompleterScript>(dict, out var acScript))
-                {
-                    return acScript;
-                }
-                break;
-        }
-        throw new PSInvalidCastException($"Could not convert to IArgumentCompleter: [{index}] {obj}");
     }
 
     protected ParameterStyle GetStyle(CommandParameterStyle style)
