@@ -121,8 +121,8 @@ public class CommandCompleter
         {
             if (param.ParseParam(tokenValue, out var paramName, out var paramValue, out var optionPrefix))
             {
-                if (param.Type == ArgumentType.Flag
-                    || (param.Type.HasFlag(ArgumentType.FlagOrValue) && paramValue.IsEmpty))
+                if (param.Type is ParameterType.Flag
+                    || (param.Type is ParameterType.FlagOrValue && paramValue.IsEmpty))
                 {
                     context.AddBoundParameter(param.Id, true);
                 }
@@ -205,7 +205,7 @@ public class CommandCompleter
             if (p is null)
                 continue;
 
-            if (p.Type == ArgumentType.Flag)
+            if (p.Type is ParameterType.Flag)
             {
                 context.AddBoundParameter(p.Id, true);
             }
@@ -403,7 +403,7 @@ public class CommandCompleter
     {
         NativeCompleter.Debug($"[{context.Name}] Start CompleteLongParams {{ '{tokenValue}', {offsetPosition} }}");
         var longParams = Params.Where(p => p.LongNames.Length > 0);
-        foreach (var param in longParams.Where(p => p.Type != ArgumentType.Flag
+        foreach (var param in longParams.Where(p => p.Type is not ParameterType.Flag
                                                     && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
         {
             var optionPrefix = param.Style.LongOptionPrefix;
@@ -479,7 +479,7 @@ public class CommandCompleter
     {
         NativeCompleter.Debug($"[{context.Name}] Start CompleteStandardParams {{ '{tokenValue}', {offsetPosition} }}");
         var standardParams = Params.Where(p => p.StandardNames.Length > 0);
-        foreach (var param in standardParams.Where(p => p.Type != ArgumentType.Flag
+        foreach (var param in standardParams.Where(p => p.Type is not ParameterType.Flag
                                                         && p.Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent)))
         {
             var optionPrefix = param.Style.ShortOptionPrefix;
@@ -569,7 +569,7 @@ public class CommandCompleter
                 position += optionPrefix.Length;
                 NativeCompleter.Debug($"  ShortParam Matched {{ '{paramChar}', {position} }}");
                 if (position < offsetPosition
-                    && param.Type != ArgumentType.Flag)
+                    && param.Type is not ParameterType.Flag)
                 {
                     // -ab|Value
                     //   ^ found parameter
@@ -593,7 +593,7 @@ public class CommandCompleter
                 // If the cursor position is at the end, add the parameter even if it is not a Flag type
                 remainingParams.Add(param);
             }
-            else if (param.Type == ArgumentType.Flag)
+            else if (param.Type is ParameterType.Flag)
             {
                 // -a|b
                 //   ^ cursor
@@ -621,7 +621,7 @@ public class CommandCompleter
         var paramSuffix = tokenValue[offsetPosition..];
         foreach (var param in remainingParams)
         {
-            if (!paramSuffix.IsEmpty && param.Type is not ArgumentType.Flag)
+            if (!paramSuffix.IsEmpty && param.Type is not ParameterType.Flag)
                 continue;
 
             var tooltip = $"""
