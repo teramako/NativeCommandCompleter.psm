@@ -39,7 +39,7 @@ public class NewParamCompleterCommand : Cmdlet
     public ScriptBlock? ArgumentCompleter { get; set; }
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "VariableName")]
-    public string VariableName { get; set; } = "Val";
+    public string VariableName { get; set; } = "";
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Style")]
     public ParameterStyle? Style { get; set; }
@@ -59,9 +59,14 @@ public class NewParamCompleterCommand : Cmdlet
         }
 
         if (Type == ArgumentType.Flag
-            && (Arguments.Length != 0 || ArgumentCompleter is not null))
+            && (Arguments.Length != 0 || ArgumentCompleter is not null || !string.IsNullOrEmpty(VariableName)))
         {
             Type = ArgumentType.Required;
+        }
+
+        if (string.IsNullOrEmpty(VariableName))
+        {
+            VariableName = "Val";
         }
     }
 
