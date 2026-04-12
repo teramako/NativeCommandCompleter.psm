@@ -5,36 +5,44 @@ using System.Text;
 
 namespace MT.Comp;
 
-[Flags]
-public enum ArgumentType
+public enum ParameterType
 {
     /// <summary>
     /// Flag parameters that do not require argument values
     /// </summary>
-    Flag = 0,
+    Flag,
 
     /// <summary>
     /// like `nargs='?'`, e.g. `sed -i[.bk]`
     /// </summary>
-    FlagOrValue = 1 << 0,
+    FlagOrValue,
 
     /// <summary>
     /// Parameter for which argument values are required
     /// </summary>
-    Required = 1 << 1,
+    Required
+}
+
+[Flags]
+public enum ArgumentType
+{
+    /// <summary>
+    /// Default (not specified)
+    /// </summary>
+    Any = 0,
 
     /// <summary>
-    /// Parameter for which file or directory argument are required
+    /// Indicates that the argument is a file or directory path
     /// </summary>
     File = 1 << 2,
 
     /// <summary>
-    /// Parameter for which directory argument are required
+    /// Indicates that the argument is a directory path
     /// </summary>
     Directory = 1 << 3,
 
     /// <summary>
-    /// Parameters that require comma-separated value(s)
+    /// Indicates that the argument is comma-separated value(s)
     /// </summary>
     List = 1 << 4,
 }
@@ -52,27 +60,25 @@ public class ParamCompleter
     /// <param name="style"></param>
     /// <param name="nargs"></param>
     /// <exception cref="ArgumentException"></exception>
-    public ParamCompleter(ArgumentType type,
+    public ParamCompleter(ParameterType type,
                           string[] standardNames,
                           string[] longNames,
                           char[] shortNames,
+                          ArgumentType argumentType = default,
                           string variableName = "Val",
                           ParameterStyle? style = null,
                           Nargs nargs = default)
     {
         Id = longNames.Union(standardNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'StandardName', 'LongName', or 'ShortName' must be specified");
-        if (type > 0 && !type.HasFlag(ArgumentType.FlagOrValue))
-        {
-            type |= ArgumentType.Required;
-        }
         Type = type;
         LongNames = longNames;
         StandardNames = standardNames;
         ShortNames = shortNames;
-        Nargs = type is 0
+        _argumentType = argumentType;
+        Nargs = type is ParameterType.Flag
                 ? default
-                : type.HasFlag(ArgumentType.FlagOrValue)
+                : type is ParameterType.FlagOrValue
                   ? Nargs.ZeroOrOne
                   : nargs.MinCount > 0 ? nargs : Nargs.One;
         VariableName = type > 0 ? variableName : string.Empty;
@@ -84,7 +90,11 @@ public class ParamCompleter
 
     public string Id { get; }
 
-    public ArgumentType Type { get; }
+    /// <summary>
+    /// Parameter type.
+    /// Indicates whether arguments are required
+    /// </summary>
+    public ParameterType Type { get; }
 
     /// <summary>
     /// One character parameter names.
@@ -126,6 +136,18 @@ public class ParamCompleter
     /// Parameter description.
     /// </summary>
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Argument type
+    /// </summary>
+    /// <remarks>
+    /// Returns <see langword="null"/> if the <see cref="Type"/> is <see cref="ParameterType.Flag"/>
+    /// </remarks>
+    public ArgumentType? ArgumentType
+    {
+        get => Type is ParameterType.Flag ? null : _argumentType;
+    }
+    private ArgumentType _argumentType;
 
     /// <summary>
     /// Represents a constraint on the number of argument values accepted by a parameter.
@@ -200,9 +222,9 @@ public class ParamCompleter
     private void PrintSyntax(StringBuilder sb, string name, bool isShortParam = false)
     {
         sb.Append(name);
-        if (Type == ArgumentType.Flag)
+        if (Type is ParameterType.Flag)
             return;
-        bool optional = Type.HasFlag(ArgumentType.FlagOrValue);
+        bool optional = Type is ParameterType.FlagOrValue;
         char valueSeparator = optional
             ? Style.ValueSeparator
             : Style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent) ? Style.ValueSeparator : ' ';
@@ -221,7 +243,7 @@ public class ParamCompleter
             sb.Append(!isShortParam && valueSeparator > 0 ? valueSeparator : ' ');
         }
         sb.Append(VariableName);
-        if (Type.HasFlag(ArgumentType.List))
+        if (_argumentType.HasFlag(Comp.ArgumentType.List))
         {
             sb.Append("[,…]");
         }
@@ -286,8 +308,8 @@ public class ParamCompleter
                                  out ReadOnlySpan<char> paramValue)
     {
         ParameterStyle style = Style;
-        if ((Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
-            || Type.HasFlag(ArgumentType.FlagOrValue))
+        if ((Type is not ParameterType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
+            || Type is ParameterType.FlagOrValue)
         {
             var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
             if (separatorPosition >= 0)
@@ -322,8 +344,8 @@ public class ParamCompleter
                                      out ReadOnlySpan<char> paramValue)
     {
         ParameterStyle style = Style;
-        if ((Type != ArgumentType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
-            || Type.HasFlag(ArgumentType.FlagOrValue))
+        if ((Type is not ParameterType.Flag && style.ValueStyle.HasFlag(ParameterValueStyle.Adjacent))
+            || Type is ParameterType.FlagOrValue)
         {
             var separatorPosition = inputValue.IndexOf(style.ValueSeparator);
             if (separatorPosition >= 0)
@@ -397,9 +419,9 @@ public class ParamCompleter
 
     internal string GetParamNameSuffix()
     {
-        if (Type is ArgumentType.Flag)
+        if (Type is ParameterType.Flag)
             return " ";
-        if (Type.HasFlag(ArgumentType.FlagOrValue))
+        if (Type is ParameterType.FlagOrValue)
         {
             return string.Empty;
         }
@@ -441,7 +463,7 @@ public class ParamCompleter
                               string optionPrefix,
                               string prefix = "")
     {
-        if (Type.HasFlag(ArgumentType.List))
+        if (_argumentType.HasFlag(Comp.ArgumentType.List))
         {
             NativeCompleter.Debug($"[{context.Name}] CompleteValue[List]: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
             var commaCount = paramValue.Count(',');
@@ -507,15 +529,15 @@ public class ParamCompleter
             return true;
         }
 
-        bool useFilenameCompletion = Type.HasFlag(ArgumentType.File)
-                                     || Type.HasFlag(ArgumentType.Directory);
+        bool useFilenameCompletion = _argumentType.HasFlag(Comp.ArgumentType.File)
+                                     || _argumentType.HasFlag(Comp.ArgumentType.Directory);
 
         if (ArgumentCompleter is null)
         {
             if (useFilenameCompletion)
             {
                 NativeCompleter.Debug($"[{context.Name}] CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}, prefix: '{prefix}' }}");
-                bool onlyDirectory = !Type.HasFlag(ArgumentType.File);
+                bool onlyDirectory = !_argumentType.HasFlag(Comp.ArgumentType.File);
                 try
                 {
                     foreach (var result in Helper.CompleteFilename($"{paramValue}", context.CurrentDirectory.Path, true, onlyDirectory))

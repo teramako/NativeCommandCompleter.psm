@@ -25,9 +25,12 @@ public class NewParamCompleterCommand : Cmdlet
     [AllowEmptyString]
     public string Description { get; set; } = string.Empty;
 
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentType")]
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ParameterType")]
     [Alias("t")]
-    public ArgumentType Type { get; set; } = ArgumentType.Flag;
+    public ParameterType Type { get; set; } = ParameterType.Flag;
+
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentType")]
+    public ArgumentType ArgumentType { get; set; }
 
     [Parameter(ParameterSetName = "WithArguments", Mandatory = true,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
@@ -58,10 +61,20 @@ public class NewParamCompleterCommand : Cmdlet
                 this));
         }
 
-        if (Type == ArgumentType.Flag
+        if (string.IsNullOrEmpty(VariableName) && ArgumentType is not ArgumentType.Any)
+        {
+            if (ArgumentType.HasFlag(ArgumentType.File))
+                VariableName = "file";
+            else if (ArgumentType.HasFlag(ArgumentType.Directory))
+                VariableName = "dir";
+            else if (ArgumentType.HasFlag(ArgumentType.List))
+                VariableName = "list";
+        }
+
+        if (Type == ParameterType.Flag
             && (Arguments.Length != 0 || ArgumentCompleter is not null || !string.IsNullOrEmpty(VariableName)))
         {
-            Type = ArgumentType.Required;
+            Type = ParameterType.Required;
         }
 
         if (string.IsNullOrEmpty(VariableName))
@@ -72,7 +85,7 @@ public class NewParamCompleterCommand : Cmdlet
 
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new(Type, StandardName, LongName, ShortName, VariableName, Style, Nargs)
+        ParamCompleter completer = new(Type, StandardName, LongName, ShortName, ArgumentType, VariableName, Style, Nargs)
         {
             Description = Description ?? string.Empty,
             Arguments = Arguments,

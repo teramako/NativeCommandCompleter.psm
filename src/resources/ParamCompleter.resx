@@ -24,9 +24,13 @@
   <data name="Description" xml:space="preserve">
     <value>Description for the parameter.</value>
   </data>
+  <data name="ParameterType" xml:space="preserve">
+    <value>Parametesr's type for completion.
+Availables: [Flag | FlagOrValue | Required]</value>
+  </data>
   <data name="ArgumentType" xml:space="preserve">
-    <value>Parametesr's type(s) for completion.
-Availables: [Flag | FlagOrValue | Required | File | Directory | List]</value>
+    <value>Parametesr's argument type(s) for completion.
+Availables: [Normal | File | Directory | List]</value>
   </data>
   <data name="Arguments" xml:space="preserve">
     <value>Completion candidates for the parameter arguments.
