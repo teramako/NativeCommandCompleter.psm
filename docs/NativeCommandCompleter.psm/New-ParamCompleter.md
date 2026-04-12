@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/30/2025
+ms.date: 04/12/2026
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
 ---
@@ -21,24 +21,24 @@ Create a parameter's completer.
 
 ```
 New-ParamCompleter [-StandardName <string[]>] [-LongName <string[]>] [-ShortName <char[]>]
- [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>]
- [-Nargs <Nargs>]
+ [-Description <string>] [-Type <ParameterType>] [-ArgumentType <ArgumentType>]
+ [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
 ```
 
 ### WithArguments
 
 ```
 New-ParamCompleter -Arguments <string[]> [-StandardName <string[]>] [-LongName <string[]>]
- [-ShortName <char[]>] [-Description <string>] [-Type <ArgumentType>] [-VariableName <string>]
- [-Style <ParameterStyle>] [-Nargs <Nargs>]
+ [-ShortName <char[]>] [-Description <string>] [-Type <ParameterType>]
+ [-ArgumentType <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
 ```
 
 ### WithArgumentCompleter
 
 ```
 New-ParamCompleter -ArgumentCompleter <scriptblock> [-StandardName <string[]>]
- [-LongName <string[]>] [-ShortName <char[]>] [-Description <string>] [-Type <ArgumentType>]
- [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
+ [-LongName <string[]>] [-ShortName <char[]>] [-Description <string>] [-Type <ParameterType>]
+ [-ArgumentType <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
 ```
 
 ## ALIASES
@@ -73,8 +73,11 @@ Syntax will be: `--color[={auto|always|never}]`
 ### Example 4. Create a parameter that requires a file path as an argument
 
 ```powershell
-$fileParam = New-ParamCompleter -LongName file -Type File
+$fileParam = New-ParamCompleter -LongName file -ArgumentType File -VariableName 'PATH'
 ```
+
+Syntax will be: `--file[ =]PATH`
+And file name completion will then be enabled.
 
 ## PARAMETERS
 
@@ -123,6 +126,38 @@ ParameterSets:
 - Name: WithArguments
   Position: Named
   IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -ArgumentType
+
+The parametesr's argument type for completion.
+
+- **`Any`**: Default when not specified.
+
+- **`File`**: Performs a file or directory path completion.
+          (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
+
+- **`Directory`**: Performs directory path completion.
+               (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
+
+- **`List`**: Comma-separated value(s) are accepted.
+
+
+```yaml
+Type: MT.Comp.ArgumentType
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -295,16 +330,11 @@ Parametesr's type for completion.
 - **`Required`**: The argument is required.
               This is default value if either `-Arguments` or `-ArgumentCompleter` is specified.
 
-- **`File`**: Performs a file or directory path completion.
-          (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
-
-- **`Directory`**: Performs directory path completion.
-               (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
-
-- **`List`**: Comma-separated value(s) are accepted.
+The default value when omitted is `Flag`.
+However, if any of `-ArgumentType` (other than `Any`), `-Arguments`, or `-ArgumentCompleter` is specified, the value becomes `Required`.
 
 ```yaml
-Type: MT.Comp.ArgumentType
+Type: MT.Comp.ParameterType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
