@@ -90,6 +90,10 @@ public class ParamCompleter
 
     public string Id { get; }
 
+    /// <summary>
+    /// Parameter type.
+    /// Indicates whether arguments are required
+    /// </summary>
     public ParameterType Type { get; }
 
     /// <summary>
@@ -133,6 +137,12 @@ public class ParamCompleter
     /// </summary>
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Argument type
+    /// </summary>
+    /// <remarks>
+    /// Returns <see langword="null"/> if the <see cref="Type"/> is <see cref="ParameterType.Flag"/>
+    /// </remarks>
     public ArgumentType? ArgumentType
     {
         get => Type is ParameterType.Flag ? null : _argumentType;
