@@ -27,9 +27,9 @@ public enum ParameterType
 public enum ArgumentType
 {
     /// <summary>
-    /// Normal type
+    /// Default (not specified)
     /// </summary>
-    Normal = 0,
+    Any = 0,
 
     /// <summary>
     /// Indicates that the argument is a file or directory path
