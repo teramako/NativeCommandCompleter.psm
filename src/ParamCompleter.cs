@@ -23,7 +23,6 @@ public enum ParameterType
     Required
 }
 
-[Flags]
 public enum ArgumentType
 {
     /// <summary>
@@ -40,11 +39,6 @@ public enum ArgumentType
     /// Indicates that the argument is a directory path
     /// </summary>
     Directory = 1 << 3,
-
-    /// <summary>
-    /// Indicates that the argument is comma-separated value(s)
-    /// </summary>
-    List = 1 << 4,
 }
 
 public class ParamCompleter

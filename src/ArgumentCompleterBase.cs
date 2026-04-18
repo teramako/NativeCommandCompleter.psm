@@ -12,12 +12,12 @@ public abstract class ArgumentCompleterBase : IArgumentCompleter
             field = value;
             if (string.IsNullOrEmpty(Name))
             {
-                if (value.HasFlag(ArgumentType.File))
-                    Name = "file";
-                else if (value.HasFlag(ArgumentType.Directory))
-                    Name = "dir";
-                else
-                    Name = "arg";
+                Name = value switch
+                {
+                    ArgumentType.File => "file",
+                    ArgumentType.Directory => "dir",
+                    _ => "arg"
+                };
             }
         }
     }

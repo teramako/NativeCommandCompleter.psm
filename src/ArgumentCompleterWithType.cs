@@ -11,12 +11,11 @@ public class ArgumentCompleterWithType : ArgumentCompleterBase
                                                          int offsetPosition,
                                                          int argumentIndex)
     {
-        if (!Type.HasFlag(ArgumentType.File)
-            && !Type.HasFlag(ArgumentType.Directory))
+        return Type switch
         {
-            return [];
-        }
-        bool onlyDirectory = !Type.HasFlag(ArgumentType.File);
-        return Helper.CompleteFilename(context, true, onlyDirectory);
+            ArgumentType.File => Helper.CompleteFilename(context, true, false),
+            ArgumentType.Directory => Helper.CompleteFilename(context, true, true),
+            _ => []
+        };
     }
 }
