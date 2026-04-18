@@ -182,17 +182,19 @@ public sealed class CompletionContext
         return CreateNestedContext(commandCompleter, commandCompleter.Name, argumentIndex);
     }
 
-    internal void AddBoundParameter(string name, object? paramValue = null)
+    internal void AddBoundParameter(string name, object paramValue)
     {
+        ArrayList values = paramValue is ICollection c ? [..c] : [paramValue];
+
         if (_boundParameters.TryGetValue(name, out var found))
         {
-            found.Add(paramValue);
-            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{paramValue}', (Count = {found.Count}) }}");
+            found.AddRange(values);
+            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values)}', (Count = {found.Count}) }}");
         }
         else
         {
-            _boundParameters.Add(name, [paramValue]);
-            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{paramValue}' (New) }}");
+            _boundParameters.Add(name, values);
+            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values)}' (New) }}");
         }
     }
 
