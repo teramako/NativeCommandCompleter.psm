@@ -709,8 +709,18 @@ public class CommandCompleter
                 """;
 
             NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: '{tokenValue}', index: {argumentIndex} }}");
+            IEnumerable<CompletionData> candidates;
+            if (ac.List)
+            {
+                var result = Helper.ResolveListElement(tokenValue, offsetPosition);
+                candidates = ac.Complete(context, result.Slice(tokenValue), result.OffsetPosition, argumentIndex);
+            }
+            else
+            {
+                candidates = ac.Complete(context, tokenValue, offsetPosition, argumentIndex);
+            }
             int count = 0;
-            foreach (var data in ac.Complete(context, tokenValue, offsetPosition, argumentIndex))
+            foreach (var data in candidates)
             {
                 results.Add(data.SetTooltipPrefix(tooltipPrefix));
                 count++;
