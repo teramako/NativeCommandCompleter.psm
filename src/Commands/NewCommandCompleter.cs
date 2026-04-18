@@ -31,7 +31,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
     [Alias("a", "ArgumentCompleter")]
     [ArgumentsTransformation]
-    public IArgumentCompleter[]? Arguments { get; set; }
+    public ArgumentCompleterCollection? Arguments { get; set; }
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
     public SwitchParameter NoFileCompletions { get; set; }

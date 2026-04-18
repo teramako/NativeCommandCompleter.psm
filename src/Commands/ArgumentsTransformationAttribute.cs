@@ -3,6 +3,9 @@ using System.Management.Automation;
 
 namespace MT.Comp.Commands;
 
+/// <summary>
+/// Converts values of various types into a <seealso cref="ArgumentCompleterCollection"/>.
+/// </summary>
 public class ArgumentsTransformationAttribute : ArgumentTransformationAttribute
 {
     private const string COMPLEX_TYPES_EXCEPTION = """
@@ -17,7 +20,7 @@ public class ArgumentsTransformationAttribute : ArgumentTransformationAttribute
         if (inputData is PSObject pso)
             inputData = pso.BaseObject;
 
-        List<IArgumentCompleter> results = [];
+        ArgumentCompleterCollection results = [];
         IArgumentCompleter ac;
         switch (inputData)
         {
@@ -50,17 +53,15 @@ public class ArgumentsTransformationAttribute : ArgumentTransformationAttribute
                             if (processingCompletionData)
                                 throw new ArgumentException(COMPLEX_TYPES_EXCEPTION);
 
-                            results.Add(ConvertToArgumentCompleter(item, $"{i + 1}", i == list.Count - 1));
+                            results.Add(ConvertToArgumentCompleter(item, $"{i + 1}"));
                             break;
                     }
                 }
                 if (bufList.Count > 0)
                 {
-                    ac = new ArgumentCompleterList()
+                    ac = new ArgumentCompleterWithCandidates()
                     {
                         Name = "arg", 
-                        Required = true,
-                        Remainings = false,
                         Candidates = bufList.ToArray()
                     };
                     results.Add(ac);
@@ -75,27 +76,29 @@ public class ArgumentsTransformationAttribute : ArgumentTransformationAttribute
         return results.ToArray();
     }
 
-    public static IArgumentCompleter ConvertToArgumentCompleter(object obj, string suffix = "", bool isLast = false)
+    public static IArgumentCompleter ConvertToArgumentCompleter(object obj, string suffix = "")
     {
         switch (obj)
         {
             case IArgumentCompleter ac:
                 return ac;
-            case ScriptBlock sb:
-                return new ArgumentCompleterScript()
+            case string str:
+                return new ArgumentCompleterWithCandidates()
                 {
                     Name = $"arg{suffix}",
-                    Required = true,
-                    Remainings = isLast,
+                    Candidates = [CompletionValue.Parse(str)]
+                };
+            case ScriptBlock sb:
+                return new ArgumentCompleterWithScript()
+                {
+                    Name = $"arg{suffix}",
                     Script = sb
                 };
             case IList list:
                 object[] arr = [..list];
-                return new ArgumentCompleterList()
+                return new ArgumentCompleterWithCandidates()
                 {
                     Name = $"arg{suffix}",
-                    Required = true,
-                    Remainings = isLast,
                     Candidates = arr.Select(obj => obj switch
                                             {
                                                 CompletionValue data => data,
@@ -105,11 +108,15 @@ public class ArgumentsTransformationAttribute : ArgumentTransformationAttribute
                                     .ToArray()
                 };
             case IDictionary dict:
-                if (LanguagePrimitives.TryConvertTo<ArgumentCompleterScript>(dict, out var acScript))
+                if (LanguagePrimitives.TryConvertTo<ArgumentCompleterWithType>(dict, out var acType))
+                {
+                    return acType;
+                }
+                else if (LanguagePrimitives.TryConvertTo<ArgumentCompleterWithScript>(dict, out var acScript))
                 {
                     return acScript;
                 }
-                else if (LanguagePrimitives.TryConvertTo<ArgumentCompleterList>(dict, out var acList))
+                else if (LanguagePrimitives.TryConvertTo<ArgumentCompleterWithCandidates>(dict, out var acList))
                 {
                     return acList;
                 }

@@ -45,7 +45,7 @@ public class CommandCompleter
     public ReadOnlyCollection<ParamCompleter> Params { get; }
     private readonly Collection<CommandCompleter> _subCommands = [];
     public ReadOnlyCollection<CommandCompleter> SubCommands { get; }
-    public IArgumentCompleter[]? Arguments { get; set; }
+    public ArgumentCompleterCollection Arguments { get; internal set; } = [];
     public bool NoFileCompletions { get; set; }
     /// <summary>
     /// Argument index of a command to delegate completions.
@@ -640,33 +640,35 @@ public class CommandCompleter
         return completed;
     }
 
-    private string GetSyntax()
+    /// <summary>
+    /// Get the command syntax contains arguments
+    /// </summary>
+    /// <param name="cmdName">Command name. If omitted, <see cref="Name"/> is used</param>
+    public string GetSyntax(string? cmdName = null)
     {
-        if (Arguments is null or { Length: 0 })
-        {
-            return string.Empty;
-        }
         StringBuilder sb = new();
-        int optionalCount = 0;
-        for (var i = 0; i < Arguments.Length; i++)
-        {
-            var completer = Arguments[i];
-            if (!completer.Required)
-            {
-                sb.Append('[');
-                optionalCount++;
-            }
-            sb.Append(completer.ToString());
-            if (i == Arguments.Length - 1)
-            {
-                sb.Append(']', optionalCount);
-            }
-            else
-            {
-                sb.Append(' ');
-            }
-        }
+        PrintSyntax(sb, cmdName);
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Append the command syntax contains arguments to <paramref name="sb"/>
+    /// </summary>
+    /// <param name="sb"></param>
+    /// <param name="cmdName">Command name. If omitted, <see cref="Name"/> is used</param>
+    private void PrintSyntax(StringBuilder sb, string? cmdName = null)
+    {
+        if (sb.Length > 0)
+            sb.Append(' ');
+        sb.Append(string.IsNullOrEmpty(cmdName) ? Name : cmdName);
+        if (Aliases.Length > 0)
+        {
+            sb.Append(" (Alias:")
+              .AppendJoin('|', Aliases)
+              .Append(')');
+        }
+        sb.Append(' ');
+        Arguments.PrintSyntax(sb);
     }
 
     /// <summary>
@@ -686,7 +688,8 @@ public class CommandCompleter
                                  int offsetPosition,
                                  int argumentIndex)
     {
-        if (Arguments is null or { Length: 0 })
+        var ac = Arguments.GetByArgumentIndex(argumentIndex);
+        if (ac is null)
         {
             if (argumentIndex == DelegateArgumentIndex)
             {
@@ -700,21 +703,8 @@ public class CommandCompleter
         }
         else
         {
-            IArgumentCompleter ac;
-            if (argumentIndex < Arguments.Length)
-            {
-                ac = Arguments[argumentIndex];
-            }
-            else
-            {
-                ac = Arguments[^1];
-                if (!ac.Remainings)
-                {
-                    return NoFileCompletions;
-                }
-            }
             var tooltipPrefix = $"""
-                {context.Name} {GetSyntax()}{(string.IsNullOrEmpty(ac.Description) ? string.Empty : $" : {ac.Description}")}
+                {GetSyntax(context.Name)}{(string.IsNullOrEmpty(ac.Description) ? string.Empty : $" : {ac.Description}")}
                 [{argumentIndex + 1}]: 
                 """;
 

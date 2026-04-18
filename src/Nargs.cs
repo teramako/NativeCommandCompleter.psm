@@ -84,6 +84,32 @@ public readonly struct Nargs : ISpanParsable<Nargs>
         MaxCount = maxCount;
     }
 
+    /// <summary>
+    /// Check if the <paramref name="index"/> value is within this range
+    /// </summary>
+    public bool IsIndexAllowd(int index)
+    {
+        if (index < 0)
+            return false;
+        if (index < MinCount)
+            return true;
+        if (ConsumeRest)
+            return true;
+
+        return index < MaxCount;
+    }
+
+    public static Nargs operator +(Nargs a, Nargs b)
+    {
+        int min = a.MinCount + b.MinCount;
+        int max;
+        if (a.ConsumeRest || b.ConsumeRest)
+            max = -1;
+        else
+            max = a.MaxCount + b.MaxCount;
+        return new Nargs(min, max);
+    }
+
     /// <inheritdoc/>
     public static Nargs Parse(ReadOnlySpan<char> s, IFormatProvider? provider = null)
     {

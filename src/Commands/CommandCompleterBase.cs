@@ -45,11 +45,12 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       ParamCompleter[] paramCompleters,
                                                       CommandCompleter[] subCommands,
                                                       ParameterStyle style,
-                                                      IArgumentCompleter[]? argumentCompleters = null,
+                                                      ArgumentCompleterCollection? argumentCompleters = null,
                                                       bool noFileCompletions = false,
                                                       int delegateArgumentIndex = -1,
                                                       Hashtable? metadata = null)
     {
+        argumentCompleters ??= [];
         CommandCompleter completer = WildcardPattern.ContainsWildcardCharacters(name)
             ? new WildcardNameCommandCompleter(name, description, style, paramCompleters, subCommands)
             {

@@ -39,7 +39,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
     [Alias("a", "ArgumentCompleter")]
     [ArgumentsTransformation]
-    public IArgumentCompleter[]? Arguments { get; set; }
+    public ArgumentCompleterCollection? Arguments { get; set; }
 
     [Parameter(ParameterSetName = ParameterSetNew,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CommandParameterStyle")]
