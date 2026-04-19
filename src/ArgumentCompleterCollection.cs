@@ -84,7 +84,7 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
             {
                 sb.Append(" …");
             }
-            else if (ac.Nargs.MaxCount > ac.Nargs.MinCount)
+            else if (ac.Nargs.MaxCount - ac.Nargs.MinCount > 1)
             {
                 sb.Append('[')
                   .AppendJoin(' ', Enumerable.Repeat(name, ac.Nargs.MaxCount - ac.Nargs.MinCount))
