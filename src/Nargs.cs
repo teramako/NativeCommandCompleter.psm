@@ -30,6 +30,11 @@ namespace MT.Comp;
 ///       (e.g., <c>"1-3"</c>) specify an inclusive minimum and maximum.
 ///     </description>
 ///   </item>
+///   <item>
+///     <description>
+///       <b>?</b>: A single question mark indicates zero or one value, commonly used for optional
+///     </description>
+///   </item>
 /// </list>
 /// <para>
 /// Internally, an unbounded upper limit is represented by <c>MaxCount = -1</c>.
@@ -96,6 +101,12 @@ public readonly struct Nargs : ISpanParsable<Nargs>
         if (s.IsEmpty)
             return false;
 
+        if (s.Equals("?", StringComparison.Ordinal))
+        {
+            result = Nargs.ZeroOrOne;
+            return true;
+        }
+
         // 1) "n+" → lower bound only
         if (s[^1] == '+')
         {
@@ -145,6 +156,9 @@ public readonly struct Nargs : ISpanParsable<Nargs>
     /// </summary>
     public override string ToString()
     {
+        if (MinCount == 0 && MaxCount == 1)
+            return "?";
+
         if (MaxCount < 0)
             return $"{MinCount}+";
 
