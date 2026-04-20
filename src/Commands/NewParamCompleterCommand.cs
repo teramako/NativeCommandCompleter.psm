@@ -25,30 +25,13 @@ public class NewParamCompleterCommand : Cmdlet
     [AllowEmptyString]
     public string Description { get; set; } = string.Empty;
 
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ParameterType")]
-    [Alias("t")]
-    public ParameterType Type { get; set; } = ParameterType.Flag;
-
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentType")]
-    public ArgumentType ArgumentType { get; set; }
-
-    [Parameter(ParameterSetName = "WithArguments", Mandatory = true,
-               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
-    [Alias("a")]
-    public string[] Arguments { get; set; } = [];
-
-    [Parameter(ParameterSetName = "WithArgumentCompleter", Mandatory = true,
-               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
-    public ScriptBlock? ArgumentCompleter { get; set; }
-
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "VariableName")]
-    public string VariableName { get; set; } = "";
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
+    [Alias("a", "ArgumentCompleter")]
+    [ArgumentsTransformation]
+    public ArgumentCompleterCollection Arguments { get; set; } = [];
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Style")]
     public ParameterStyle? Style { get; set; }
-
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Nargs")]
-    public Nargs Nargs { get; set; } = Nargs.One;
 
     protected override void BeginProcessing()
     {
@@ -60,36 +43,13 @@ public class NewParamCompleterCommand : Cmdlet
                 ErrorCategory.InvalidArgument,
                 this));
         }
-
-        if (string.IsNullOrEmpty(VariableName) && ArgumentType is not ArgumentType.Any)
-        {
-            if (ArgumentType.HasFlag(ArgumentType.File))
-                VariableName = "file";
-            else if (ArgumentType.HasFlag(ArgumentType.Directory))
-                VariableName = "dir";
-            else if (ArgumentType.HasFlag(ArgumentType.List))
-                VariableName = "list";
-        }
-
-        if (Type == ParameterType.Flag
-            && (Arguments.Length != 0 || ArgumentCompleter is not null || !string.IsNullOrEmpty(VariableName)))
-        {
-            Type = ParameterType.Required;
-        }
-
-        if (string.IsNullOrEmpty(VariableName))
-        {
-            VariableName = "Val";
-        }
     }
 
     protected override void EndProcessing()
     {
-        ParamCompleter completer = new(Type, StandardName, LongName, ShortName, ArgumentType, VariableName, Style, Nargs)
+        ParamCompleter completer = new(StandardName, LongName, ShortName, Arguments, Style)
         {
             Description = Description ?? string.Empty,
-            Arguments = Arguments,
-            ArgumentCompleter = ArgumentCompleter
         };
         WriteObject(completer);
     }
