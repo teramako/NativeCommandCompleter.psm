@@ -14,6 +14,11 @@ BeforeAll {
         }, @{
             Name = '2nd'; Script = { param([int] $position, [int] $argIndex) "{0}_2nd:{1}:{2}" -f $_, $position, $argIndex }
         }
+        New-ParamCompleter -LongName flag-or-value -ShortName 'b' -Arguments @{
+            Name = 'opt';
+            Nargs = '?';
+            Candidates = "val1", "val2", "val3"
+        }
         New-ParamCompleter -Name one-or-more -Arguments @{
             Name = 'values';
             Nargs = '1+';
@@ -55,6 +60,25 @@ Describe 'parameters' {
             $results = TabExpansion2 -inputScript "test-1 -list a b" | Select-Object -ExpandProperty CompletionMatches
             $results.Count | Should -Be 1
             $results[0].CompletionText | Should -Be "b_2nd:1:1"
+        }
+    }
+
+    Context 'Flag or Value paramter (Nargs = ?)' {
+        It 'Completes argument value when cursor is after Long parameter with tailing "=" (`test-1 --flag-or-value=`)' {
+            $results = TabExpansion2 -inputScript "test-1 --flag-or-value=" | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -Be 3
+            $results.CompletionText | Should -Be @("--flag-or-value=val1", "--flag-or-value=val2", "--flag-or-value=val3")
+        }
+
+        It 'Completes first argument when cursor is after short parameter (`test-1 -b`)' {
+            $results = TabExpansion2 -inputScript "test-1 -b" | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -Be 3
+            $results.CompletionText | Should -Be @("-bval1", "-bval2", "-bval3")
+        }
+
+        It 'Completes first argument (`test-1 --flag-or-value `)' {
+            $results = TabExpansion2 -inputScript "test-1 --flag-or-value " | Select-Object -ExpandProperty CompletionMatches
+            $results.CompletionText | Should -Not -Be @("--flag-or-value=val1", "--flag-or-value=val2", "--flag-or-value=val3")
         }
     }
 
