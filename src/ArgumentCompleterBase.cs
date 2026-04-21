@@ -1,5 +1,8 @@
 namespace MT.Comp;
 
+/// <summary>
+/// Base class for argument completers, which provides completion candidates for command and parameter arguments.
+/// </summary>
 public abstract class ArgumentCompleterBase : IArgumentCompleter
 {
     public required string Name { get; init; }
