@@ -23,7 +23,7 @@ Create a CommandCompleter object.
 New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
  [-Arguments <ArgumentCompleterCollection>] [-NoFileCompletions] [-Style <CommandParameterStyle>]
- [-CustomStyle <ParameterStyle>] [-DelegateArgumentIndex <int>] [-Metadata <hashtable>]
+ [-CustomStyle <ParameterStyle>] [-DelegateArgumentIndex <int>]
 ```
 
 ## ALIASES
@@ -196,32 +196,6 @@ Aliases:
 ParameterSets:
 - Name: (All)
   Position: 1
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Metadata
-
-Metadata settings.
-
-The given data can be accessed through `-ArgumentCompleter`'s ScriptBlock.
-This may reduce the amount of code by eliminating the need to redefine static data.
-
-Typically, it can be used to get localized messages.
-
-```yaml
-Type: System.Collections.Hashtable
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
