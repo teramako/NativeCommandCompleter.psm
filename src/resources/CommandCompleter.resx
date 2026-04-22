@@ -58,9 +58,6 @@ This setting is inherited by each parameter.</value>
 e.g.) `sudo {COMMAND} [args...]`, `time {COMMAND} [args...]`
 Specifies the index of the argument that will be "{COMMAND}". (starting from 0)</value>
   </data>
-  <data name="Metadata" xml:space="preserve">
-    <value>Metadata settings.</value>
-  </data>
   <data name="Completer" xml:space="preserve">
     <value>CommandCompleter object to be registered.</value>
   </data>

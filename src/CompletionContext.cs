@@ -65,8 +65,6 @@ public sealed class CompletionContext
     /// </summary>
     public ReadOnlyDictionary<string, ArrayList> BoundParameters { get; }
 
-    public Hashtable? Metadata => CommandCompleter.Metadata;
-
     private List<Token> _arguments = [];
     private List<Token> _remainingArguments = [];
     private List<Token> _unboundArguments = [];

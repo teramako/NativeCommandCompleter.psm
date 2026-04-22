@@ -47,9 +47,6 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [ValidateRange(0, int.MaxValue)]
     public int DelegateArgumentIndex { get; set; } = -1;
 
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Metadata")]
-    public Hashtable? Metadata { get; set; }
-
     protected override void EndProcessing()
     {
         var defaultParameterStyle = CustomStyle is not null
@@ -64,8 +61,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
                                            defaultParameterStyle,
                                            Arguments,
                                            NoFileCompletions,
-                                           DelegateArgumentIndex,
-                                           Metadata),
+                                           DelegateArgumentIndex),
                     false);
     }
 }

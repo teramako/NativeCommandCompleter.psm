@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Management.Automation;
 
 namespace MT.Comp.Commands;
@@ -47,8 +46,7 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       ParameterStyle style,
                                                       ArgumentCompleterCollection? argumentCompleters = null,
                                                       bool noFileCompletions = false,
-                                                      int delegateArgumentIndex = -1,
-                                                      Hashtable? metadata = null)
+                                                      int delegateArgumentIndex = -1)
     {
         argumentCompleters ??= [];
         CommandCompleter completer = WildcardPattern.ContainsWildcardCharacters(name)
@@ -58,7 +56,6 @@ public abstract class CommandCompleterBase : PSCmdlet
                 Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
                 DelegateArgumentIndex = delegateArgumentIndex,
-                Metadata = metadata
             }
             : new CommandCompleter(name, description, style, paramCompleters, subCommands)
             {
@@ -66,7 +63,6 @@ public abstract class CommandCompleterBase : PSCmdlet
                 Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
                 DelegateArgumentIndex = delegateArgumentIndex,
-                Metadata = metadata
             };
         return completer;
     }
