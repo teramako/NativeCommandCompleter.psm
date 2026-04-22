@@ -60,8 +60,6 @@ public class CommandCompleter
     /// </remarks>
     public int DelegateArgumentIndex { get; internal set; } = -1;
 
-    public Hashtable? Metadata { get; set; }
-
     public override string ToString()
     {
         return string.IsNullOrEmpty(Description)
