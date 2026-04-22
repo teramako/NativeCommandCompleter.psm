@@ -28,9 +28,10 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Alias("s")]
     public CommandCompleter[] SubCommands { get; set; } = [];
 
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "ArgumentCompleter")]
-    [Alias("a")]
-    public ScriptBlock? ArgumentCompleter { get; set; }
+    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Arguments")]
+    [Alias("a", "ArgumentCompleter")]
+    [ArgumentsTransformation]
+    public ArgumentCompleterCollection? Arguments { get; set; }
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
     public SwitchParameter NoFileCompletions { get; set; }
@@ -61,7 +62,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
                                            Parameters,
                                            SubCommands,
                                            defaultParameterStyle,
-                                           ArgumentCompleter,
+                                           Arguments,
                                            NoFileCompletions,
                                            DelegateArgumentIndex,
                                            Metadata),

@@ -1,6 +1,4 @@
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Management.Automation;
 using System.Text;
 
 namespace MT.Comp;
@@ -23,7 +21,6 @@ public enum ParameterType
     Required
 }
 
-[Flags]
 public enum ArgumentType
 {
     /// <summary>
@@ -40,11 +37,6 @@ public enum ArgumentType
     /// Indicates that the argument is a directory path
     /// </summary>
     Directory = 1 << 3,
-
-    /// <summary>
-    /// Indicates that the argument is comma-separated value(s)
-    /// </summary>
-    List = 1 << 4,
 }
 
 public class ParamCompleter
@@ -52,40 +44,30 @@ public class ParamCompleter
     /// <summary>
     /// Initialize a new instance of ParamCompleter class
     /// </summary>
-    /// <param name="type"></param>
     /// <param name="standardNames"></param>
     /// <param name="longNames"></param>
     /// <param name="shortNames"></param>
-    /// <param name="variableName"></param>
+    /// <param name="arguments"></param>
     /// <param name="style"></param>
-    /// <param name="nargs"></param>
     /// <exception cref="ArgumentException"></exception>
-    public ParamCompleter(ParameterType type,
-                          string[] standardNames,
+    public ParamCompleter(string[] standardNames,
                           string[] longNames,
                           char[] shortNames,
-                          ArgumentType argumentType = default,
-                          string variableName = "Val",
-                          ParameterStyle? style = null,
-                          Nargs nargs = default)
+                          ArgumentCompleterCollection arguments,
+                          ParameterStyle? style = null)
     {
         Id = longNames.Union(standardNames).Union(shortNames.Select(c => $"{c}")).First()
             ?? throw new ArgumentException("At least one of 'StandardName', 'LongName', or 'ShortName' must be specified");
-        Type = type;
+        Type = arguments.Count == 0
+            ? ParameterType.Flag
+            : arguments.Nargs.MinCount == 0
+            ? ParameterType.FlagOrValue
+            : ParameterType.Required;
         LongNames = longNames;
         StandardNames = standardNames;
         ShortNames = shortNames;
-        _argumentType = argumentType;
-        Nargs = type is ParameterType.Flag
-                ? default
-                : type is ParameterType.FlagOrValue
-                  ? Nargs.ZeroOrOne
-                  : nargs.MinCount > 0 ? nargs : Nargs.One;
-        VariableName = type > 0 ? variableName : string.Empty;
-        if (style is not null)
-        {
-            _style = style;
-        }
+        Arguments = arguments;
+        Style = style;
     }
 
     public string Id { get; }
@@ -138,42 +120,26 @@ public class ParamCompleter
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// Argument type
-    /// </summary>
-    /// <remarks>
-    /// Returns <see langword="null"/> if the <see cref="Type"/> is <see cref="ParameterType.Flag"/>
-    /// </remarks>
-    public ArgumentType? ArgumentType
-    {
-        get => Type is ParameterType.Flag ? null : _argumentType;
-    }
-    private ArgumentType _argumentType;
-
-    /// <summary>
     /// Represents a constraint on the number of argument values accepted by a parameter.
     /// </summary>
-    public Nargs Nargs { get; }
+    /// <remarks>
+    /// This is alias to <see cref="ArgumentCompleterCollection.Nargs"/>
+    /// </remarks>
+    public Nargs Nargs => Arguments.Nargs;
 
     /// <summary>
     /// Completer for the parameter's argument.
     /// </summary>
-    public ScriptBlock? ArgumentCompleter { get; internal set; }
+    public ArgumentCompleterCollection Arguments { get; }
 
-    public string[] Arguments { get; internal set; } = [];
-
-    public string VariableName { get; set; }
-
-    private ParameterStyle? _style;
+    /// <summary>
+    /// Parameter style definition
+    /// </summary>
+    [AllowNull]
     public ParameterStyle Style
     {
-        get {
-            _style ??= ParameterStyle.GNU;
-            return _style;
-        }
-        set
-        {
-            _style ??= value;
-        }
+        get;
+        set => field = value ?? ParameterStyle.GNU;
     }
 
     public string GetSyntaxes(string delimiter = ", ", bool expandArguments = false)
@@ -242,29 +208,19 @@ public class ParamCompleter
         {
             sb.Append(!isShortParam && valueSeparator > 0 ? valueSeparator : ' ');
         }
-        sb.Append(VariableName);
-        if (_argumentType.HasFlag(Comp.ArgumentType.List))
-        {
-            sb.Append("[,…]");
-        }
+        Arguments.PrintSyntax(sb);
 
         if (optional)
             sb.Append(']');
     }
-    private void PrintArgumentValues(StringBuilder sb)
+    private void PrintArgumentValues(StringBuilder sb, int argumentIndex = 0)
     {
-        if (Arguments.Length > 0)
+        var ac = Arguments.GetByArgumentIndex(argumentIndex);
+        if (ac is ArgumentCompleterWithCandidates acList)
         {
-            sb.Append($" ({VariableName}={{");
-            for (var i = 0; i < Arguments.Length; i++)
-            {
-                if (i > 0)
-                    sb.Append('|');
-                var p = Arguments[i].IndexOfAny(['\t', '\n', '\r']);
-                var text = p > 0 ? Arguments[i].AsSpan(0, p) : Arguments[i];
-                sb.Append(text.Trim());
-            }
-            sb.Append("})");
+            sb.Append($" {acList.Name}={{")
+              .AppendJoin('|', acList.Candidates.Select(item => item.Text.Trim()))
+              .Append('}');
         }
     }
 
@@ -463,51 +419,6 @@ public class ParamCompleter
                               string optionPrefix,
                               string prefix = "")
     {
-        if (_argumentType.HasFlag(Comp.ArgumentType.List))
-        {
-            NativeCompleter.Debug($"[{context.Name}] CompleteValue[List]: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-            var commaCount = paramValue.Count(',');
-            if (commaCount > 0)
-            {
-                Span<Range> ranges = new Range[commaCount + 1];
-                paramValue.Split(ranges, ',', StringSplitOptions.None);
-                for (var i = 0; i <= commaCount; i++)
-                {
-                    var r = ranges[i];
-                    if (position <= r.End.Value)
-                    {
-                        paramValue = paramValue[r];
-                        position = position - r.Start.Value;
-                        prefix = string.Empty;
-                        break;
-                    }
-                }
-            }
-            NativeCompleter.Debug($"  CompleteValue[List]: result = {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-        }
-
-        var tooltipPrefix = $"""
-            {GetSyntaxes(expandArguments: false)} : {Description}
-            {VariableName}: 
-            """;
-
-        if (Arguments.Length > 0)
-        {
-            NativeCompleter.Debug($"[{context.Name}] CompleteValue[Arguments]: {{ name: '{paramName}', value: '{paramValue}', position: {position}  }}");
-
-            foreach (ReadOnlySpan<char> value in Arguments)
-            {
-                var data = CompletionValue.Parse(value, null);
-                if (data.IsMatch(paramValue, ignoreCase: true))
-                {
-                    results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
-                    NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
-                }
-            }
-
-            return true;
-        }
-
         // | tokenValue  | WordToComplete | prefix | paramValue | Note
         // |:------------|:---------------|:-------|:-----------|:-------------------------------------------------
         // | `-f`        | `-f`           | `-f`   | ``         |
@@ -529,69 +440,42 @@ public class ParamCompleter
             return true;
         }
 
-        bool useFilenameCompletion = _argumentType.HasFlag(Comp.ArgumentType.File)
-                                     || _argumentType.HasFlag(Comp.ArgumentType.Directory);
-
-        if (ArgumentCompleter is null)
-        {
-            if (useFilenameCompletion)
-            {
-                NativeCompleter.Debug($"[{context.Name}] CompleteValue[Filename]: {{ name: '{paramName}', value: '{paramValue}', position: {position}, prefix: '{prefix}' }}");
-                bool onlyDirectory = !_argumentType.HasFlag(Comp.ArgumentType.File);
-                try
-                {
-                    foreach (var result in Helper.CompleteFilename($"{paramValue}", context.CurrentDirectory.Path, true, onlyDirectory))
-                    {
-                        if (shouldBeQuoted)
-                        {
-                            result.QuoteText();
-                        }
-                        results.Add(result.SetPrefix(prefix).SetTooltipPrefix(tooltipPrefix));
-                    }
-                }
-                catch (Exception e)
-                {
-                    NativeCompleter.Debug($"  CompleteValue[Filename]: [{e.GetType().Name}] {e.Message} }}");
-                }
-            }
+        int argumentIndex = paramArgs.Length;
+        var ac = Arguments.GetByArgumentIndex(argumentIndex);
+        if (ac is null)
             return true;
-        }
 
-        Collection<PSObject?>? invokeResults = null;
-        try
+        var tooltipPrefix = $"""
+            {GetSyntaxes(expandArguments: false)} : {Description}
+            {(paramArgs.Length > 1 ? $"[{argumentIndex + 1}]" : "")}{ac.Name}:
+            """;
+
+        NativeCompleter.Debug($"[{context.Name}] Start Completion: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
+        IEnumerable<CompletionData> candidates;
+        if (ac.List)
         {
-            NativeCompleter.Debug($"[{context.Name}] Start Argument complete {{ '{paramName}', '{paramValue}', {position} }}");
-            invokeResults = ArgumentCompleter.GetNewClosure()
-                                             .InvokeWithContext(null,
-                                                                [new("_", $"{paramValue}"), new("this", context)],
-                                                                position,
-                                                                paramArgs.Length,
-                                                                paramArgs);
-            NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter results {{ count = {invokeResults.Count} }}");
-        }
-        catch
-        {
-        }
-        int completionCount = 0;
-        if (invokeResults is not null && invokeResults.Count > 0)
-        {
-            foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
+            var result = Helper.ResolveListElement(paramValue, position);
+            if (result.Index > 0)
             {
-                if (shouldBeQuoted)
-                {
-                    item.QuoteText();
-                }
-                results.Add(item.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
-                completionCount++;
+                prefix = string.Empty;
             }
+            NativeCompleter.Debug($"[{context.Name}] CompleteValue[List]: {{ name '{paramName}', value: '{result.Slice(paramValue)}', position: {result.Range.Start}, prefix: '{prefix}' }}");
+            candidates = ac.Complete(context, result.Slice(paramValue), result.OffsetPosition, argumentIndex);
         }
-
-        if (completionCount == 0 && !useFilenameCompletion)
+        else
         {
-            // Prevent fallback to filename completion
-            return true;
+            NativeCompleter.Debug($"[{context.Name}] CompleteValue: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
+            candidates = ac.Complete(context, paramValue, position, argumentIndex);
         }
 
-        return false;
+        int count = 0;
+        foreach (var data in candidates)
+        {
+            results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
+            NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
+            count++;
+        }
+        NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
+        return true;
     }
 }

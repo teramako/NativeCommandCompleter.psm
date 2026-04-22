@@ -208,4 +208,121 @@ public static class Helper
             }
         }
     }
+
+    /// <summary>
+    /// Represents the result of resolving a list element within a separated string.
+    /// </summary>
+    /// <param name="Index">
+    /// The zero-based index of the element within the list. A negative value indicates that
+    /// the position does not correspond to any element.
+    /// </param>
+    /// <param name="OffsetPosition">
+    /// The cursor position relative to the start of the resolved element (0-based).
+    /// The value is clamped to the range of the trimmed element.
+    /// </param>
+    /// <param name="Range">
+    /// The <see cref="Range"/> representing the start and end positions of the trimmed element
+    /// within the original input string.
+    /// </param>
+    public readonly record struct ListElementResult(int Index, int OffsetPosition, Range Range)
+    {
+        public string Slice(string source) => source[Range];
+        public ReadOnlySpan<char> Slice(ReadOnlySpan<char> source) => source[Range];
+    }
+
+    /// <summary>
+    /// Resolves the list element that contains the specified cursor position within a
+    /// separator-delimited string.
+    /// </summary>
+    /// <param name="value">
+    /// The input span that may contain multiple elements separated by the specified separator.
+    /// </param>
+    /// <param name="position">
+    /// The cursor position within <paramref name="value"/> (0-based).
+    /// Must be within the range <c>[0, value.Length]</c>.
+    /// </param>
+    /// <param name="separator">
+    /// The character used to separate elements in the list. The default is a comma (<c>,</c>).
+    /// </param>
+    /// <returns>
+    /// A <see cref="ListElementResult"/> containing:
+    /// <list type="bullet">
+    /// <item><description>The index of the resolved element.</description></item>
+    /// <item><description>The cursor position relative to the trimmed element.</description></item>
+    /// <item><description>The <see cref="Range"/> of the trimmed element.</description></item>
+    /// </list>
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// This method scans the input span, identifies element boundaries based on the specified
+    /// separator, and determines which element the cursor position belongs to.
+    /// </para>
+    /// <para>
+    /// Leading and trailing whitespace around each element is trimmed when computing the
+    /// returned <see cref="Range"/> and relative cursor position.
+    /// </para>
+    /// <para>
+    /// If the cursor position falls outside the trimmed element but within its untrimmed
+    /// boundaries, the relative position is clamped to the nearest valid offset.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="position"/> is outside the range of the input span.
+    /// </exception>
+    public static ListElementResult ResolveListElement(ReadOnlySpan<char> value,
+                                                       int position = 0,
+                                                       char separator = ',')
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(position);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(position, value.Length);
+
+        int start = 0;
+        int index = 0;
+        int elemStart, elemEnd, offset;
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (value[i] == separator)
+            {
+                int end = i;
+
+                if (position <= end)
+                {
+                    elemStart = start;
+                    elemEnd = end;
+
+                    // trim-left
+                    while (elemStart < elemEnd && char.IsWhiteSpace(value[elemStart]))
+                        elemStart++;
+
+                    // trim-right
+                    while (elemEnd > elemStart && char.IsWhiteSpace(value[elemEnd - 1]))
+                        elemEnd--;
+
+                    offset = Math.Clamp(position, elemStart, elemEnd) - elemStart;
+                    return new(index, offset, elemStart .. elemEnd);
+                }
+
+                index++;
+                start = i + 1;
+
+                // trim-left for next element
+                while (start < value.Length && char.IsWhiteSpace(value[start]))
+                    start++;
+            }
+        }
+
+        // last element
+        elemStart = start;
+        elemEnd = value.Length;
+
+        while (elemStart < elemEnd && char.IsWhiteSpace(value[elemStart]))
+            elemStart++;
+
+        while (elemEnd > elemStart && char.IsWhiteSpace(value[elemEnd - 1]))
+            elemEnd--;
+
+        offset = Math.Clamp(position, elemStart, elemEnd) - elemStart;
+
+        return new(index, offset, elemStart .. elemEnd);
+    }
 }

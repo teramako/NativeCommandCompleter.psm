@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/19/2025
+ms.date: 04/22/2026
 PlatyPS schema version: 2024-05-01
 title: Register-NativeCompleter
 ---
@@ -22,8 +22,9 @@ Create and register a CommandCompleter object.
 ```
 Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
- [-ArgumentCompleter <scriptblock>] [-Style <CommandParameterStyle>] [-CustomStyle <ParameterStyle>]
- [-NoFileCompletions] [-DelegateArgumentIndex <int>] [-Metadata <hashtable>] [-Force]
+ [-Arguments <ArgumentCompleterCollection>] [-Style <CommandParameterStyle>]
+ [-CustomStyle <ParameterStyle>] [-NoFileCompletions] [-DelegateArgumentIndex <int>]
+ [-Metadata <hashtable>] [-Force]
 ```
 
 ### Input
@@ -74,32 +75,55 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -ArgumentCompleter
+### -Arguments
 
-Specifies a script (`ScriptBlock`) to complete the argument.
+Specifies argument definitions and their associated completers.
 
-If not specified, normal path completion will be performed.
+The -Arguments parameter accepts values of several types:
+- A list of candidates (`string` or `CompletionValue`)
+- A `ScriptBlock`
+- An object implementing `IArgumentCompleter`
+- A `Hashtable` (automatically converted to an `IArgumentCompleter`)  
+  See following examples.
 
-For example:
+If omitted, standard file‑system path completion is used, unless `-NoFileCompletions` is specified.
+
+For examples:
 
 ```powershell
-New-CommandCompleter ... -ArgumentCompleter {
+# Perform file‑path completion for one or more arguments
+New-CommandCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
+
+# Perform autocompletion from a statically defined list
+New-CommandCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
+
+# Define separate completers for two arguments
+New-CommandCompleter ... -Arguments @{
+  Name = '1st'; Candidates = "A", "B", "C";
+}, @{
+  Name = '2nd'; Candidates = "X", "Y", "Z"
+}
+
+# Use a script block for dynamic autocompletion
+New-CommandCompleter ... -Arguments @{
+  Name = 'animal';
+  Script = {
     param([int] $position, [int] $argumentIndex)
     # $_    # <- word to complete
     # $this # <- completion context
     $prefix = $_.Substring(0, $position)
     "dog", "cat" | Where-Object { $_ -like "$prefix*" }
+  }
 }
 ```
 
-For more details, see [About ArgumentCompleter](../about_ArgumentCompleter.md).
-
 ```yaml
-Type: System.Management.Automation.ScriptBlock
+Type: MT.Comp.ArgumentCompleterCollection
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - a
+- ArgumentCompleter
 ParameterSets:
 - Name: New
   Position: Named

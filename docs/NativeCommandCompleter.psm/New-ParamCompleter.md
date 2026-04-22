@@ -4,7 +4,7 @@ external help file: NativeCommandCompleter.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: NativeCommandCompleter.psm
-ms.date: 04/12/2026
+ms.date: 04/22/2026
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
 ---
@@ -21,27 +21,17 @@ Create a parameter's completer.
 
 ```
 New-ParamCompleter [-StandardName <string[]>] [-LongName <string[]>] [-ShortName <char[]>]
- [-Description <string>] [-Type <ParameterType>] [-ArgumentType <ArgumentType>]
- [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
-```
-
-### WithArguments
-
-```
-New-ParamCompleter -Arguments <string[]> [-StandardName <string[]>] [-LongName <string[]>]
- [-ShortName <char[]>] [-Description <string>] [-Type <ParameterType>]
- [-ArgumentType <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
-```
-
-### WithArgumentCompleter
-
-```
-New-ParamCompleter -ArgumentCompleter <scriptblock> [-StandardName <string[]>]
- [-LongName <string[]>] [-ShortName <char[]>] [-Description <string>] [-Type <ParameterType>]
- [-ArgumentType <ArgumentType>] [-VariableName <string>] [-Style <ParameterStyle>] [-Nargs <Nargs>]
+ [-Description <string>] [-Arguments <ArgumentCompleterCollection>] [-Style <ParameterStyle>]
+ [<CommonParameters>]
 ```
 
 ## ALIASES
+
+## DESCRIPTION
+
+Create an object for parameter completion.
+The created object can be specified in `-Parameters` of `New-CommandCompleter` or `Register-NativeCompleter`.
+
 
 ## DESCRIPTION
 
@@ -65,7 +55,7 @@ $slientParam = New-ParamCompleter -LongName quiet, slient -Description 'Suppress
 ### Example 3. Create Flag or WithValue parameter
 
 ```powershell
-$colorParam = New-ParamCompleter -LongName color -Type FlagOrValue -Arguments 'auto','always','never'
+$colorParam = New-ParamCompleter -LongName color -Arguments @{ Nargs = '?'; Candidates = 'auto','always','never' }
 ```
 
 Syntax will be: `--color[={auto|always|never}]`
@@ -73,7 +63,7 @@ Syntax will be: `--color[={auto|always|never}]`
 ### Example 4. Create a parameter that requires a file path as an argument
 
 ```powershell
-$fileParam = New-ParamCompleter -LongName file -ArgumentType File -VariableName 'PATH'
+$fileParam = New-ParamCompleter -LongName file -Arguments @{ Name = 'PATH'; Type = 'File'; }
 ```
 
 Syntax will be: `--file[ =]PATH`
@@ -81,79 +71,60 @@ And file name completion will then be enabled.
 
 ## PARAMETERS
 
-### -ArgumentCompleter
+### -Arguments
 
-Specifies a script (`ScriptBlock`) to complete the argument.
+Specifies argument definitions and their associated completers.
+
+The -Arguments parameter accepts values of several types:
+- A list of candidates (`string` or `CompletionValue`)
+- A `ScriptBlock`
+- An object implementing `IArgumentCompleter`
+- A `Hashtable` (automatically converted to an `IArgumentCompleter`)
+  See following examples.
+
+If omitted, standard file‑system path completion is used, unless `-NoFileCompletions` is specified.
+
+For examples:
+
+```powershell
+# Perform file‑path completion for one or more arguments
+New-ParamCompleter -LongName file -Arguments @{ Name = 'path'; Type = 'File'; }
+
+# Perform autocompletion from a statically defined list
+New-ParamCompleter -Name favorit -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
+
+# Define flag-or-value's parameter
+New-ParamCompleter -LongName color -Arguments @{ Name = 'WHEN'; Nargs = '?'; Candidates = "auto","always","never" }
+
+# Define separate completers for two arguments
+New-ParamCompleter -LongName pair -Arguments @{
+  Name = '1st'; Candidates = "A", "B", "C";
+}, @{
+  Name = '2nd'; Candidates = "X", "Y", "Z"
+}
+
+# Use a script block for dynamic autocompletion
+New-ParamCompleter -Name favorit -Arguments @{
+  Name = 'animal';
+  Script = {
+    param([int] $position, [int] $argumentIndex)
+    # $_    # <- word to complete
+    # $this # <- completion context
+    $prefix = $_.Substring(0, $position)
+    "dog", "cat" | Where-Object { $_ -like "$prefix*" }
+  }
+}
+```
 
 For more details, see [About ArgumentCompleter](../about_ArgumentCompleter.md).
 
 ```yaml
-Type: System.Management.Automation.ScriptBlock
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: WithArgumentCompleter
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Arguments
-
-The parameter's arguments to be completed.
-This is more convenient than using `-ArgumentCompleter` if the required argument values are fixed.
-
-If a tab character (`\t`) or a newline character (`\n`,`\r`) is inserted in a string, the left side is the completion string and the right side is its description.
-
-For example:
-```powershell
--Arguments @("textA`tDescription A", "textB`tDescription B")
-```
-
-```yaml
-Type: System.String[]
+Type: MT.Comp.ArgumentCompleterCollection
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - a
-ParameterSets:
-- Name: WithArguments
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -ArgumentType
-
-The parametesr's argument type for completion.
-
-- **`Any`**: Default when not specified.
-
-- **`File`**: Performs a file or directory path completion.
-          (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
-
-- **`Directory`**: Performs directory path completion.
-               (ignored when either `-Arguments` or `-ArgumentCompleter` is specified.)
-
-- **`List`**: Comma-separated value(s) are accepted.
-
-
-```yaml
-Type: MT.Comp.ArgumentType
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
+- ArgumentCompleter
 ParameterSets:
 - Name: (All)
   Position: Named
@@ -201,39 +172,6 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - l
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Nargs
-
-Specifies how many argument values the parameter accepts.
-
-e.g.:
-
-- "2" — exactly two values
-- "1+" — one or more values
-- "2-4" — between two and four values
-
-> [!NOTE]
-> This parameter will be ignored when -Type is `Flag` or `FlagOrValue`.
->
-> And does not affect the parsing of the short options.
-> The number of arguments for the short option is always zero or one.
-
-```yaml
-Type: MT.Comp.Nargs
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
 ParameterSets:
 - Name: (All)
   Position: Named
@@ -302,64 +240,6 @@ If ommited, inhertes from the parent CommandCompleter's style.
 ```yaml
 Type: MT.Comp.ParameterStyle
 DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Type
-
-Parametesr's type for completion.
-
-- **`Flag`**: The argument is an unnecessary.
-          This is default value if neither `-Arguments` nor `-ArgumentCompleter` is specified.
-
-- **`FlagOrValue`**: In GNU-style long parameter, like `-xFoo`, and in GNU-style short parameter, like `--color=auto`,
-                 which indicates that the argument is accepted only if the parameter and the argument are combined.
-                 Otherwise, it is a parameter that acts as a flag.
-
-- **`Required`**: The argument is required.
-              This is default value if either `-Arguments` or `-ArgumentCompleter` is specified.
-
-The default value when omitted is `Flag`.
-However, if any of `-ArgumentType` (other than `Any`), `-Arguments`, or `-ArgumentCompleter` is specified, the value becomes `Required`.
-
-```yaml
-Type: MT.Comp.ParameterType
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- t
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -VariableName
-
-Name of this parameter's argument variable.
-
-This parameter value does not affect the operation. It is only used to display the candidate completion list.
-
-```yaml
-Type: System.String
-DefaultValue: Val
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

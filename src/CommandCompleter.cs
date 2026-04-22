@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.Management.Automation;
+using System.Text;
 
 namespace MT.Comp;
 
@@ -45,7 +45,7 @@ public class CommandCompleter
     public ReadOnlyCollection<ParamCompleter> Params { get; }
     private readonly Collection<CommandCompleter> _subCommands = [];
     public ReadOnlyCollection<CommandCompleter> SubCommands { get; }
-    public ScriptBlock? ArgumentCompleter { get; set; }
+    public ArgumentCompleterCollection Arguments { get; internal set; } = [];
     public bool NoFileCompletions { get; set; }
     /// <summary>
     /// Argument index of a command to delegate completions.
@@ -641,6 +641,37 @@ public class CommandCompleter
     }
 
     /// <summary>
+    /// Get the command syntax contains arguments
+    /// </summary>
+    /// <param name="cmdName">Command name. If omitted, <see cref="Name"/> is used</param>
+    public string GetSyntax(string? cmdName = null)
+    {
+        StringBuilder sb = new();
+        PrintSyntax(sb, cmdName);
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Append the command syntax contains arguments to <paramref name="sb"/>
+    /// </summary>
+    /// <param name="sb"></param>
+    /// <param name="cmdName">Command name. If omitted, <see cref="Name"/> is used</param>
+    private void PrintSyntax(StringBuilder sb, string? cmdName = null)
+    {
+        if (sb.Length > 0)
+            sb.Append(' ');
+        sb.Append(string.IsNullOrEmpty(cmdName) ? Name : cmdName);
+        if (Aliases.Length > 0)
+        {
+            sb.Append(" (Alias:")
+              .AppendJoin('|', Aliases)
+              .Append(')');
+        }
+        sb.Append(' ');
+        Arguments.PrintSyntax(sb);
+    }
+
+    /// <summary>
     /// Complete remaining argumet's value (non parameter, non parameter value and non subcommand)
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
@@ -657,7 +688,8 @@ public class CommandCompleter
                                  int offsetPosition,
                                  int argumentIndex)
     {
-        if (ArgumentCompleter is null)
+        var ac = Arguments.GetByArgumentIndex(argumentIndex);
+        if (ac is null)
         {
             if (argumentIndex == DelegateArgumentIndex)
             {
@@ -669,29 +701,31 @@ public class CommandCompleter
             }
             return NoFileCompletions;
         }
+        else
+        {
+            var tooltipPrefix = $"""
+                {GetSyntax(context.Name)}{(string.IsNullOrEmpty(ac.Description) ? string.Empty : $" : {ac.Description}")}
+                [{argumentIndex + 1}]: 
+                """;
 
-        NativeCompleter.Debug($"[{context.Name}] CompleterArgument {{ '{tokenValue}', {offsetPosition}, {argumentIndex} }}");
-        Collection<PSObject?>? invokeResults = null;
-        try
-        {
-            NativeCompleter.Debug($"  Start Argument complete {{ '{tokenValue}', {offsetPosition}, {argumentIndex} }}");
-            invokeResults = ArgumentCompleter.GetNewClosure()
-                                             .InvokeWithContext(null,
-                                                                [new("_", tokenValue), new("this", context)],
-                                                                offsetPosition,
-                                                                argumentIndex);
-            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {invokeResults.Count} }}");
-        }
-        catch
-        {
-        }
-        if (invokeResults is not null && invokeResults.Count > 0)
-        {
-            foreach (var item in NativeCompleter.PSObjectsToCompletionData(invokeResults))
+            NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: '{tokenValue}', index: {argumentIndex} }}");
+            IEnumerable<CompletionData> candidates;
+            if (ac.List)
             {
-                results.Add(item);
+                var result = Helper.ResolveListElement(tokenValue, offsetPosition);
+                candidates = ac.Complete(context, result.Slice(tokenValue), result.OffsetPosition, argumentIndex);
             }
-            return true;
+            else
+            {
+                candidates = ac.Complete(context, tokenValue, offsetPosition, argumentIndex);
+            }
+            int count = 0;
+            foreach (var data in candidates)
+            {
+                results.Add(data.SetTooltipPrefix(tooltipPrefix));
+                count++;
+            }
+            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
         }
         return NoFileCompletions;
     }
