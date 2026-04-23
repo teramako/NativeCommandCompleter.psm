@@ -13,8 +13,8 @@ public class ArgumentCompleterWithType : ArgumentCompleterBase
     {
         return Type switch
         {
-            ArgumentType.File => Helper.CompleteFilename(context, true, false),
-            ArgumentType.Directory => Helper.CompleteFilename(context, true, true),
+            ArgumentType.File => Helper.CompleteFilename($"{tokenValue}", $"{context.CurrentDirectory}", true, false),
+            ArgumentType.Directory => Helper.CompleteFilename($"{tokenValue}", $"{context.CurrentDirectory}", true, true),
             _ => []
         };
     }
