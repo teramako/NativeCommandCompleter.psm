@@ -78,6 +78,7 @@ CmdletsToExport = @(
     'Unregister-NativeCompleter'
     'New-CommandCompleter'
     'New-ParamCompleter'
+    'New-ArgumentCompleter'
     'New-ParamStyle'
 )
 
