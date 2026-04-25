@@ -1,4 +1,4 @@
-PWSH := pwsh-preview -NoProfile
+PWSH := pwsh -NoProfile
 DLL := libs/NativeCommandCompleter.dll
 CSharpFiles = $(shell find src \( -name ".git" -o -name "obj" -o -name "bin" \) -prune -o -name "*.cs" -print)
 
