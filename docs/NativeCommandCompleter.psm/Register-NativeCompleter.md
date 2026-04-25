@@ -91,20 +91,20 @@ For examples:
 
 ```powershell
 # Perform file‑path completion for one or more arguments
-New-CommandCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
+Register-NativeCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
 
 # Perform autocompletion from a statically defined list
-New-CommandCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
+Register-NativeCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
 
 # Define separate completers for two arguments
-New-CommandCompleter ... -Arguments @{
+Register-NativeCompleter ... -Arguments @{
   Name = '1st'; Candidates = "A", "B", "C";
 }, @{
   Name = '2nd'; Candidates = "X", "Y", "Z"
 }
 
 # Use a script block for dynamic autocompletion
-New-CommandCompleter ... -Arguments @{
+Register-NativeCompleter ... -Arguments @{
   Name = 'animal';
   Script = {
     param([int] $position, [int] $argumentIndex)
@@ -115,6 +115,8 @@ New-CommandCompleter ... -Arguments @{
   }
 }
 ```
+
+For more details, see [Arguments specification](../about_Arguments_spec.md).
 
 ```yaml
 Type: MT.Comp.ArgumentCompleterCollection
