@@ -5,7 +5,7 @@ HelpInfoUri: ''
 Locale: en-US
 Module Guid: 5fa2cf45-9bbe-4ad1-82d4-7aaa6e886cb7
 Module Name: NativeCommandCompleter.psm
-ms.date: 12/10/2025
+ms.date: 04/25/2026
 PlatyPS schema version: 2024-05-01
 title: NativeCommandCompleter.psm Module
 ---
@@ -21,6 +21,10 @@ Native Command Completer
 ### [Get-NativeCompleterScript](Get-NativeCompleterScript.md)
 
 Enumerate completer script files.
+
+### [New-ArgumentCompleter](New-ArgumentCompleter.md)
+
+Create an argument definition for commands and parameters.
 
 ### [New-CommandCompleter](New-CommandCompleter.md)
 
