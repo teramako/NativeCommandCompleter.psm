@@ -116,7 +116,7 @@ New-ParamCompleter -Name favorit -Arguments @{
 }
 ```
 
-For more details, see [About ArgumentCompleter](../about_ArgumentCompleter.md).
+For more details, see [Arguments specification](../about_Arguments_spec.md).
 
 ```yaml
 Type: MT.Comp.ArgumentCompleterCollection

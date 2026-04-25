@@ -147,12 +147,14 @@ flowchart TD
 |:-----------------------------|:-----------------------------------------------|
 | [New-CommandCompleter]       | Create a CommandCompleter object.              |
 | [New-ParamCompleter]         | Create a parameter's completer.                |
+| [New-ArgumentCompleter]      | Create an argument definition.                 |
 | [New-ParamStyle]             | Create or get parameter style instance.        |
 | [Register-NativeCompleter]   | Create and register a CommandCompleter object. |
 | [Unregister-NativeCompleter] | Unregister the command completer.              |
 
 [New-CommandCompleter]: docs/NativeCommandCompleter.psm/New-CommandCompleter.md "Cmdlet - New-CommandCompleter"
 [New-ParamCompleter]: docs/NativeCommandCompleter.psm/New-ParamCompleter.md "Cmdlet - New-ParamCompleter"
+[New-CommandCompleter]: docs/NativeCommandCompleter.psm/New-ArgumentCompleter.md "Cmdlet - New-ArgumentCompleter"
 [New-ParamStyle]: docs/NativeCommandCompleter.psm/New-ParamStyle.md "Cmdlet - New-ParamStyle"
 [Register-NativeCompleter]: docs/NativeCommandCompleter.psm/Register-NativeCompleter.md "Cmdlet - Register-NativeCompleter"
 [Unregister-NativeCompleter]: docs/NativeCommandCompleter.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
@@ -174,11 +176,14 @@ Register-NativeCompleter -Name example1 -Parameters @(
     New-ParamCompleter -ShortName v -LongName version -Description 'Display version'
 
     # [--type {typeA|typeB|typeC}] -- Options that require an argument
-    New-ParamCompleter -LongName type -Description 'Select type' -Arguments @(
-        "typeA `tDescription A",
-        "typeB `tDescription B",
-        "typeC `tDescription C"
-    )
+    New-ParamCompleter -LongName type -Description 'Select type' -Arguments @{
+        Name = "TYPE";
+        Candidates = @(
+            "typeA `tDescription A",
+            "typeB `tDescription B",
+            "typeC `tDescription C"
+        )
+    }
 )
 ```
 
@@ -189,13 +194,13 @@ Edit: example2.ps1 in `${env:PS_COMPLETE_PATH}`
 ```powershell
 Register-NativeCompleter -Name example2 -SubCommands @(
     # example2 add ...
-    New-CommandCompleter -Name add -Description -ArgumentCompleter {
-        param([int] $position, [int] $argumentIndex)
-        # ...
+    New-CommandCompleter -Name add -Description "Add something files" -Arguments @{
+        Name = "FILE";
+        Type = 'File'
     }
 
     # example2 list ...
-    New-CommandCompleter -Name list -Description -Parameters @(
+    New-CommandCompleter -Name list -Description "Print a list" -Parameters @(
         # [-a, --all] -- Flag
         New-ParamCompleter -ShortName a -LongName all -Description 'Show all'
     )

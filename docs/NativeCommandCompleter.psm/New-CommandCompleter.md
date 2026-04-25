@@ -113,6 +113,8 @@ New-CommandCompleter ... -Arguments @{
 }
 ```
 
+For more details, see [Arguments specification](../about_Arguments_spec.md).
+
 ```yaml
 Type: MT.Comp.ArgumentCompleterCollection
 DefaultValue: ''
