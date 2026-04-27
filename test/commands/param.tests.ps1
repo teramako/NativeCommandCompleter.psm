@@ -9,7 +9,7 @@ BeforeAll {
         New-ParamCompleter -Name name -Arguments {
             param([int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $_, $position, $argIndex
         }
-        New-ParamCompleter -Name list -Arguments @{
+        New-ParamCompleter -Name list -ShortName l -LongName list -Arguments @{
             Name = '1st'; Script = { param([int] $position, [int] $argIndex) "{0}_1st:{1}:{2}" -f $_, $position, $argIndex }
         }, @{
             Name = '2nd'; Script = { param([int] $position, [int] $argIndex) "{0}_2nd:{1}:{2}" -f $_, $position, $argIndex }
@@ -58,6 +58,18 @@ Describe 'parameters' {
 
         It 'Completes second argument when partially typed (`test-1 -list a b`)' {
             $results = TabExpansion2 -inputScript "test-1 -list a b" | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -Be 1
+            $results[0].CompletionText | Should -Be "b_2nd:1:1"
+        }
+
+        It 'Completes second argument on short param (`test-1 -l a b`)' {
+            $results = TabExpansion2 -inputScript "test-1 -l a b" | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -Be 1
+            $results[0].CompletionText | Should -Be "b_2nd:1:1"
+        }
+
+        It 'Completes second argument on long param (`test-1 --list a b`)' {
+            $results = TabExpansion2 -inputScript "test-1 --list a b" | Select-Object -ExpandProperty CompletionMatches
             $results.Count | Should -Be 1
             $results[0].CompletionText | Should -Be "b_2nd:1:1"
         }
