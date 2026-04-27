@@ -67,7 +67,8 @@ public class ParamCompleter
         StandardNames = standardNames;
         ShortNames = shortNames;
         Arguments = arguments;
-        Style = style;
+        if (style is not null)
+            Style = style;
     }
 
     public string Id { get; }
@@ -138,8 +139,11 @@ public class ParamCompleter
     [AllowNull]
     public ParameterStyle Style
     {
-        get;
-        set => field = value ?? ParameterStyle.GNU;
+        get => field ?? ParameterStyle.GNU;
+        set
+        {
+            field ??= value ?? ParameterStyle.GNU;
+        }
     }
 
     public string GetSyntaxes(string delimiter = ", ", bool expandArguments = false)
