@@ -126,50 +126,7 @@ public class CommandCompleter
                 }
                 else if (paramValue.IsEmpty)
                 {
-                    List<Token> paramArgs = [];
-                    for (var count = 1; count < context.Arguments.Count - argumentIndex; count++)
-                    {
-                        if (count <= param.Nargs.MinCount)
-                        {
-                            advancedCount++;
-                            paramArgs.Add(context.Arguments[argumentIndex + count]);
-                        }
-                        else if (param.Nargs.ConsumeRest || count <= param.Nargs.MaxCount)
-                        {
-                            var token = context.Arguments[argumentIndex + count];
-                            // Short options are not taken into account. This is a specification.
-                            if (Params.Any(p => p.ParseParam(token.Value, out _, out _, out _)))
-                            {
-                                break;
-                            }
-                            advancedCount++;
-                            paramArgs.Add(token);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    var args = paramArgs.Select(token => token.Value).ToArray();
-                    if (args.Length >= param.Nargs.MinCount)
-                    {
-                        // `-param ..value(minCount) ...|`
-                        //                              ^ cursor
-                        context.AddBoundParameter(param.Id, args);
-                        if (param.Nargs.ConsumeRest || args.Length < param.Nargs.MaxCount)
-                        {
-                            // `-param ..value(minCount) .. | .. valueN(maxCount)
-                            //                              ^ cursor
-                            context.SetPendingParameter(param, $"{paramName}", args, optionPrefix, false);
-                        }
-                    }
-                    else
-                    {
-                        // `-param |`      or `-param value1 .. | ..valueN(minCount)
-                        //         ^ cursor                     ^ cursor
-                        context.SetPendingParameter(param, $"{paramName}", args, optionPrefix, true);
-                    }
+                    advancedCount = SetParameterArguments(context, argumentIndex, param, $"{paramName}", optionPrefix);
                 }
                 else
                 {
@@ -215,8 +172,7 @@ public class CommandCompleter
                     //      \          ^ cursor
                     //       i
                     // the argument of `c` param is supplied
-                    advancedCount = 1;
-                    context.AddBoundParameter(p.Id, context.Arguments[argumentIndex + advancedCount].Value);
+                    advancedCount = SetParameterArguments(context, argumentIndex, p, $"{c}", p.Style.ShortOptionPrefix);
                 }
                 else
                 {
@@ -234,6 +190,58 @@ public class CommandCompleter
             result = true;
         }
         return result;
+    }
+
+    private int SetParameterArguments(CompletionContext context,
+                                      int argumentIndex,
+                                      ParamCompleter param,
+                                      string paramName,
+                                      string optionPrefix)
+    {
+        var argCount = 1;
+        for (; argCount < context.Arguments.Count - argumentIndex; argCount++)
+        {
+            if (argCount <= param.Nargs.MinCount)
+            {
+                continue;
+            }
+            else if (param.Nargs.ConsumeRest || argCount <= param.Nargs.MaxCount)
+            {
+                var token = context.Arguments[argumentIndex + argCount].Value;
+                // Short options are not taken into account. This is a specification.
+                if (Params.Any(p => p.ParseParam(token, out _, out _, out _)))
+                    break;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        var paramArgs = context.Arguments.Take((argumentIndex + 1)..(argumentIndex + argCount))
+                                         .Select(token => token.Value)
+                                         .ToArray();
+        NativeCompleter.Debug($"SetParameterArguments {{ Id={param.Id} Nargs={param.Nargs} ArgsCount={paramArgs.Length} }}");
+        if (paramArgs.Length >= param.Nargs.MinCount)
+        {
+            // `-param ..value(minCount) ...|`
+            //                              ^ cursor
+            context.AddBoundParameter(param.Id, paramArgs);
+            if (param.Nargs.ConsumeRest || paramArgs.Length < param.Nargs.MaxCount)
+            {
+                // `-param ..value(minCount) .. | .. valueN(maxCount)
+                //                              ^ cursor
+                context.SetPendingParameter(param, $"{paramName}", paramArgs.ToArray(), $"{optionPrefix}", false);
+            }
+        }
+        else
+        {
+            // `-param |`      or `-param value1 .. | ..valueN(minCount)
+            //         ^ cursor                     ^ cursor
+            context.SetPendingParameter(param, $"{paramName}", paramArgs.ToArray(), $"{optionPrefix}", true);
+        }
+
+        return paramArgs.Length;
     }
 
     /// <summary>
