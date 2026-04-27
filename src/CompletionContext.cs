@@ -187,12 +187,12 @@ public sealed class CompletionContext
         if (_boundParameters.TryGetValue(name, out var found))
         {
             found.AddRange(values);
-            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values)}', (Count = {found.Count}) }}");
+            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values.Cast<object>().Select(o=>$"{o}"))}', (Count = {found.Count}) }}");
         }
         else
         {
             _boundParameters.Add(name, values);
-            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values)}' (New) }}");
+            NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values.Cast<object>().Select(o=>$"{o}"))}' (New) }}");
         }
     }
 
