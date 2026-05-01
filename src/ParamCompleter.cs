@@ -212,7 +212,7 @@ public class ParamCompleter
         {
             sb.Append(!isShortParam && valueSeparator > 0 ? valueSeparator : ' ');
         }
-        Arguments.PrintSyntax(sb);
+        Arguments.PrintSyntax(sb, optional);
 
         if (optional)
             sb.Append(']');

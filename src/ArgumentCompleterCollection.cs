@@ -57,7 +57,7 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
     /// <summary>
     /// Writes fragments of the argument portions of command and parameter syntax.
     /// </summary>
-    public void PrintSyntax(StringBuilder sb)
+    public void PrintSyntax(StringBuilder sb, bool asRequired = false)
     {
         if (Count == 0)
             return;
@@ -66,15 +66,18 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
         int i = 0;
         foreach (var ac in this)
         {
-            if (i++ > 0)
+            if (i > 0)
                 sb.Append(' ');
 
             var name = ac.List ? $"{ac.Name}[,…]" : ac.Name;
             if (!ac.Required)
             {
-                sb.Append('[')
-                  .Append(name);
-                optionalLevel++;
+                if (i > 0 || !asRequired)
+                {
+                    sb.Append('[');
+                    optionalLevel++;
+                }
+                sb.Append(name);
             }
             else
             {
@@ -90,6 +93,7 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
                   .AppendJoin(' ', Enumerable.Repeat(name, ac.Nargs.MaxCount - ac.Nargs.MinCount))
                   .Append(']');
             }
+            i++;
         }
         sb.Append(']', optionalLevel);
     }
