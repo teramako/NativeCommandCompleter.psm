@@ -16,11 +16,6 @@ public interface IArgumentCompleter
     string Description { get; }
 
     /// <summary>
-    /// The arument's type
-    /// </summary>
-    ArgumentType Type { get; }
-
-    /// <summary>
     /// Represents a constraint on the number of argument values accepted by a parameter.
     /// </summary>
     Nargs Nargs { get; }

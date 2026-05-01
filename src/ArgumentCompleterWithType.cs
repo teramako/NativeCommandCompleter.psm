@@ -6,6 +6,11 @@ namespace MT.Comp;
 /// </summary>
 public class ArgumentCompleterWithType : ArgumentCompleterBase
 {
+    /// <summary>
+    /// The arument's type
+    /// </summary>
+    public ArgumentType Type { get; init; }
+
     public override IEnumerable<CompletionData> Complete(CompletionContext context,
                                                          ReadOnlySpan<char> tokenValue,
                                                          int offsetPosition,
