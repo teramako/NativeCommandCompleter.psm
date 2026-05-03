@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsLifecycle.Register, "NativeCompleter")]
 [OutputType(typeof(void))]

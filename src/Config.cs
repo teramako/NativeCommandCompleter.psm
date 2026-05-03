@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public static class Config
 {

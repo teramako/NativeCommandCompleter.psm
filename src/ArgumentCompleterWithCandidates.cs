@@ -1,4 +1,4 @@
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// A command and parameter argument completer.

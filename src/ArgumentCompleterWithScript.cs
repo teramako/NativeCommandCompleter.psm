@@ -1,7 +1,7 @@
 using System.Management.Automation;
 using System.Collections.ObjectModel;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// A command and parameter argument completer.

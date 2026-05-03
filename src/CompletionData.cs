@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Host;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public abstract class CompletionData
 {

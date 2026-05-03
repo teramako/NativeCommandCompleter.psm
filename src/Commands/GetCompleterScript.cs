@@ -1,12 +1,12 @@
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsCommon.Get, "NativeCompleterScript")]
 [OutputType(typeof(CompleterScript))]
 public class GetNativeCompleterScript: Cmdlet
 {
-    private const string MessageBaseName = "MT.Comp.resources.CompleterScript";
+    private const string MessageBaseName = "Sabamiso.resources.CompleterScript";
 
     [Parameter(Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Name")]

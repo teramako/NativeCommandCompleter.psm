@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsCommon.New, "CommandCompleter")]
 [OutputType(typeof(CommandCompleter))]

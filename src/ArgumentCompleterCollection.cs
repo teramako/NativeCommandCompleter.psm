@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// <see cref="IArgumentCompleter"/> 's container

@@ -1,6 +1,6 @@
 using System.Management.Automation.Language;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public class Token
 {

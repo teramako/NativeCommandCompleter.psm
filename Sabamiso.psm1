@@ -22,6 +22,6 @@ if ([string]::IsNullOrEmpty($env:PS_COMPLETE_PATH))
 Register-ArgumentCompleter -NativeFallback -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
     $currentDirectory = Get-Location -PSProvider FileSystem
-    [MT.Comp.NativeCompleter]::Complete($wordToComplete, $commandAst, $cursorPosition, $Host, $currentDirectory)
+    [Sabamiso.NativeCompleter]::Complete($wordToComplete, $commandAst, $cursorPosition, $Host, $currentDirectory)
 }
 

@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public enum ParameterType
 {

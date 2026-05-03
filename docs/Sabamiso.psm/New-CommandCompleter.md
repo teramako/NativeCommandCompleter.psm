@@ -115,7 +115,7 @@ New-CommandCompleter ... -Arguments @{
 For more details, see [Arguments specification](../about_Arguments_spec.md).
 
 ```yaml
-Type: MT.Comp.ArgumentCompleterCollection
+Type: Sabamiso.ArgumentCompleterCollection
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -139,7 +139,7 @@ Sets a special non-standard parameter style.
 This setting is inherited by each parameter.
 
 ```yaml
-Type: MT.Comp.ParameterStyle
+Type: Sabamiso.ParameterStyle
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -254,7 +254,7 @@ HelpMessage: ''
 List of parameters that can be used in the command or subcommand.
 
 ```yaml
-Type: MT.Comp.ParamCompleter[]
+Type: Sabamiso.ParamCompleter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -281,7 +281,7 @@ Availables:
 - `Windows`: Set short option prefix to `-` and value spprator to `:`.
 
 ```yaml
-Type: MT.Comp.Commands.CommandParameterStyle
+Type: Sabamiso.Commands.CommandParameterStyle
 DefaultValue: GNU
 SupportsWildcards: false
 Aliases:
@@ -303,7 +303,7 @@ HelpMessage: ''
 List of subcommands.
 
 ```yaml
-Type: MT.Comp.CommandCompleter[]
+Type: Sabamiso.CommandCompleter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -331,7 +331,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### MT.Comp.CommandCompleter
+### Sabamiso.CommandCompleter
 
 Created command completer.
 

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Text;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public class CommandCompleter
 {

@@ -1,4 +1,4 @@
-namespace MT.Comp;
+namespace Sabamiso;
 
 public enum CompleterScriptStatus
 {

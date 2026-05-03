@@ -8,7 +8,7 @@
     <VersionPrefix>0.3.0</VersionPrefix>
 
     <AssemblyName>Sabamiso</AssemblyName>
-    <RootNamespace>MT.Comp</RootNamespace>
+    <RootNamespace>Sabamiso</RootNamespace>
 
     <!-- Disable deps.json generation -->
     <GenerateDependencyFile>false</GenerateDependencyFile>

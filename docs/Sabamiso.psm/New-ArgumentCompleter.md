@@ -93,7 +93,7 @@ New-ArgumentCompleter -Name animal -Script {
 Array of static completion candidates.
 
 ```yaml
-Type: MT.Comp.CompletionValue[]
+Type: Sabamiso.CompletionValue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -185,7 +185,7 @@ e.g.:
 - "?" — zero or one values (flag-or-value). This is same as "0-1"
 
 ```yaml
-Type: MT.Comp.Nargs
+Type: Sabamiso.Nargs
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -230,7 +230,7 @@ Argument type for completion.
 - **`Directory`**: Performs directory path completion.
 
 ```yaml
-Type: MT.Comp.ArgumentType
+Type: Sabamiso.ArgumentType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -259,11 +259,11 @@ None
 
 ## OUTPUTS
 
-### MT.Comp.ArgumentCompleterWithType
+### Sabamiso.ArgumentCompleterWithType
 
-### MT.Comp.ArgumentCompleterWithCandidates
+### Sabamiso.ArgumentCompleterWithCandidates
 
-### MT.Comp.ArgumentCompleterWithScript
+### Sabamiso.ArgumentCompleterWithScript
 
 ## NOTES
 

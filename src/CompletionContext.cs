@@ -4,7 +4,7 @@ using System.Management.Automation;
 using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 internal record PendingParamCompleter(ParamCompleter Completer,
                                       string ParamName,
