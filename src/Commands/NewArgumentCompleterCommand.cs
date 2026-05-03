@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsCommon.New, "ArgumentCompleter", DefaultParameterSetName = "Default")]
 [OutputType(typeof(ArgumentCompleterWithType),
@@ -8,7 +8,7 @@ namespace MT.Comp.Commands;
             typeof(ArgumentCompleterWithScript))]
 public class NewNativeArgumentCompleterCommand : PSCmdlet
 {
-    private const string MessageBaseName = "MT.Comp.resources.ArgumentCompleter";
+    private const string MessageBaseName = "Sabamiso.resources.ArgumentCompleter";
 
     private const string PARAMETER_SET_WITH_TYPE = "WithType";
     private const string PARAMETER_SET_WITH_SCRIPT = "WithScript";

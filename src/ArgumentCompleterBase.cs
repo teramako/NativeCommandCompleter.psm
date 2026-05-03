@@ -1,4 +1,4 @@
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// Base class for argument completers, which provides completion candidates for command and parameter arguments.

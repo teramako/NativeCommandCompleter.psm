@@ -1,5 +1,5 @@
 PWSH := pwsh -NoProfile
-DLL := libs/NativeCommandCompleter.dll
+DLL := libs/Sabamiso.dll
 CSharpFiles = $(shell find src \( -name ".git" -o -name "obj" -o -name "bin" \) -prune -o -name "*.cs" -print)
 
 .ONESHELL:
@@ -10,8 +10,8 @@ $(DLL): $(CSharpFiles)
 .PHONY: clean
 clean:
 	dotnet clean
-	[ -d out/NativeCommandCompleter.psm ] && rm -rv out/NativeCommandCompleter.psm/
-	[ -f NativeCommandCompleter.dll-Help.xml ] && rm -v NativeCommandCompleter.dll-Help.xml
+	[ -d out/Sabamiso.psm ] && rm -rv out/Sabamiso.psm/
+	[ -f Sabamiso.dll-Help.xml ] && rm -v Sabamiso.dll-Help.xml
 
 .PHONY: build
 build: $(DLL) ## Build C# Projects

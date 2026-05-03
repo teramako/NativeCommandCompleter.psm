@@ -1,5 +1,7 @@
-# NativeCommandCompleter.psm
+# Sabamiso.psm
 PowerShell module for complete native command parameters and arguments
+
+<img src="docs/imgs/Sabamiso_x512.png" height="256" align="right" alt="logo"/>
 
 Inspired by the fish shell's advanced completion features, this module dynamically loads completion definition scripts from specific directories for Unix-like shells such as bash, zsh, and fish.
 This approach ensures fast startup times.
@@ -18,18 +20,18 @@ Additionally, the completions provided by this module are designed to have low p
 ### 1.a. Install from PowerShell Gallery
 
 ```powershell
-Install-Module -Name NativeCommandCompleter.psm
+Install-Module -Name Sabamiso.psm
 ```
 
 > [!NOTE]
-> `NativeCommandCompleter.psm` provides only the completion framework.
-> To install completion definitions for individual commands, please install [NativeCommandCompleter.completions].
+> `Sabamiso.psm` provides only the completion framework.
+> To install completion definitions for individual commands, please install [Sabamiso.completions].
 >
 > ```powershell
-> Install-Module -Name NativeCommandCompleter.completions
+> Install-Module -Name Sabamiso.completions
 > ```
 
-[NativeCommandCompleter.completions]: https://github.com/teramako/NativeCommandCompleter.completions
+[Sabamiso.completions]: https://github.com/teramako/Sabamiso.completions
 
 ### 1.b. Build from this repository
 
@@ -37,13 +39,13 @@ Install-Module -Name NativeCommandCompleter.psm
 
 ```powershell
 cd path/to/dir
-git clone https://github.com/teramako/NativeCommandCompleter.psm.git
+git clone https://github.com/teramako/Sabamiso.psm.git
 ```
 
 #### 1.b.2. Build
 
 ```powershell
-cd NativeCommandCompleter.psm
+cd Sabamiso.psm
 dotnet build ./src
 ```
 
@@ -51,7 +53,7 @@ dotnet build ./src
 
 ```powershell
 cd ($env:PSModulePath -split [System.IO.Path]::PathSeparator)[0]
-ln -s path/to/dir/NativeCommandCompleter.psm
+ln -s path/to/dir/Sabamiso.psm
 ```
 
 ### 2. Edit profile
@@ -65,14 +67,14 @@ Edit the profile loaded at PowerShell startup
 Add the following code:
 
 ```powershell
-Import-Module -Name NativeCommandCompleter.psm
+Import-Module -Name Sabamiso.psm
 ```
 
 > [!NOTE]
-> If you have installed [NativeCommandCompleter.completions], please import that module as well.
+> If you have installed [Sabamiso.completions], please import that module as well.
 >
 > ```powershell
-> Import-Module -Name NativeCommandCompleter.completions
+> Import-Module -Name Sabamiso.completions
 > ```
 
 > [!TIP]
@@ -96,7 +98,7 @@ If not specified, the `{profile directory}/completions` and `{module directory}/
 
 ## Completion definitions
 
-Completion definitions for common commands are available as a separate module: [NativeCommandCompleter.completions]
+Completion definitions for common commands are available as a separate module: [Sabamiso.completions]
 
 ## 📊 Module Workflow
 
@@ -115,8 +117,8 @@ flowchart TD
     C ==>|Native command| E ==> F
     F -->|Yes| G --> END
     F ==>|No - fallback| RunCompleter
-    subgraph NativeCommandCompleter.psm
-        RunCompleter[NativeCommandCompleter\nRun completer]
+    subgraph Sabamiso.psm
+        RunCompleter[Sabamiso\nRun completer]
         SearchCache{Search completer definition}
         SearchCache2{Search completer definition}
         BuildCompletionCandidates[Build completion candidates]
@@ -152,12 +154,12 @@ flowchart TD
 | [Register-NativeCompleter]   | Create and register a CommandCompleter object. |
 | [Unregister-NativeCompleter] | Unregister the command completer.              |
 
-[New-CommandCompleter]: docs/NativeCommandCompleter.psm/New-CommandCompleter.md "Cmdlet - New-CommandCompleter"
-[New-ParamCompleter]: docs/NativeCommandCompleter.psm/New-ParamCompleter.md "Cmdlet - New-ParamCompleter"
-[New-CommandCompleter]: docs/NativeCommandCompleter.psm/New-ArgumentCompleter.md "Cmdlet - New-ArgumentCompleter"
-[New-ParamStyle]: docs/NativeCommandCompleter.psm/New-ParamStyle.md "Cmdlet - New-ParamStyle"
-[Register-NativeCompleter]: docs/NativeCommandCompleter.psm/Register-NativeCompleter.md "Cmdlet - Register-NativeCompleter"
-[Unregister-NativeCompleter]: docs/NativeCommandCompleter.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
+[New-CommandCompleter]: docs/Sabamiso.psm/New-CommandCompleter.md "Cmdlet - New-CommandCompleter"
+[New-ParamCompleter]: docs/Sabamiso.psm/New-ParamCompleter.md "Cmdlet - New-ParamCompleter"
+[New-CommandCompleter]: docs/Sabamiso.psm/New-ArgumentCompleter.md "Cmdlet - New-ArgumentCompleter"
+[New-ParamStyle]: docs/Sabamiso.psm/New-ParamStyle.md "Cmdlet - New-ParamStyle"
+[Register-NativeCompleter]: docs/Sabamiso.psm/Register-NativeCompleter.md "Cmdlet - Register-NativeCompleter"
+[Unregister-NativeCompleter]: docs/Sabamiso.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
 
 Write the definition of command completion using the Cmdlets above.
 
@@ -217,7 +219,7 @@ Edit: `git.ps1` in `<profile directory>/completions`
 .SYNOPSIS
     Regsiter `git` command completer with `posh-git`
 .DESCRIPTION
-    This script will be loaded by `NativeCommandCompleter.psm` poershell module.
+    This script will be loaded by `Sabamiso.psm` poershell module.
 .LINK
     dahlbyk/posh-git: A PowerShell environment for Git
     https://github.com/dahlbyk/posh-git
@@ -246,7 +248,7 @@ Edit: `dotnet.ps1` in `<profile directory>/completions`
 .SYNOPSIS
     Regsiter `dotnet` command completer
 .DESCRIPTION
-    This script will be loaded by `NativeCommandCompleter.psm` poershell module.
+    This script will be loaded by `Sabamiso.psm` poershell module.
 .LINK
     How to enable tab completion for the .NET CLI
     https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete
@@ -268,5 +270,5 @@ TabExpansion2 -inputScript $commandAst.ToString().PadRight($cursorPosition) `
 
 The example and mechanism are almost identical to those of `posh-git` in Example 3.
 
-The completion provided by `NativeCommandCompleter.psm` has a lower priority;
+The completion provided by `Sabamiso.psm` has a lower priority;
 if a completion code with a specified command name is registered, completion will be performed using that code.

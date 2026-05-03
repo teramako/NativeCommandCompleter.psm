@@ -13,9 +13,9 @@ New-ParamCompleter ... -Arguments [argumentDefinitions]
 
 There are two ways to define "Arguments": using the [New-ArgumentCompleter] cmdlet and using a PowerShell Hashtable literal.
 
-[New-CommandCompleter]: ./NativeCommandCompleter.psm/New-CommandCompleter.md
-[New-ParamCompleter]: ./NativeCommandCompleter.psm/New-ParamCompleter.md
-[New-ArgumentCompleter]: ./NativeCommandCompleter.psm/New-ArgumentCompleter.md
+[New-CommandCompleter]: ./Sabamiso.psm/New-CommandCompleter.md
+[New-ParamCompleter]: ./Sabamiso.psm/New-ParamCompleter.md
+[New-ArgumentCompleter]: ./Sabamiso.psm/New-ArgumentCompleter.md
 
 ## Define with `New-ArgumentCompleter` cmdlet
 
@@ -120,12 +120,12 @@ A script that returns a completion list of arguments dynamically.
 
 Following types are supported:
 
-- `MT.Comp.CompletionValue`
+- `Sabamiso.CompletionValue`
 - `System.Management.Automation.CompletionResult`
 - `string`: A completion text and description delimited by a leading tab (`\t`) or newline (`\n`, `\r`) character.
 - `Array`: Array of completion text and descriptions.
 
-#### `MT.Comp.CompletionValue`
+#### `Sabamiso.CompletionValue`
 
 The output of the script is eventually converted to this `CompletionValue` object.
 
@@ -186,7 +186,7 @@ New-CommandCompleter -Name readtxt -Arguments @{
     Name = "textfile";
     Nargs = "1+";
     Script = {
-        [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
+        [Sabamiso.Helper]::CompleteFilename($this, $false, $false, {
             $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $_.Extension -eq ".txt"
         })
     }

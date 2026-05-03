@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsLifecycle.Unregister, "NativeCompleter")]
 [OutputType(typeof(void))]

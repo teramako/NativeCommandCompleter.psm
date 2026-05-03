@@ -1,9 +1,9 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
+Module Name: Sabamiso.psm
 ms.date: 04/22/2026
 PlatyPS schema version: 2024-05-01
 title: New-ParamCompleter
@@ -112,7 +112,7 @@ New-ParamCompleter -Name favorit -Arguments @{
 For more details, see [Arguments specification](../about_Arguments_spec.md).
 
 ```yaml
-Type: MT.Comp.ArgumentCompleterCollection
+Type: Sabamiso.ArgumentCompleterCollection
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -231,7 +231,7 @@ Specify Parameter style.
 If ommited, inhertes from the parent CommandCompleter's style.
 
 ```yaml
-Type: MT.Comp.ParameterStyle
+Type: Sabamiso.ParameterStyle
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -258,7 +258,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### MT.Comp.ParamCompleter
+### Sabamiso.ParamCompleter
 
 Created a parameter completer object.
 

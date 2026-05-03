@@ -31,7 +31,7 @@ $commonParam = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose'])
     @{ Verbose = $false }
 }
 
-$psdFile = Join-Path -Path $psmDir -ChildPath NativeCommandCompleter.psm.psd1
+$psdFile = Join-Path -Path $psmDir -ChildPath Sabamiso.psm.psd1
 $ModuleManifest = Test-ModuleManifest -Path $psdFile
 $tmpDir = Join-Path -Path $PSScriptRoot -ChildPath out, $ModuleManifest.Name
 
