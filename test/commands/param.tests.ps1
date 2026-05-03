@@ -26,7 +26,14 @@ BeforeAll {
             Script = { param([int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $_, $position, $argIndex }
         }
         New-ParamCompleter -Name file -Arguments @{ name = "path"; type= 'File' }
-    )
+    ) -Arguments @{
+        Name = "CmdArg1";
+        Script = { param([int] $position, [int] $argIndex) "CmdArg:{0}:{1}:{2}" -f $_, $position, $argIndex }
+    }, @{
+        Name = "list";
+        List = $true;
+        Candidates = "item1`tItem 1", "item2`tItem 2"
+    }
 }
 
 Describe 'parameters' {
@@ -120,6 +127,35 @@ Describe 'parameters' {
             $results = TabExpansion2 -inputScript 'test-1 -file ./' | Select-Object -ExpandProperty CompletionMatches
             $results.Count | Should -BeGreaterThan 0
             $results[0].ResultType | Should -Be ([System.Management.Automation.CompletionResultType]::ProviderItem)
+        }
+    }
+}
+
+Describe 'CommandArguments' {
+    Context '1st argument' {
+        It 'Normal 1 (`test-1 a`)' {
+            $results = TabExpansion2 -inputScript 'test-1 a' | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -BeGreaterThan 0
+            $results[0].CompletionText | Should -Be "CmdArg:a:1:0"
+        }
+        It 'After List (`test-1 -list l1 l2 a`)' {
+            $results = TabExpansion2 -inputScript 'test-1 -list l1 l2 a' | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -BeGreaterThan 0
+            $results[0].CompletionText | Should -Be "CmdArg:a:1:0"
+        }
+    }
+    Context '2nd argument' {
+        It 'Second argument (`test-1 first i`)' {
+            $results = TabExpansion2 -inputScript 'test-1 first i' | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -Be 2
+            $results[0].CompletionText | Should -Be "item1"
+            $results[1].CompletionText | Should -Be "item2"
+        }
+        It 'Second argument (`test-1 first item1, i`)' {
+            $results = TabExpansion2 -inputScript 'test-1 first i' | Select-Object -ExpandProperty CompletionMatches
+            $results.Count | Should -Be 2
+            $results[0].CompletionText | Should -Be "item1"
+            $results[1].CompletionText | Should -Be "item2"
         }
     }
 }
