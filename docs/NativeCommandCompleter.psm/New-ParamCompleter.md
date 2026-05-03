@@ -32,12 +32,6 @@ New-ParamCompleter [-StandardName <string[]>] [-LongName <string[]>] [-ShortName
 Create an object for parameter completion.
 The created object can be specified in `-Parameters` of `New-CommandCompleter` or `Register-NativeCompleter`.
 
-
-## DESCRIPTION
-
-Create an object for parameter completion.
-The created object can be specified in `-Parameters` of `New-CommandCompleter` or `Register-NativeCompleter`.
-
 ## EXAMPLES
 
 ### Example 1. Create a flag parameter
