@@ -256,8 +256,8 @@ public sealed class CompletionContext
             completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition)
                         || completed;
 
-            completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count)
-                        || completed;
+            if (!completed)
+                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
         }
 
         NativeCompleter.Debug($"[{Name}] Completed = {completed}, Count = {results.Count}");
