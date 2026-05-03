@@ -16,6 +16,9 @@ param(
     ,
     [Parameter(ParameterSetName = "Publish", Mandatory)]
     [switch] $Publish
+    ,
+    [Parameter(ParameterSetName = "HelpXML", Mandatory)]
+    [switch] $HelpXML
 )
 $ErrorActionPreference = 'Stop'
 
@@ -92,6 +95,11 @@ function BuildMamlHelp
                 }
             }
         }
+}
+
+if ($HelpXML)
+{
+    BuildMamlHelp
 }
 
 if ($CreateZip)
