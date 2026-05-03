@@ -32,11 +32,11 @@
   </data>
   <data name="Arguments" xml:space="preserve">
     <value>Positional argument specifications. Following values are acceptable:
+- `string` of variable name (alias to`@{ Name = 'VariableName' }`)
 - `IArgumentCompleter` implementation object
-- list candidates of `string`|`CompletionValue`
-- `ScriptBlock`
 - HashTable (can be converted to `IArgumentCompleter`)
     e.g.)
+    - `@{ Name = "path"; Type = 'File'; Nargs = '1+' }`
     - `@{ Name = "VariableName"; Script = { &lt;# CompletionScript #&gt; } }`
     - `@{ Name = "VariableName"; Candidates = "list", "of", "candidates" }`
 </value>

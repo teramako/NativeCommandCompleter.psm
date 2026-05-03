@@ -196,7 +196,8 @@ Register-NativeCompleter -Name example2 -SubCommands @(
     # example2 add ...
     New-CommandCompleter -Name add -Description "Add something files" -Arguments @{
         Name = "FILE";
-        Type = 'File'
+        Type = 'File';
+        Nargs = '1+';
     }
 
     # example2 list ...

@@ -76,8 +76,7 @@ And file name completion will then be enabled.
 Specifies argument definitions and their associated completers.
 
 The -Arguments parameter accepts values of several types:
-- A list of candidates (`string` or `CompletionValue`)
-- A `ScriptBlock`
+- A `string` of variable name (alias to `@{ Name = "string" }`)
 - An object implementing `IArgumentCompleter`
 - A `Hashtable` (automatically converted to an `IArgumentCompleter`)
   See following examples.
