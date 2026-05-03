@@ -80,7 +80,10 @@ New-ArgumentCompleter -Name animal -Candidates "dog", "cat"
 ### Example 5. Create a dynamic argument completer with ScriptBlock
 
 ```powershell
-New-ArgumentCompleter -Name 
+New-ArgumentCompleter -Name animal -Script {
+  $q = $this.WordToComplete + "*"
+  "dog", "cat" | Where-Object { $_ -like $q }
+}
 ```
 
 ## PARAMETERS
