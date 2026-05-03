@@ -1,6 +1,8 @@
 # Sabamiso.psm
 PowerShell module for complete native command parameters and arguments
 
+<img src="docs/imgs/Sabamiso_x512.png" height="256" align="right" alt="logo"/>
+
 Inspired by the fish shell's advanced completion features, this module dynamically loads completion definition scripts from specific directories for Unix-like shells such as bash, zsh, and fish.
 This approach ensures fast startup times.
 Additionally, the completions provided by this module are designed to have low priority, ensuring they do not interfere with custom completion scripts for specific commands.
