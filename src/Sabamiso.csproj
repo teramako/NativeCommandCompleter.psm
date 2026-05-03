@@ -7,7 +7,7 @@
     <OutDir>../libs</OutDir>
     <VersionPrefix>0.3.0</VersionPrefix>
 
-    <AssemblyName>NativeCommandCompleter</AssemblyName>
+    <AssemblyName>Sabamiso</AssemblyName>
     <RootNamespace>MT.Comp</RootNamespace>
 
     <!-- Disable deps.json generation -->

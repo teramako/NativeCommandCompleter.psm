@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Root module of NativeCommandCompleter.psm
+    Root module of Sabamiso.psm
 .DESCRIPTION
     1. Setup `PS_COMPLETE_PATH` environment variable, if not defined
     2. Register completer as `NativeFallback`

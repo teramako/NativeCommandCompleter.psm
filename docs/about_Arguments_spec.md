@@ -13,9 +13,9 @@ New-ParamCompleter ... -Arguments [argumentDefinitions]
 
 There are two ways to define "Arguments": using the [New-ArgumentCompleter] cmdlet and using a PowerShell Hashtable literal.
 
-[New-CommandCompleter]: ./NativeCommandCompleter.psm/New-CommandCompleter.md
-[New-ParamCompleter]: ./NativeCommandCompleter.psm/New-ParamCompleter.md
-[New-ArgumentCompleter]: ./NativeCommandCompleter.psm/New-ArgumentCompleter.md
+[New-CommandCompleter]: ./Sabamiso.psm/New-CommandCompleter.md
+[New-ParamCompleter]: ./Sabamiso.psm/New-ParamCompleter.md
+[New-ArgumentCompleter]: ./Sabamiso.psm/New-ArgumentCompleter.md
 
 ## Define with `New-ArgumentCompleter` cmdlet
 

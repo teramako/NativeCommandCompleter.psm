@@ -1,9 +1,9 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
+Module Name: Sabamiso.psm
 ms.date: 04/25/2026
 PlatyPS schema version: 2024-05-01
 title: New-ArgumentCompleter
@@ -271,4 +271,4 @@ None
 
 - [New-ParamCompleter](./New-ParamCompleter.md)
 - [New-CommandCompleter](./New-CommandCompleter.md)
-- [Register-NativeCommandCompleter](./Register-NativeCommandCompleter.md)
+- [Register-Sabamiso](./Register-Sabamiso.md)

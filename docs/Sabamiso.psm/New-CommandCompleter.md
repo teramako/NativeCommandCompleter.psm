@@ -1,53 +1,50 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
+Module Name: Sabamiso.psm
 ms.date: 04/22/2026
 PlatyPS schema version: 2024-05-01
-title: Register-NativeCompleter
+title: New-CommandCompleter
 ---
 
-# Register-NativeCompleter
+# New-CommandCompleter
 
 ## SYNOPSIS
 
-Create and register a CommandCompleter object.
+Create a CommandCompleter object.
 
 ## SYNTAX
 
-### New
+### __AllParameterSets
 
 ```
-Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
+New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
- [-Arguments <ArgumentCompleterCollection>] [-Style <CommandParameterStyle>]
- [-CustomStyle <ParameterStyle>] [-NoFileCompletions] [-DelegateArgumentIndex <int>] [-Force]
-```
-
-### Input
-
-```
-Register-NativeCompleter [-Completer] <CommandCompleter> [-Force] [<CommonParameters>]
+ [-Arguments <ArgumentCompleterCollection>] [-NoFileCompletions] [-Style <CommandParameterStyle>]
+ [-CustomStyle <ParameterStyle>] [-DelegateArgumentIndex <int>]
 ```
 
 ## ALIASES
 
 ## DESCRIPTION
 
-Create and **register** a CommandCompleter object.
+Create a CommandCompleter object and output.
+Unlike `Register-NativeCompleter`, it does not register the completer.
 
-Typically, this command will be used for registering normal commands not subcommands.
+Typically, this command will be used for creating subcommands.
+It would be easier to use `Register-NativeCompleter`, which can also be registered for normal commands.
 
 ## EXAMPLES
 
-### Example 1. Register normal command
+### Example 1. Create a completer
 
 ```powershell
-Register-NativeCompleter -Name cmd-name -Parameters @(
+$completer = New-CommandCompleter -Name cmd-name -Description 'command explanation' -Parameters @(
     New-ParamCompleter -ShortName h -LongName help -Description 'Display help'
-    # ...
+) -SubCommands @(
+    New-CommandCompleter -Name sub-command-name -Description '...' # -Parameters ... -SubCommands ...
 )
 ```
 
@@ -63,7 +60,7 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -90,20 +87,20 @@ For examples:
 
 ```powershell
 # Perform file‑path completion for one or more arguments
-Register-NativeCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
+New-CommandCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
 
 # Perform autocompletion from a statically defined list
-Register-NativeCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
+New-CommandCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
 
 # Define separate completers for two arguments
-Register-NativeCompleter ... -Arguments @{
+New-CommandCompleter ... -Arguments @{
   Name = '1st'; Candidates = "A", "B", "C";
 }, @{
   Name = '2nd'; Candidates = "X", "Y", "Z"
 }
 
 # Use a script block for dynamic autocompletion
-Register-NativeCompleter ... -Arguments @{
+New-CommandCompleter ... -Arguments @{
   Name = 'animal';
   Script = {
     param([int] $position, [int] $argumentIndex)
@@ -125,32 +122,10 @@ Aliases:
 - a
 - ArgumentCompleter
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Completer
-
-Specify the CommadCompleter object to be registered.
-Typically, used for registering the command completer which created by `New-CommandCompleter` cmdlet.
-
-```yaml
-Type: MT.Comp.CommandCompleter
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: Input
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -169,7 +144,7 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -197,7 +172,7 @@ DefaultValue: -1
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -211,6 +186,7 @@ HelpMessage: ''
 ### -Description
 
 Command Description.
+This is primarily used to output a completion list of subcommands.
 
 ```yaml
 Type: System.String
@@ -219,30 +195,8 @@ SupportsWildcards: false
 Aliases:
 - d
 ParameterSets:
-- Name: New
-  Position: 1
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Force
-
-Even if a command with the same name is already registered, it will be forcibly overwritten.
-
-```yaml
-Type: System.Management.Automation.SwitchParameter
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- f
-ParameterSets:
 - Name: (All)
-  Position: Named
+  Position: 1
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -263,7 +217,7 @@ SupportsWildcards: false
 Aliases:
 - n
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: false
@@ -284,7 +238,7 @@ DefaultValue: false
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -306,7 +260,7 @@ SupportsWildcards: false
 Aliases:
 - p
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -325,7 +279,6 @@ Availables:
 
 - `GNU`: Set long option prefix to `--`, short option prefix to `-` and value spprator to `=`. (Default)
 - `Windows`: Set short option prefix to `-` and value spprator to `:`.
-- `Unix`: Similer to `GNU`, but disallow adjacent value parameter like `-key=value`
 
 ```yaml
 Type: MT.Comp.Commands.CommandParameterStyle
@@ -334,7 +287,7 @@ SupportsWildcards: false
 Aliases:
 - t
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -356,7 +309,7 @@ SupportsWildcards: false
 Aliases:
 - s
 ParameterSets:
-- Name: New
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -376,20 +329,15 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### MT.Comp.CommandCompleter
-
-Registers the CommandCompleter input from the pipeline.
-
 ## OUTPUTS
 
-### System.Void
+### MT.Comp.CommandCompleter
 
-None of output
+Created command completer.
 
 ## NOTES
 
 ## RELATED LINKS
 
-- [New-CommandCompleter](./New-CommandCompleter.md)
+- [Register-Sabamiso](./Register-Sabamiso.md)
 - [New-ParamCompleter](./New-ParamCompleter.md)
-- [Unregister-NativeCompleter](./Unregister-NativeCompleter.md)
