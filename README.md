@@ -156,7 +156,7 @@ flowchart TD
 
 [New-CommandCompleter]: docs/Sabamiso.psm/New-CommandCompleter.md "Cmdlet - New-CommandCompleter"
 [New-ParamCompleter]: docs/Sabamiso.psm/New-ParamCompleter.md "Cmdlet - New-ParamCompleter"
-[New-CommandCompleter]: docs/Sabamiso.psm/New-ArgumentCompleter.md "Cmdlet - New-ArgumentCompleter"
+[New-ArgumentCompleter]: docs/Sabamiso.psm/New-ArgumentCompleter.md "Cmdlet - New-ArgumentCompleter"
 [New-ParamStyle]: docs/Sabamiso.psm/New-ParamStyle.md "Cmdlet - New-ParamStyle"
 [Register-NativeCompleter]: docs/Sabamiso.psm/Register-NativeCompleter.md "Cmdlet - Register-NativeCompleter"
 [Unregister-NativeCompleter]: docs/Sabamiso.psm/Unregister-NativeCompleter.md "Cmdlet - Unregister-NativeCompleter"
