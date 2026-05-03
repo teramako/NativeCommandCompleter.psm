@@ -6,8 +6,9 @@ BeforeAll {
     Register-NativeCompleter -Force -Name test-1 -Parameters @(
         New-ParamCompleter -ShortName a -LongName all
         New-ParamCompleter -ShortName v -LongName version
-        New-ParamCompleter -Name name -Arguments {
-            param([int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $_, $position, $argIndex
+        New-ParamCompleter -Name name -Arguments @{
+            Name = 'NAME';
+            Script = { param([int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $_, $position, $argIndex }
         }
         New-ParamCompleter -Name list -ShortName l -LongName list -Arguments @{
             Name = '1st'; Script = { param([int] $position, [int] $argIndex) "{0}_1st:{1}:{2}" -f $_, $position, $argIndex }
