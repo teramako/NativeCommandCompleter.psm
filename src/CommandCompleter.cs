@@ -110,11 +110,8 @@ public class CommandCompleter
 
     private bool ParseParameter(ReadOnlySpan<char> tokenValue,
                                 CompletionContext context,
-                                int argumentIndex,
-                                out int advancedCount)
+                                ref int argumentIndex)
     {
-        advancedCount = 0;
-
         foreach (var param in Params)
         {
             if (param.ParseParam(tokenValue, out var paramName, out var paramValue, out var optionPrefix))
@@ -126,7 +123,7 @@ public class CommandCompleter
                 }
                 else if (paramValue.IsEmpty)
                 {
-                    advancedCount = SetParameterArguments(context, argumentIndex, param, $"{paramName}", optionPrefix);
+                    argumentIndex += SetParameterArguments(context, argumentIndex, param, $"{paramName}", optionPrefix);
                 }
                 else
                 {
@@ -140,11 +137,9 @@ public class CommandCompleter
 
     private bool ParseShortParam(ReadOnlySpan<char> tokenValue,
                                  CompletionContext context,
-                                 int argumentIndex,
-                                 out int advancedCount)
+                                 ref int argumentIndex)
     {
         bool result = false;
-        advancedCount = 0;
         if (tokenValue.IsEmpty)
             return result;
 
@@ -172,7 +167,7 @@ public class CommandCompleter
                     //      \          ^ cursor
                     //       i
                     // the argument of `c` param is supplied
-                    advancedCount = SetParameterArguments(context, argumentIndex, p, $"{c}", p.Style.ShortOptionPrefix);
+                    argumentIndex += SetParameterArguments(context, argumentIndex, p, $"{c}", p.Style.ShortOptionPrefix);
                 }
                 else
                 {
@@ -283,14 +278,12 @@ public class CommandCompleter
             }
 
             // Attempt to parse as long parameter or standard parameter
-            if (ParseParameter(tokenValue, context, argumentIndex, out var advancedCount))
+            if (ParseParameter(tokenValue, context, ref argumentIndex))
             {
-                argumentIndex += advancedCount;
                 continue;
             }
-            if (ParseShortParam(tokenValue, context, argumentIndex, out advancedCount))
+            if (ParseShortParam(tokenValue, context, ref argumentIndex))
             {
-                argumentIndex += advancedCount;
                 continue;
             }
             if (context.UnboundArguments.Count == DelegateArgumentIndex)
