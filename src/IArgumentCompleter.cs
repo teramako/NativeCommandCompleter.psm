@@ -21,18 +21,6 @@ public interface IArgumentCompleter
     Nargs Nargs { get; }
 
     /// <summary>
-    /// Indicates that the arguments is required or optional
-    /// </summary>
-    /// <seealso cref="Nargs"/>
-    bool Required { get; }
-
-    /// <summary>
-    /// Indicates whether all remaining arguments are accepted.
-    /// </summary>
-    /// <seealso cref="Nargs"/>
-    bool Remainings { get; }
-
-    /// <summary>
     /// Indicates that the argument is a comma-separated list
     /// </summary>
     bool List { get; }
