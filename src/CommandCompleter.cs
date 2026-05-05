@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.ObjectModel;
 using System.Text;
 
@@ -84,26 +83,16 @@ public class CommandCompleter
     /// Determine whether the token value matches this command completer
     /// </summary>
     /// <param name="tokenValue"></param>
-    /// <param name="cmdName">Command name</param>
     /// <returns></returns>
-    protected virtual bool IsMatch(ReadOnlySpan<char> tokenValue, out ReadOnlySpan<char> cmdName)
+    protected virtual bool IsMatch(ReadOnlySpan<char> tokenValue)
     {
-        cmdName = default;
         if (tokenValue.Equals(Name, StringComparison.Ordinal))
-        {
-            cmdName = Name;
             return true;
-        }
-        if (Aliases.Length > 0)
+
+        foreach (ReadOnlySpan<char> alias in Aliases)
         {
-            foreach (var alias in Aliases)
-            {
-                if (tokenValue.Equals(alias, StringComparison.Ordinal))
-                {
-                    cmdName = alias;
-                    return true;
-                }
-            }
+            if (tokenValue.Equals(alias, StringComparison.Ordinal))
+                return true;
         }
         return false;
     }
@@ -270,9 +259,9 @@ public class CommandCompleter
             {
                 foreach (var subCmd in SubCommands)
                 {
-                    if (subCmd.IsMatch(tokenValue, out var cmdName))
+                    if (subCmd.IsMatch(tokenValue))
                     {
-                        return context.CreateNestedContext(subCmd, cmdName, argumentIndex);
+                        return context.CreateNestedContext(subCmd, tokenValue, argumentIndex);
                     }
                 }
             }
