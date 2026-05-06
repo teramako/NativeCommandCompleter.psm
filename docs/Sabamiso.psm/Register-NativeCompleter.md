@@ -4,7 +4,7 @@ external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
 Module Name: Sabamiso.psm
-ms.date: 04/22/2026
+ms.date: 05/06/2026
 PlatyPS schema version: 2024-05-01
 title: Register-NativeCompleter
 ---
@@ -23,7 +23,7 @@ Create and register a CommandCompleter object.
 Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
  [-Arguments <ArgumentCompleterCollection>] [-Style <CommandParameterStyle>]
- [-CustomStyle <ParameterStyle>] [-NoFileCompletions] [-DelegateArgumentIndex <int>] [-Force]
+ [-CustomStyle <ParameterStyle>] [-NoFileCompletions] [-Force] [<CommonParameters>]
 ```
 
 ### Input
@@ -166,34 +166,6 @@ This setting is inherited by each parameter.
 ```yaml
 Type: Sabamiso.ParameterStyle
 DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: New
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -DelegateArgumentIndex
-
-Argument index of a command to delegate completions.
-
-Specifies the index of the argument that will be "{COMMAND}". (starting from 0)
-
-For examples:
-
- - `sudo {COMMAND} [args...]`
- - `time {COMMAND} [args...]`
-
-```yaml
-Type: System.Int32
-DefaultValue: -1
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

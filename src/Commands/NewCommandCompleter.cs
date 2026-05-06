@@ -42,10 +42,6 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CustomStyle")]
     public ParameterStyle? CustomStyle { get; set; }
 
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "DelegateArgumentIndex")]
-    [ValidateRange(0, int.MaxValue)]
-    public int DelegateArgumentIndex { get; set; } = -1;
-
     protected override void EndProcessing()
     {
         var defaultParameterStyle = CustomStyle is not null
