@@ -40,11 +40,12 @@ For details on the syntax, see [New-ArgumentCompleter].
 
 To configure type-based autocompletion, specify the type using the `Type` key.
 
-| Type        | Description                  |
-|:------------|:-----------------------------|
-| `File`      | File or directory completion |
-| `Directory` | Directory completion         |
-
+| Type              | Description                                                                                     |
+|:------------------|:------------------------------------------------------------------------------------------------|
+| `File`            | File or directory completion                                                                    |
+| `Directory`       | Directory completion                                                                            |
+| `Command`         | Command or file completion                                                                      |
+| `DelegateCommand` | Just like `Command`. Additionaly, the subsequent arguments serve as arguments for that command  |
 
 ##### Example: File or Directory completion
 ```powershell
