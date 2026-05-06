@@ -45,8 +45,7 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       CommandCompleter[] subCommands,
                                                       ParameterStyle style,
                                                       ArgumentCompleterCollection? argumentCompleters = null,
-                                                      bool noFileCompletions = false,
-                                                      int delegateArgumentIndex = -1)
+                                                      bool noFileCompletions = false)
     {
         argumentCompleters ??= [];
         CommandCompleter completer = WildcardPattern.ContainsWildcardCharacters(name)
@@ -55,14 +54,12 @@ public abstract class CommandCompleterBase : PSCmdlet
                 Aliases = aliases,
                 Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
-                DelegateArgumentIndex = delegateArgumentIndex,
             }
             : new CommandCompleter(name, description, style, paramCompleters, subCommands)
             {
                 Aliases = aliases,
                 Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
-                DelegateArgumentIndex = delegateArgumentIndex,
             };
         return completer;
     }

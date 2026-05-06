@@ -42,6 +42,12 @@ public enum ArgumentType
     /// Indicates that the argument is a command or a path
     /// </summary>
     Command = 1 << 4,
+
+    /// <summary>
+    /// Just like <see cref="Command"/>, indicates that the argument is a command or a path.
+    /// Additionally, the subsequent arguments serve as arguments for that command.
+    /// </summary>
+    DelegateCommand = Command | 1,
 }
 
 public class ParamCompleter

@@ -46,18 +46,6 @@ public class CommandCompleter
     public ReadOnlyCollection<CommandCompleter> SubCommands { get; }
     public ArgumentCompleterCollection Arguments { get; internal set; } = [];
     public bool NoFileCompletions { get; set; }
-    /// <summary>
-    /// Argument index of a command to delegate completions.
-    /// </summary>
-    /// <remarks>
-    /// To delegate the arguments of `command` to the completer for `command`.
-    /// <para>In cases like:</para>
-    /// <code>
-    /// sudo ... command [args...]
-    /// time ... command [args...]
-    /// </code>
-    /// </remarks>
-    public int DelegateArgumentIndex { get; internal set; } = -1;
 
     public override string ToString()
     {
@@ -237,18 +225,6 @@ public class CommandCompleter
     {
         NativeCompleter.Debug($"[{context.Name}] Build CompletionContext");
 
-        // Early return if no parameters to analyze
-        if (SubCommands.Count == 0
-            && Params.Count == 0
-            && DelegateArgumentIndex < 0)
-        {
-            foreach (var token in context.Arguments)
-            {
-                context.AddUnboundArgument(token);
-            }
-            return context;
-        }
-
         int argumentsCount = context.Arguments.Count;
         for (int argumentIndex = 0; argumentIndex < argumentsCount; argumentIndex++)
         {
@@ -275,17 +251,18 @@ public class CommandCompleter
             {
                 continue;
             }
-            if (context.UnboundArguments.Count == DelegateArgumentIndex)
+            if (Arguments.Count > 0)
             {
-                var cmdName = Path.GetFileName(tokenValue).ToString();
-                return NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
-                    ? context.CreateNestedContext(delegatedCompleter, argumentIndex)
-                    : context.CreateNestedContext(new(cmdName, "Unknown"), argumentIndex);
+                var arg = Arguments.GetByArgumentIndex(context.UnboundArguments.Count);
+                if (arg is ArgumentCompleterWithType and { Type : ArgumentType.DelegateCommand })
+                {
+                    var cmdName = Path.GetFileName(tokenValue);
+                    return NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)
+                        ? context.CreateNestedContext(delegatedCompleter, argumentIndex)
+                        : context.CreateNestedContext(new($"{cmdName}", "Unknown"), argumentIndex);
+                }
             }
-            else
-            {
-                context.AddUnboundArgument(token);
-            }
+            context.AddUnboundArgument(token);
         }
         return context;
     }
@@ -678,44 +655,32 @@ public class CommandCompleter
     {
         var ac = Arguments.GetByArgumentIndex(argumentIndex);
         if (ac is null)
+            return false;
+        
+        var tooltipPrefix = $"""
+            {GetSyntax(context.Name)}{(string.IsNullOrEmpty(ac.Description) ? string.Empty : $" : {ac.Description}")}
+            [{argumentIndex + 1}]: 
+            """;
+
+        NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: '{tokenValue}', index: {argumentIndex} }}");
+        IEnumerable<CompletionData> candidates;
+        if (ac.List)
         {
-            if (argumentIndex == DelegateArgumentIndex)
-            {
-                foreach (var compData in Helper.CompleteCommandOrFilename(context))
-                {
-                    results.Add(compData);
-                }
-                return true;
-            }
-            return NoFileCompletions;
+            var result = Helper.ResolveListElement(tokenValue, offsetPosition);
+            candidates = ac.Complete(context, result.Slice(tokenValue), result.OffsetPosition, argumentIndex);
         }
         else
         {
-            var tooltipPrefix = $"""
-                {GetSyntax(context.Name)}{(string.IsNullOrEmpty(ac.Description) ? string.Empty : $" : {ac.Description}")}
-                [{argumentIndex + 1}]: 
-                """;
-
-            NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: '{tokenValue}', index: {argumentIndex} }}");
-            IEnumerable<CompletionData> candidates;
-            if (ac.List)
-            {
-                var result = Helper.ResolveListElement(tokenValue, offsetPosition);
-                candidates = ac.Complete(context, result.Slice(tokenValue), result.OffsetPosition, argumentIndex);
-            }
-            else
-            {
-                candidates = ac.Complete(context, tokenValue, offsetPosition, argumentIndex);
-            }
-            int count = 0;
-            foreach (var data in candidates)
-            {
-                results.Add(data.SetTooltipPrefix(tooltipPrefix));
-                count++;
-            }
-            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
+            candidates = ac.Complete(context, tokenValue, offsetPosition, argumentIndex);
         }
-        return NoFileCompletions;
+        int count = 0;
+        foreach (var data in candidates)
+        {
+            results.Add(data.SetTooltipPrefix(tooltipPrefix));
+            count++;
+        }
+        NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
+        return true;
     }
 
     /// <summary>

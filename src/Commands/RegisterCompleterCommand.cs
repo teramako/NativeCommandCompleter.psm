@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Management.Automation;
 
 namespace Sabamiso.Commands;
@@ -90,8 +89,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
                                                  SubCommands,
                                                  defaultParameterStyle,
                                                  Arguments,
-                                                 NoFileCompletions,
-                                                 DelegateArgumentIndex),
+                                                 NoFileCompletions),
                           Force);
     }
 }
