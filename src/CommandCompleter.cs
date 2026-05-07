@@ -254,7 +254,7 @@ public class CommandCompleter
             if (Arguments.Count > 0)
             {
                 var arg = Arguments.GetByArgumentIndex(context.UnboundArguments.Count);
-                if (arg is ArgumentCompleterWithType and { Type : ArgumentType.DelegateCommand })
+                if (arg is ArgumentCompleterWithType and { Type : ArgumentType.DelegatingCommand })
                 {
                     var cmdName = Path.GetFileName(tokenValue);
                     return NativeCompleter.TryGetCommandCompleter(cmdName, null, out var delegatedCompleter, out _)

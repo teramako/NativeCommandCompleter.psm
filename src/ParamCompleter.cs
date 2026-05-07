@@ -47,7 +47,7 @@ public enum ArgumentType
     /// Just like <see cref="Command"/>, indicates that the argument is a command or a path.
     /// Additionally, the subsequent arguments serve as arguments for that command.
     /// </summary>
-    DelegateCommand = Command | 1,
+    DelegatingCommand = Command | (1 << 1),
 }
 
 public class ParamCompleter

@@ -20,7 +20,7 @@ public class ArgumentCompleterWithType : ArgumentCompleterBase
         {
             ArgumentType.File => Helper.CompleteFilename($"{tokenValue}", $"{context.CurrentDirectory}", true, false),
             ArgumentType.Directory => Helper.CompleteFilename($"{tokenValue}", $"{context.CurrentDirectory}", true, true),
-            ArgumentType.Command or ArgumentType.DelegateCommand => Helper.CompleteCommandOrFilename(context),
+            ArgumentType.Command or ArgumentType.DelegatingCommand => Helper.CompleteCommandOrFilename(context),
             _ => []
         };
     }
