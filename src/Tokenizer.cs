@@ -1,16 +1,10 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Management.Automation.Language;
 
 namespace Sabamiso;
 
 public static class Tokenizer
 {
-    [Conditional("DEBUG")]
-    public static void Debug(string msg)
-    {
-        Console.Error.WriteLine($"=> {msg}");
-    }
     public static IReadOnlyList<ArgumentElement> ReconstructArgv(CommandAst commandAst)
     {
         var commandLine = commandAst.ToString();
