@@ -5,18 +5,34 @@ namespace Sabamiso;
 
 public static class Tokenizer
 {
+    /// <summary>
+    /// Reconstruct command arguments from <paramref name="commandAst"/>.
+    /// <para>
+    /// Generates an argument list for a native command based on the results of token analysis.
+    /// </para>
+    /// </summary>
+    /// <param name="commandAst">AST built by PowerShell</param>
     public static IReadOnlyList<ArgumentElement> ReconstructArgv(CommandAst commandAst)
     {
         var commandLine = commandAst.ToString();
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
-        return ReconstructArgv(commandLine, tokens);
+        return ReconstructArgvImpl(commandLine, tokens);
     }
+
+    /// <summary>
+    /// Reconstruct command arguments from <paramref name="commandLine"/> string.
+    /// <para>
+    /// Generates an argument list for a native command based on the results of token analysis.
+    /// </para>
+    /// </summary>
+    /// <param name="commandLine">Command-line string</param>
     public static IReadOnlyList<ArgumentElement> ReconstuctArgv(string commandLine)
     {
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
-        return ReconstructArgv(commandLine, tokens);
+        return ReconstructArgvImpl(commandLine, tokens);
     }
-    private static IReadOnlyList<ArgumentElement> ReconstructArgv(string commandLine, Token[] tokens)
+
+    private static IReadOnlyList<ArgumentElement> ReconstructArgvImpl(string commandLine, Token[] tokens)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
