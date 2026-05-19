@@ -1,5 +1,9 @@
 namespace Sabamiso;
 
+/// <summary>
+/// Argument type
+/// </summary>
+/// <seealso cref="ArgumentElement"/>
 [Flags]
 public enum ArgumentElementType
 {
