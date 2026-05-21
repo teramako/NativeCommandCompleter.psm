@@ -107,7 +107,8 @@ public class ArgumentElement
     /// </summary>
     /// <param name="cmdline"></param>
     /// <param name="tokens"></param>
-    public ArgumentElement(string cmdline, ImmutableArray<Token> tokens)
+    /// <param name="isArrayLiteral"></param>
+    public ArgumentElement(string cmdline, ImmutableArray<Token> tokens, bool isArrayLiteral = false)
     {
         ArgumentOutOfRangeException.ThrowIfZero(tokens.Length, nameof(tokens));
         Tokens = tokens;
@@ -135,15 +136,17 @@ public class ArgumentElement
         else
         {
             Value = cmdline[StartOffset..EndOffset];
-            Type = tokens[0].Kind switch
-            {
-                TokenKind.LParen => ArgumentElementType.NestedExpression,
-                TokenKind.DollarParen => ArgumentElementType.NestedExpression,
-                TokenKind.AtParen => ArgumentElementType.ArrayExpression,
-                TokenKind.AtCurly => ArgumentElementType.HashtableExpression,
-                TokenKind.Variable => ArgumentElementType.VariableExpression,
-                _ => ArgumentElementType.String,
-            };
+            Type = isArrayLiteral
+                ? ArgumentElementType.ArrayLiteral
+                : tokens[0].Kind switch
+                {
+                    TokenKind.LParen => ArgumentElementType.NestedExpression,
+                    TokenKind.DollarParen => ArgumentElementType.NestedExpression,
+                    TokenKind.AtParen => ArgumentElementType.ArrayExpression,
+                    TokenKind.AtCurly => ArgumentElementType.HashtableExpression,
+                    TokenKind.Variable => ArgumentElementType.VariableExpression,
+                    _ => ArgumentElementType.String,
+                };
         }
     }
 

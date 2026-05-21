@@ -23,13 +23,22 @@ public class TokenizerTest
     [InlineData("cmd $val", new[] { "$val" }, null, new[] { ArgumentElementType.VariableExpression })]
     [InlineData("cmd $val[0]", new[] { "$val[0]" }, null, new[] { ArgumentElementType.VariableExpression })]
     [InlineData("cmd $val[0, 1]", new[] { "$val[0, 1]" }, null, new[] { ArgumentElementType.VariableExpression })]
-    [InlineData("cmd $val [0, 1]", new[] { "$val", "[0,", "1]" }, null, new[] { ArgumentElementType.VariableExpression, ArgumentElementType.String, ArgumentElementType.String })]
+    [InlineData("cmd $val [0, 1]", new[] { "$val", "[0,", "1]" }, null, new[] { ArgumentElementType.VariableExpression, ArgumentElementType.ArrayLiteral, ArgumentElementType.String })]
     [InlineData("cmd $val.Prop", new[] { "$val.Prop" }, null, new[] { ArgumentElementType.VariableExpression })]
     [InlineData("cmd $val.Method(1, 2)", new[] { "$val.Method(1, 2)" })]
     [InlineData("cmd $val[0].Prop.Method()", new[] { "$val[0].Prop.Method()" })]
     [InlineData("cmd $val[0][1][2]", new[] { "$val[0][1][2]" })]
     [InlineData("cmd $val[0].Prop[1]", new[] { "$val[0].Prop[1]" })]
     [InlineData("cmd $val[0].Prop $(1+2)", new[] { "$val[0].Prop", "$(1+2)" }, null, new[] { ArgumentElementType.VariableExpression, ArgumentElementType.NestedExpression })]
+    [InlineData("cmd a,b", new[] { "a,b" }, null, new[] { ArgumentElementType.ArrayLiteral })]
+    [InlineData("cmd a,'b c'", new[] { "a,'b c'" }, null, new[] { ArgumentElementType.ArrayLiteral })]
+    [InlineData("cmd a,\"b c\"", new[] { "a,\"b c\"" }, null, new[] { ArgumentElementType.ArrayLiteral })]
+    [InlineData("cmd a,b, c", new[] { "a,b,", "c" }, null, new[] { ArgumentElementType.ArrayLiteral, ArgumentElementType.String })]
+    [InlineData("cmd a,b ,c", new[] { "a,b", ",c" }, null, new[] { ArgumentElementType.ArrayLiteral, ArgumentElementType.String })]
+    [InlineData("cmd 'a',b", new[] { "'a',b" }, null, new[] { ArgumentElementType.ArrayLiteral })]
+    [InlineData("cmd \"a\",b", new[] { "\"a\",b" }, null, new[] { ArgumentElementType.ArrayLiteral })]
+    [InlineData("cmd a,(1),b", new[] { "a,(1),b" }, null, new[] { ArgumentElementType.ArrayLiteral })]
+    [InlineData("cmd a, (1),b", new[] { "a,", "(1),b" }, null, new[] { ArgumentElementType.ArrayLiteral, ArgumentElementType.ArrayLiteral})]
     public void TestTokenizer(string input, string[] expectedRawValues, string[]? expectedValues = null, ArgumentElementType[]? expectedTyeps = null)
     {
         var args = Tokenizer.ReconstuctArgv(input);

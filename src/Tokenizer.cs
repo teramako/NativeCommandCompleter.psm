@@ -38,6 +38,7 @@ public static class Tokenizer
 
         int index = 1;
         int startIndex = 1;
+        bool onArrayLiteral = false;
 
         var builder= ImmutableArray.CreateBuilder<ArgumentElement>();
 
@@ -52,7 +53,7 @@ public static class Tokenizer
                     goto endLoop;
                 case TokenKind.LParen:  // ( expression )
                     if (!char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1])
-                        && tokens[startIndex].Kind is TokenKind.Variable)
+                        && (onArrayLiteral || tokens[startIndex].Kind is TokenKind.Variable))
                     {
                         index = ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]);
                     }
@@ -60,16 +61,33 @@ public static class Tokenizer
                     {
                         AddCurrentArgv();
                         (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]));
-                        builder.Add(new(commandLine, tokens[startIndex..(index+1)].ToImmutableArray()));
-                        startIndex = index + 1;
+                        if (!IsOnArrayLiteral(index))
+                        {
+                            AddArgv(new(commandLine, tokens[startIndex..(index + 1)].ToImmutableArray()));
+                            startIndex = index + 1;
+                        }
+                        // AddArgv(new(commandLine, tokens[startIndex..(index+1)].ToImmutableArray()));
+                        // startIndex = index + 1;
                     }
                     continue;
                 case TokenKind.AtParen: // @( Array )
                 case TokenKind.DollarParen: // $( expression )
-                    AddCurrentArgv();
-                    (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]));
-                    AddArgv(new(commandLine, tokens[startIndex..(index+1)].ToImmutableArray()));
-                    startIndex = index + 1;
+                    if (onArrayLiteral && !char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
+                    {
+                        index = ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]);
+                    }
+                    else
+                    {
+                        AddCurrentArgv();
+                        (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]));
+                        if (!IsOnArrayLiteral(index))
+                        {
+                            AddArgv(new(commandLine, tokens[startIndex..(index + 1)].ToImmutableArray()));
+                            startIndex = index + 1;
+                        }
+                        // AddArgv(new(commandLine, tokens[startIndex..(index+1)].ToImmutableArray()));
+                        // startIndex = index + 1;
+                    }
                     continue;
                 case TokenKind.LCurly:  // { ScriptBlock } 
                 case TokenKind.AtCurly: // @{ Hashtable }
@@ -85,9 +103,25 @@ public static class Tokenizer
                     continue;
                 case TokenKind.StringLiteral:
                 case TokenKind.StringExpandable:
-                    AddCurrentArgv();
-                    AddArgv(new(tokens[index]));
-                    startIndex = index + 1;
+                    if (onArrayLiteral && !char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        AddCurrentArgv();
+                        if (IsOnArrayLiteral(index))
+                        {
+                            startIndex = index;
+                        }
+                        else
+                        {
+                            AddArgv(new(tokens[index]));
+                            startIndex = index + 1;
+                        }
+                    }
+                    // AddArgv(new(tokens[index]));
+                    // startIndex = index + 1;
                     continue;
                 case TokenKind.LBracket:
                     if (!char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1])
@@ -101,7 +135,16 @@ public static class Tokenizer
                     }
                     continue;
                 case TokenKind.Comma:
-                    break;
+                    if (char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
+                    {
+                        AddCurrentArgv();
+                        startIndex = index;
+                    }
+                    else
+                    {
+                        onArrayLiteral = true;
+                    }
+                    continue;
                 default:
                     break;
             }
@@ -118,13 +161,25 @@ public static class Tokenizer
 
         return builder.ToImmutableArray();
 
+        bool IsOnArrayLiteral(int index)
+        {
+            if (index + 1 < tokens.Length && tokens[index + 1].Kind is TokenKind.Comma)
+            {
+                var endOffset = tokens[index].Extent.EndOffset;
+                if (endOffset < commandLine.Length)
+                    return !char.IsWhiteSpace(commandLine[endOffset]);
+            }
+            return false;
+        }
+
         void AddCurrentArgv()
         {
             if (startIndex < index)
             {
-                ArgumentElement arg = new(commandLine, tokens[startIndex..index].ToImmutableArray());
+                ArgumentElement arg = new(commandLine, tokens[startIndex..index].ToImmutableArray(), onArrayLiteral);
                 // AddEmptyArgv(arg);
                 builder.Add(arg);
+                onArrayLiteral = false;
             }
         }
         void AddArgv(ArgumentElement arg)
