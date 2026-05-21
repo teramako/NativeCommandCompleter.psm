@@ -73,8 +73,15 @@ public static class Tokenizer
                     continue;
                 case TokenKind.LCurly:  // { ScriptBlock } 
                 case TokenKind.AtCurly: // @{ Hashtable }
-                    AddCurrentArgv();
-                    (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RCurly, [TokenKind.LCurly, TokenKind.AtCurly]));
+                    if (char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
+                    {
+                        AddCurrentArgv();
+                        (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RCurly, [TokenKind.LCurly, TokenKind.AtCurly]));
+                    }
+                    else
+                    {
+                        index = ScanBalancedExpression(tokens, index, TokenKind.RCurly, [TokenKind.LCurly, TokenKind.AtCurly]);
+                    }
                     continue;
                 case TokenKind.StringLiteral:
                 case TokenKind.StringExpandable:

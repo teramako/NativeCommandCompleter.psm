@@ -15,6 +15,7 @@ public class TokenizerTest
     [InlineData("cmd foo@(1,2,3)", new[] { "foo@", "(1,2,3)" }, null, new[] { ArgumentElementType.String, ArgumentElementType.NestedExpression })]
     [InlineData("cmd (1,(2,3),4)", new[] { "(1,(2,3),4)" }, null, new[] { ArgumentElementType.NestedExpression })]
     [InlineData("cmd {Write-Host hi}", new[] { "{Write-Host hi}" }, null, new[] { ArgumentElementType.String })]
+    [InlineData("cmd -a{}b", new[] { "-a{}b" }, null, new[] { ArgumentElementType.String })]
     [InlineData("cmd @{a=1;b=2}", new[] { "@{a=1;b=2}" }, null, new[] { ArgumentElementType.HashtableExpression })]
     [InlineData("cmd foo$(1+2)bar", new[] { "foo$(1+2)bar" }, null, new[] { ArgumentElementType.String })]
     [InlineData("cmd $(1+2)bar", new[] { "$(1+2)", "bar" }, null, new[] { ArgumentElementType.NestedExpression, ArgumentElementType.String })]
