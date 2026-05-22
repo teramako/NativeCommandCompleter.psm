@@ -36,156 +36,184 @@ public static class Tokenizer
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
+        var builder = ImmutableArray.CreateBuilder<ArgumentElement>();
+
+        int start = 1;
         int index = 1;
-        int startIndex = 1;
-        bool onArrayLiteral = false;
 
-        var builder= ImmutableArray.CreateBuilder<ArgumentElement>();
+        bool inArray = false;
+        bool inVariable = false;
 
-        for (; index < tokens.Length; index++)
+        while (index < tokens.Length)
         {
-            var t = tokens[index];
+            var token = tokens[index];
 
-            switch (t.Kind)
+            switch (token.Kind)
             {
-                case TokenKind.EndOfInput:
-                case TokenKind.NewLine:
+                case TokenKind.EndOfInput or TokenKind.NewLine:
                     goto endLoop;
-                case TokenKind.LParen:  // ( expression )
-                    if (!char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1])
-                        && (onArrayLiteral || tokens[startIndex].Kind is TokenKind.Variable))
-                    {
-                        index = ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]);
-                    }
-                    else
-                    {
-                        AddCurrentArgv();
-                        (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]));
-                        if (!IsOnArrayLiteral(index))
-                        {
-                            AddArgv(new(commandLine, tokens[startIndex..(index + 1)].ToImmutableArray()));
-                            startIndex = index + 1;
-                        }
-                        // AddArgv(new(commandLine, tokens[startIndex..(index+1)].ToImmutableArray()));
-                        // startIndex = index + 1;
-                    }
-                    continue;
-                case TokenKind.AtParen: // @( Array )
-                case TokenKind.DollarParen: // $( expression )
-                    if (onArrayLiteral && !char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
-                    {
-                        index = ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]);
-                    }
-                    else
-                    {
-                        AddCurrentArgv();
-                        (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]));
-                        if (!IsOnArrayLiteral(index))
-                        {
-                            AddArgv(new(commandLine, tokens[startIndex..(index + 1)].ToImmutableArray()));
-                            startIndex = index + 1;
-                        }
-                        // AddArgv(new(commandLine, tokens[startIndex..(index+1)].ToImmutableArray()));
-                        // startIndex = index + 1;
-                    }
-                    continue;
-                case TokenKind.LCurly:  // { ScriptBlock } 
-                case TokenKind.AtCurly: // @{ Hashtable }
-                    if (char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
-                    {
-                        AddCurrentArgv();
-                        (startIndex, index) = (index, ScanBalancedExpression(tokens, index, TokenKind.RCurly, [TokenKind.LCurly, TokenKind.AtCurly]));
-                    }
-                    else
-                    {
-                        index = ScanBalancedExpression(tokens, index, TokenKind.RCurly, [TokenKind.LCurly, TokenKind.AtCurly]);
-                    }
-                    continue;
-                case TokenKind.StringLiteral:
-                case TokenKind.StringExpandable:
-                    if (onArrayLiteral && !char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        AddCurrentArgv();
-                        if (IsOnArrayLiteral(index))
-                        {
-                            startIndex = index;
-                        }
-                        else
-                        {
-                            AddArgv(new(tokens[index]));
-                            startIndex = index + 1;
-                        }
-                    }
-                    // AddArgv(new(tokens[index]));
-                    // startIndex = index + 1;
-                    continue;
+                case TokenKind.LParen or TokenKind.AtParen or TokenKind.DollarParen:
+                    HandleBalancedParen();
+                    break;
+                case TokenKind.LCurly or TokenKind.AtCurly:
+                    HandleBalancedCurly();
+                    break;
                 case TokenKind.LBracket:
-                    if (!char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1])
-                        && tokens[startIndex].Kind is TokenKind.Variable)
-                    {
-                        index = ScanBalancedExpression(tokens, index, TokenKind.RBracket, TokenKind.LBracket);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                    continue;
+                    HandleBalancedBracket();
+                    break;
+                case TokenKind.StringLiteral or TokenKind.StringExpandable:
+                    HandleString();
+                    break;
                 case TokenKind.Comma:
-                    if (char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
-                    {
-                        AddCurrentArgv();
-                        startIndex = index;
-                    }
-                    else
-                    {
-                        onArrayLiteral = true;
-                    }
-                    continue;
+                    HandleComma();
+                    break;
+                case TokenKind.Variable:
+                    HandleVariable();
+                    break;
                 default:
+                    HandleDefault();
                     break;
             }
 
-            if (char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]))
-            {
-                AddCurrentArgv();
-                startIndex = index;
-            }
+            index++;
         }
         endLoop:
 
-        AddCurrentArgv();
-
+        FlushCurrent();
         return builder.ToImmutableArray();
 
-        bool IsOnArrayLiteral(int index)
+        // ---------------------------------------------------------------------
+        // Helper functions
+        // ---------------------------------------------------------------------
+
+        bool IsWhitespaceBefore(Token t)
+            => t.Extent.StartOffset > 0 && char.IsWhiteSpace(commandLine[t.Extent.StartOffset - 1]);
+
+        void HandleDefault()
         {
-            if (index + 1 < tokens.Length && tokens[index + 1].Kind is TokenKind.Comma)
+            if (IsWhitespaceBefore(tokens[index]))
             {
-                var endOffset = tokens[index].Extent.EndOffset;
-                if (endOffset < commandLine.Length)
-                    return !char.IsWhiteSpace(commandLine[endOffset]);
+                FlushCurrent();
+                start = index;
             }
-            return false;
         }
 
-        void AddCurrentArgv()
+        void HandleBalancedParen()
         {
-            if (startIndex < index)
+            if ((inArray || inVariable) && !IsWhitespaceBefore(tokens[index]))
             {
-                ArgumentElement arg = new(commandLine, tokens[startIndex..index].ToImmutableArray(), onArrayLiteral);
-                // AddEmptyArgv(arg);
-                builder.Add(arg);
-                onArrayLiteral = false;
+                index = ScanBalancedExpression();
+            }
+            else
+            {
+                FlushCurrent();
+                (start, index) = (index, ScanBalancedExpression());
+                if (!IsArrayLiteralAhead(index))
+                {
+                    builder.Add(new(commandLine, tokens[start..(index+1)].ToImmutableArray(), inArray));
+                    start = index + 1;
+                }
             }
         }
-        void AddArgv(ArgumentElement arg)
+        void HandleBalancedCurly()
         {
-            // AddEmptyArgv(arg);
-            builder.Add(arg);
+            if (IsWhitespaceBefore(tokens[index]))
+            {
+                FlushCurrent();
+                (start, index) = (index, ScanBalancedExpression());
+            }
+            else
+            {
+                index = ScanBalancedExpression();
+            }
+        }
+        void HandleBalancedBracket()
+        {
+            if (IsWhitespaceBefore(tokens[index]))
+            {
+                FlushCurrent();
+                start = index;
+            }
+            else if (inVariable)
+            {
+                index = ScanBalancedExpression();
+            }
+        }
+
+        int ScanBalancedExpression()
+        {
+            return tokens[index].Kind switch
+            {
+                TokenKind.LCurly or TokenKind.AtCurly
+                    => Tokenizer.ScanBalancedExpression(tokens, index, TokenKind.RCurly, [TokenKind.LCurly, TokenKind.AtCurly]),
+                TokenKind.LBracket
+                    => Tokenizer.ScanBalancedExpression(tokens, index, TokenKind.RBracket, [TokenKind.LBracket]),
+                TokenKind.LParen or TokenKind.AtParen or TokenKind.DollarParen
+                    => Tokenizer.ScanBalancedExpression(tokens, index, TokenKind.RParen, [TokenKind.LParen, TokenKind.AtParen, TokenKind.DollarParen]),
+                _ =>
+                    throw new NotImplementedException()
+            };
+        }
+
+        void HandleString()
+        {
+            if (inArray && !IsWhitespaceBefore(tokens[index]))
+            {
+                return;
+            }
+
+            FlushCurrent();
+
+            if (IsArrayLiteralAhead(index))
+            {
+                start = index;
+            }
+            else
+            {
+                builder.Add(new(tokens[index]));
+                start = index + 1;
+            }
+        }
+        void HandleComma()
+        {
+            if (IsWhitespaceBefore(tokens[index]))
+            {
+                FlushCurrent();
+                start = index;
+            }
+            else
+            {
+                inArray = true;
+            }
+        }
+        void HandleVariable()
+        {
+            if (IsWhitespaceBefore(tokens[index]))
+            {
+                FlushCurrent();
+                start = index;
+            }
+            inVariable = true;
+        }
+
+        void FlushCurrent()
+        {
+            if (start < index)
+            {
+                builder.Add(new(commandLine, tokens[start..index].ToImmutableArray(), inArray));
+                inArray = false;
+                inVariable = false;
+            }
+        }
+
+        bool IsArrayLiteralAhead(int tokenIndex)
+        {
+            if (tokenIndex + 1 < tokens.Length && tokens[tokenIndex + 1].Kind is TokenKind.Comma)
+            {
+                int end = tokens[tokenIndex].Extent.EndOffset;
+                return end < commandLine.Length && !char.IsWhiteSpace(commandLine[end]);
+            }
+            return false;
         }
     }
 
