@@ -32,6 +32,17 @@ public static class Tokenizer
         return ReconstructArgvImpl(commandLine, tokens);
     }
 
+    [Flags]
+    private enum State
+    {
+        InArray    = 1 << 0,
+        InVariable = 1 << 1,
+        InBracket  = 1 << 2,
+        InDot      = 1 << 3,
+        InIndex    = InVariable | InBracket,
+        InMember   = InVariable | InDot,
+    }
+
     private static IReadOnlyList<ArgumentElement> ReconstructArgvImpl(string commandLine, Token[] tokens)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
@@ -41,8 +52,7 @@ public static class Tokenizer
         int start = 1;
         int index = 1;
 
-        bool inArray = false;
-        bool inVariable = false;
+        State state = default;
 
         while (index < tokens.Length)
         {
@@ -66,6 +76,9 @@ public static class Tokenizer
                     break;
                 case TokenKind.Comma:
                     HandleComma();
+                    break;
+                case TokenKind.Dot:
+                    HandleDot();
                     break;
                 case TokenKind.Variable:
                     HandleVariable();
@@ -96,11 +109,16 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
+            else if (state is State.InVariable or State.InIndex)
+            {
+                FlushCurrent();
+                start = index;
+            }
         }
 
         void HandleBalancedParen()
         {
-            if ((inArray || inVariable) && !IsWhitespaceBefore(tokens[index]))
+            if ((state.HasFlag(State.InArray) || state.HasFlag(State.InMember)) && !IsWhitespaceBefore(tokens[index]))
             {
                 index = ScanBalancedExpression();
             }
@@ -110,7 +128,7 @@ public static class Tokenizer
                 (start, index) = (index, ScanBalancedExpression());
                 if (!IsArrayLiteralAhead(index))
                 {
-                    builder.Add(new(commandLine, tokens[start..(index+1)].ToImmutableArray(), inArray));
+                    builder.Add(new(commandLine, tokens[start..(index+1)].ToImmutableArray(), state.HasFlag(State.InArray)));
                     start = index + 1;
                 }
             }
@@ -134,8 +152,10 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            else if (inVariable)
+            else if (state.HasFlag(State.InVariable))
             {
+                state &= ~State.InDot;
+                state |= State.InIndex;
                 index = ScanBalancedExpression();
             }
         }
@@ -157,7 +177,11 @@ public static class Tokenizer
 
         void HandleString()
         {
-            if (inArray && !IsWhitespaceBefore(tokens[index]))
+            if (state.HasFlag(State.InArray) && !IsWhitespaceBefore(tokens[index]))
+            {
+                return;
+            }
+            else if (state.HasFlag(State.InMember))
             {
                 return;
             }
@@ -183,7 +207,7 @@ public static class Tokenizer
             }
             else
             {
-                inArray = true;
+                state |= State.InArray;
             }
         }
         void HandleVariable()
@@ -193,16 +217,20 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            inVariable = true;
+            state |= State.InVariable;
+        }
+        void HandleDot()
+        {
+            state &= State.InBracket;
+            state |= State.InMember;
         }
 
         void FlushCurrent()
         {
             if (start < index)
             {
-                builder.Add(new(commandLine, tokens[start..index].ToImmutableArray(), inArray));
-                inArray = false;
-                inVariable = false;
+                builder.Add(new(commandLine, tokens[start..index].ToImmutableArray(), state.HasFlag(State.InArray)));
+                state = default;
             }
         }
 
