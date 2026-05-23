@@ -12,11 +12,11 @@ namespace Sabamiso;
 /// <param name="Type">This argument type.</param>
 /// <param name="ArrayElements"></param>
 /// <seealso cref="Tokenizer"/>
-public record class ArgumentElement(ImmutableArray<Token> Tokens,
-                                    string Value,
-                                    Range Range,
-                                    ArgumentElementType Type,
-                                    ImmutableArray<Range>? ArrayElements = null)
+public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
+                                              string Value,
+                                              Range Range,
+                                              ArgumentElementType Type,
+                                              ImmutableArray<Range>? ArrayElements = null)
 {
     /// <summary>
     /// Starting position from the command-line
