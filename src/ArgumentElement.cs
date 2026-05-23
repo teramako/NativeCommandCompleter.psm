@@ -6,31 +6,25 @@ namespace Sabamiso;
 /// <summary>
 /// A argument element generated from tokens
 /// </summary>
+/// <param name="Tokens">Tokens that make up the argument element</param>
+/// <param name="Value">String value of the argument. This is not the input value itself, but the value escaped characters have been expanded.</param>
+/// <param name="Range">The range of this argument within the command line.</param>
+/// <param name="Type">This argument type.</param>
 /// <seealso cref="Tokenizer"/>
-public class ArgumentElement
+public record class ArgumentElement(ImmutableArray<Token> Tokens,
+                                    string Value,
+                                    Range Range,
+                                    ArgumentElementType Type)
 {
-    /// <summary>
-    /// Tokens that make up the argument element
-    /// </summary>
-    public ImmutableArray<Token> Tokens { get; }
-
-    /// <summary>
-    /// String value of the argument.
-    /// </summary>
-    /// <remarks>
-    /// This is not the input value itself, but the value escaped characters have been expanded.
-    /// </remarks>
-    public string Value { get; }
-
     /// <summary>
     /// Starting position from the command-line
     /// </summary>
-    public int StartOffset { get; }
+    public int StartOffset => Range.Start.Value;
 
     /// <summary>
     /// End position from the command-line
     /// </summary>
-    public int EndOffset { get; }
+    public int EndOffset => Range.End.Value;
 
     /// <summary>
     /// Value's length
@@ -48,13 +42,6 @@ public class ArgumentElement
     public char this[int i] => Value[i];
     public ReadOnlySpan<char> this[Range range] => Value.AsSpan(range);
 
-    /// <summary>
-    /// This argument type
-    /// </summary>
-    public ArgumentElementType Type { get; }
-
-    public Range Range => StartOffset..EndOffset;
-
     public ReadOnlySpan<char> GetRawValue(string commandLine) => commandLine.AsSpan(Range);
 
     /// <inheritdoc cref="String.StartsWith(string, StringComparison)"/>
@@ -64,42 +51,25 @@ public class ArgumentElement
     public bool EndsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.EndsWith(value, comparisonType);
 
     /// <summary>
-    /// Create a virtual argument (empty value) positioned <paramref name="cursorPosition"/>.
-    /// </summary>
-    /// <seealso cref="ArgumentElement.CreateEmptyArgument(int)"/>
-    private ArgumentElement(int cursorPosition)
-    {
-        Tokens = ImmutableArray<Token>.Empty;
-        StartOffset = cursorPosition;
-        EndOffset = cursorPosition;
-        Value = string.Empty;
-        Type = ArgumentElementType.String;
-    }
-
-    /// <summary>
     /// Create an argument from a single token.
     /// </summary>
     /// <param name="token"></param>
-    public ArgumentElement(Token token)
+    public static ArgumentElement Create(Token token)
     {
-        Tokens = ImmutableArray.Create(token);
-        StartOffset = token.Extent.StartOffset;
-        EndOffset = token.Extent.EndOffset;
-
         var rawValue = token.Text;
-
-        (Value, Type) = token switch
+        (string value, ArgumentElementType type) = token switch
         {
             StringExpandableToken stringExpandableToken =>
                 (stringExpandableToken.Value,
                  rawValue.StartsWith('"') ? ArgumentElementType.StringDoubleQuoted : ArgumentElementType.String),
             StringLiteralToken stringLiteralToken => 
                 (stringLiteralToken.Value,
-                 rawValue.StartsWith('\'') ? ArgumentElementType.StringSingleQuoted: ArgumentElementType.String),
+                 rawValue.StartsWith('\'') ? ArgumentElementType.StringSingleQuoted : ArgumentElementType.String),
             NumberToken numberToken => (rawValue, ArgumentElementType.Number),
             VariableToken variableToken => (rawValue, ArgumentElementType.VariableExpression),
             _ => (token.Text, ArgumentElementType.String)
         };
+        return new(ImmutableArray.Create(token), value, token.Extent.StartOffset..token.Extent.EndOffset, type);
     }
 
     /// <summary>
@@ -108,51 +78,35 @@ public class ArgumentElement
     /// <param name="cmdline"></param>
     /// <param name="tokens"></param>
     /// <param name="isArrayLiteral"></param>
-    public ArgumentElement(string cmdline, ImmutableArray<Token> tokens, bool isArrayLiteral = false)
+    public static ArgumentElement Create(string cmdline, ImmutableArray<Token> tokens, bool isArrayLiteral = false)
     {
         ArgumentOutOfRangeException.ThrowIfZero(tokens.Length, nameof(tokens));
-        Tokens = tokens;
-        StartOffset = tokens[0].Extent.StartOffset;
-        EndOffset = tokens[^1].Extent.EndOffset;
-
         if (tokens.Length == 1)
         {
-            var token = tokens[0];
-            var rawValue = token.Text;
+            return Create(tokens[0]);
+        }
 
-            (Value, Type) = token switch
-            {
-                StringExpandableToken stringExpandableToken =>
-                    (stringExpandableToken.Value,
-                     rawValue.StartsWith('"') ? ArgumentElementType.StringDoubleQuoted : ArgumentElementType.String),
-                StringLiteralToken stringLiteralToken => 
-                    (stringLiteralToken.Value,
-                     rawValue.StartsWith('\'') ? ArgumentElementType.StringSingleQuoted: ArgumentElementType.String),
-                NumberToken numberToken => (rawValue, ArgumentElementType.Number),
-                VariableToken variableToken => (rawValue, ArgumentElementType.VariableExpression),
-                _ => (rawValue, ArgumentElementType.String)
-            };
-        }
-        else
-        {
-            Value = cmdline[StartOffset..EndOffset];
-            Type = isArrayLiteral
-                ? ArgumentElementType.ArrayLiteral
-                : tokens[0].Kind switch
-                {
-                    TokenKind.LParen => ArgumentElementType.NestedExpression,
-                    TokenKind.DollarParen => ArgumentElementType.NestedExpression,
-                    TokenKind.AtParen => ArgumentElementType.ArrayExpression,
-                    TokenKind.AtCurly => ArgumentElementType.HashtableExpression,
-                    TokenKind.Variable => ArgumentElementType.VariableExpression,
-                    _ => ArgumentElementType.String,
-                };
-        }
+        var range = tokens[0].Extent.StartOffset..tokens[^1].Extent.EndOffset;
+        var value = cmdline[range];
+        var type = isArrayLiteral
+                   ? ArgumentElementType.ArrayLiteral
+                   : tokens[0].Kind switch
+                   {
+                       TokenKind.LParen => ArgumentElementType.NestedExpression,
+                       TokenKind.DollarParen => ArgumentElementType.NestedExpression,
+                       TokenKind.AtParen => ArgumentElementType.ArrayExpression,
+                       TokenKind.AtCurly => ArgumentElementType.HashtableExpression,
+                       TokenKind.Variable => ArgumentElementType.VariableExpression,
+                       _ => ArgumentElementType.String,
+                   };
+        return new(tokens, value, range, type);
     }
 
     /// <summary>
     /// Create a virtual argument (empty value) positioned <paramref name="cursorPosition"/>.
     /// </summary>
     /// <param name="cursorPosition"></param>
-    public static ArgumentElement CreateEmptyArgument(int cursorPosition) => new(cursorPosition);
+    public static ArgumentElement CreateEmptyArgument(int cursorPosition) =>
+        new(ImmutableArray<Token>.Empty, string.Empty, cursorPosition..cursorPosition, ArgumentElementType.String);
+
 }

@@ -128,7 +128,7 @@ public static class Tokenizer
                 (start, index) = (index, ScanBalancedExpression());
                 if (!IsArrayLiteralAhead(index))
                 {
-                    builder.Add(new(commandLine, tokens[start..(index+1)].ToImmutableArray(), state.HasFlag(State.InArray)));
+                    builder.Add(ArgumentElement.Create(commandLine, tokens[start..(index+1)].ToImmutableArray(), state.HasFlag(State.InArray)));
                     start = index + 1;
                 }
             }
@@ -194,7 +194,7 @@ public static class Tokenizer
             }
             else
             {
-                builder.Add(new(tokens[index]));
+                builder.Add(ArgumentElement.Create(tokens[index]));
                 start = index + 1;
             }
         }
@@ -229,7 +229,7 @@ public static class Tokenizer
         {
             if (start < index)
             {
-                builder.Add(new(commandLine, tokens[start..index].ToImmutableArray(), state.HasFlag(State.InArray)));
+                builder.Add(ArgumentElement.Create(commandLine, tokens[start..index].ToImmutableArray(), state.HasFlag(State.InArray)));
                 state = default;
             }
         }
