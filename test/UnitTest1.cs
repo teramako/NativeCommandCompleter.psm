@@ -54,7 +54,7 @@ public class TokenizerTest
     [InlineData("cmd a, (1),b", new[] { "a,", "(1),b" }, null, new[] { ArgumentElementType.ArrayLiteral, ArgumentElementType.ArrayLiteral})]
     public void TestTokenizer(string input, string[] expectedRawValues, string[]? expectedValues = null, ArgumentElementType[]? expectedTyeps = null)
     {
-        var args = Tokenizer.ReconstuctArgv(input);
+        var args = Tokenizer.ReconstructArgv(input);
         Assert.Equal(expectedRawValues, args.Select(arg => $"{arg.GetRawValue(input)}").ToArray());
 
         if (expectedValues is not null)

@@ -26,7 +26,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandLine">Command-line string</param>
-    public static IReadOnlyList<ArgumentElement> ReconstuctArgv(string commandLine)
+    public static IReadOnlyList<ArgumentElement> ReconstructArgv(string commandLine)
     {
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
         return ReconstructArgvImpl(commandLine, tokens);
