@@ -48,9 +48,11 @@ public static class Tokenizer
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
         var builder = ImmutableArray.CreateBuilder<ArgumentElement>();
+        var arrayRangeBuilder = ImmutableArray.CreateBuilder<Range>();
 
         int start = 1;
         int index = 1;
+        int arrayStart = 1;
 
         State state = default;
 
@@ -128,7 +130,11 @@ public static class Tokenizer
                 (start, index) = (index, ScanBalancedExpression());
                 if (!IsArrayLiteralAhead(index))
                 {
-                    builder.Add(ArgumentElement.Create(commandLine, tokens[start..(index+1)].ToImmutableArray(), state.HasFlag(State.InArray)));
+                    builder.Add(ArgumentElement.Create(commandLine,
+                                                       tokens[start..(index + 1)].ToImmutableArray(),
+                                                       state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
+                    state = default;
+                    arrayRangeBuilder.Clear();
                     start = index + 1;
                 }
             }
@@ -207,7 +213,16 @@ public static class Tokenizer
             }
             else
             {
-                state |= State.InArray;
+                if (state.HasFlag(State.InArray))
+                {
+                    arrayRangeBuilder.Add((arrayStart - start)..(index - start));
+                }
+                else
+                {
+                    arrayRangeBuilder.Add(0..(index - start));
+                    state |= State.InArray;
+                }
+                arrayStart = index + 1;
             }
         }
         void HandleVariable()
@@ -229,8 +244,15 @@ public static class Tokenizer
         {
             if (start < index)
             {
-                builder.Add(ArgumentElement.Create(commandLine, tokens[start..index].ToImmutableArray(), state.HasFlag(State.InArray)));
+                if (state.HasFlag(State.InArray) && arrayStart < index)
+                {
+                    arrayRangeBuilder.Add((arrayStart - start)..(index - start));
+                }
+                builder.Add(ArgumentElement.Create(commandLine,
+                                                   tokens[start..index].ToImmutableArray(),
+                                                   state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
                 state = default;
+                arrayRangeBuilder.Clear();
             }
         }
 

@@ -10,11 +10,13 @@ namespace Sabamiso;
 /// <param name="Value">String value of the argument. This is not the input value itself, but the value escaped characters have been expanded.</param>
 /// <param name="Range">The range of this argument within the command line.</param>
 /// <param name="Type">This argument type.</param>
+/// <param name="ArrayElements"></param>
 /// <seealso cref="Tokenizer"/>
 public record class ArgumentElement(ImmutableArray<Token> Tokens,
                                     string Value,
                                     Range Range,
-                                    ArgumentElementType Type)
+                                    ArgumentElementType Type,
+                                    ImmutableArray<Range>? ArrayElements = null)
 {
     /// <summary>
     /// Starting position from the command-line
@@ -77,8 +79,8 @@ public record class ArgumentElement(ImmutableArray<Token> Tokens,
     /// </summary>
     /// <param name="cmdline"></param>
     /// <param name="tokens"></param>
-    /// <param name="isArrayLiteral"></param>
-    public static ArgumentElement Create(string cmdline, ImmutableArray<Token> tokens, bool isArrayLiteral = false)
+    /// <param name="arrayRnages"></param>
+    public static ArgumentElement Create(string cmdline, ImmutableArray<Token> tokens, ImmutableArray<Range>? arrayRnages = null)
     {
         ArgumentOutOfRangeException.ThrowIfZero(tokens.Length, nameof(tokens));
         if (tokens.Length == 1)
@@ -88,7 +90,7 @@ public record class ArgumentElement(ImmutableArray<Token> Tokens,
 
         var range = tokens[0].Extent.StartOffset..tokens[^1].Extent.EndOffset;
         var value = cmdline[range];
-        var type = isArrayLiteral
+        var type = arrayRnages is not null and { Length: > 0 }
                    ? ArgumentElementType.ArrayLiteral
                    : tokens[0].Kind switch
                    {
@@ -99,7 +101,7 @@ public record class ArgumentElement(ImmutableArray<Token> Tokens,
                        TokenKind.Variable => ArgumentElementType.VariableExpression,
                        _ => ArgumentElementType.String,
                    };
-        return new(tokens, value, range, type);
+        return new(tokens, value, range, type, arrayRnages);
     }
 
     /// <summary>
