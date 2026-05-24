@@ -138,7 +138,7 @@ public class CommandCompleter
             }
             else if (i == inputValue.Length - 1)
             {
-                if (argumentIndex < context.Arguments.Length - 1)
+                if (argumentIndex < context.ArgumentsBeforeCursor.Length - 1)
                 {
                     // `-abc Value ... |`
                     //      \          ^ cursor
@@ -171,7 +171,7 @@ public class CommandCompleter
                                       string optionPrefix)
     {
         var argCount = 1;
-        for (; argCount < context.Arguments.Length - argumentIndex; argCount++)
+        for (; argCount < context.ArgumentsBeforeCursor.Length - argumentIndex; argCount++)
         {
             if (argCount <= param.Nargs.MinCount)
             {
@@ -179,7 +179,7 @@ public class CommandCompleter
             }
             else if (param.Nargs.ConsumeRest || argCount <= param.Nargs.MaxCount)
             {
-                var arg = context.Arguments[argumentIndex + argCount];
+                var arg = context.ArgumentsBeforeCursor[argumentIndex + argCount];
                 // Short options are not taken into account. This is a specification.
                 if (Params.Any(p => p.ParseParam(arg, out _, out _, out _)))
                     break;
@@ -190,14 +190,14 @@ public class CommandCompleter
                 break;
             }
         }
-        var paramArgs = context.Arguments.Take((argumentIndex + 1)..(argumentIndex + argCount)).ToList();
-        NativeCompleter.Debug($"SetParameterArguments {{ Id={param.Id} Nargs={param.Nargs} ArgsCount={paramArgs.Count} }}");
-        if (paramArgs.Count >= param.Nargs.MinCount)
+        var paramArgs = context.ArgumentsBeforeCursor[(argumentIndex + 1)..(argumentIndex + argCount)].ToArray();
+        NativeCompleter.Debug($"SetParameterArguments {{ Id={param.Id} Nargs={param.Nargs} ArgsCount={paramArgs.Length} }}");
+        if (paramArgs.Length >= param.Nargs.MinCount)
         {
             // `-param ..value(minCount) ...|`
             //                              ^ cursor
             context.AddBoundParameter(param.Id, paramArgs);
-            if (param.Nargs.ConsumeRest || paramArgs.Count < param.Nargs.MaxCount)
+            if (param.Nargs.ConsumeRest || paramArgs.Length < param.Nargs.MaxCount)
             {
                 // `-param ..value(minCount) .. | .. valueN(maxCount)
                 //                              ^ cursor
@@ -211,7 +211,7 @@ public class CommandCompleter
             context.SetPendingParameter(param, $"{paramName}", paramArgs, $"{optionPrefix}", true);
         }
 
-        return paramArgs.Count;
+        return paramArgs.Length;
     }
 
     /// <summary>
@@ -223,10 +223,10 @@ public class CommandCompleter
     {
         NativeCompleter.Debug($"[{context.Name}] Build CompletionContext");
 
-        int argumentsCount = context.Arguments.Length;
+        int argumentsCount = context.ArgumentsBeforeCursor.Length;
         for (int argumentIndex = 0; argumentIndex < argumentsCount; argumentIndex++)
         {
-            ArgumentElement arg = context.Arguments[argumentIndex];
+            ArgumentElement arg = context.ArgumentsBeforeCursor[argumentIndex];
             ReadOnlySpan<char> argValue = arg.Value;
 
             if (SubCommands.Count > 0)

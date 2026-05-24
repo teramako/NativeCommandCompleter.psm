@@ -44,9 +44,14 @@ public sealed class CompletionContext
     public PathInfo CurrentDirectory { get; }
 
     /// <summary>
-    /// Arguments of the command that precedes the cursor position
+    /// All arguments
     /// </summary>
     public ImmutableArray<ArgumentElement> Arguments { get; }
+
+    /// <summary>
+    /// Arguments of the command that precedes the cursor position
+    /// </summary>
+    public ReadOnlySpan<ArgumentElement> ArgumentsBeforeCursor => Arguments.AsSpan(_argumentsBeforeCursorRange);
     /// <summary>
     /// Token at the cursor position
     /// </summary>
@@ -54,7 +59,7 @@ public sealed class CompletionContext
     /// <summary>
     /// Arguments after the cursor position
     /// </summary>
-    public ImmutableArray<ArgumentElement> RemainingArguments { get; }
+    public ReadOnlySpan<ArgumentElement> RemainingArguments => Arguments.AsSpan(_remainingArgumentsRange);
 
     /// <summary>
     /// Arguments before the cursor position that are not parameters and not the parameter's values
@@ -65,6 +70,9 @@ public sealed class CompletionContext
     /// Dictionary parsed parameters to parameters and their value
     /// </summary>
     public ReadOnlyDictionary<string, ArrayList> BoundParameters { get; }
+
+    private Range _argumentsBeforeCursorRange;
+    private Range _remainingArgumentsRange;
 
     private List<ArgumentElement> _unboundArguments = [];
     private Dictionary<string, ArrayList> _boundParameters = [];
@@ -83,8 +91,9 @@ public sealed class CompletionContext
         CurrentDirectory = cwd;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
-        var arguments = Tokenizer.ReconstructArgv(ast);
-        (Arguments, CurrentArgument, RemainingArguments) = AnalyzeArguments(arguments, cursorPosition);
+        Arguments = Tokenizer.ReconstructArgv(ast);
+        (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
+        CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
     }
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
@@ -96,11 +105,12 @@ public sealed class CompletionContext
         Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
-        Arguments = argumentIndex < parentContext.Arguments.Length - 1
-                    ? parentContext.Arguments[(argumentIndex + 1)..]
-                    : default;
-        CurrentArgument = parentContext.CurrentToken;
-        RemainingArguments = parentContext.RemainingArguments;
+        Arguments = parentContext.Arguments;
+        _argumentsBeforeCursorRange = argumentIndex < parentContext.ArgumentsBeforeCursor.Length
+                ? (argumentIndex + 1)..
+                : default;
+        CurrentArgument = parentContext.CurrentArgument;
+        _remainingArgumentsRange = parentContext._remainingArgumentsRange;
         _boundParameters = parentContext._boundParameters;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
@@ -109,18 +119,10 @@ public sealed class CompletionContext
     /// <summary>
     /// Split the list of command arguments into those preceding the cursor position, those at the cursor position, and the remaining arguments
     /// </summary>
-    /// <returns>
-    /// Tupple:
-    /// <list type="table">
-    ///     <item><term>Arguments</term><description>preceding the cursor position</description></item>
-    ///     <item><term>Current</term><description>at cursor position</description></item>
-    ///     <item><term>RemainingArguments</term><description>the remainings</description></item>
-    /// </list>
-    /// </returns>
-    private static (ImmutableArray<ArgumentElement> Arguments, ArgumentElement CurrentArgument, ImmutableArray<ArgumentElement> RemainingArguments)
+    private static (Range ArgumentsBeforeCursorRange, int CurrentArgumentIndex, Range RemainingArgumentsRange)
         AnalyzeArguments(ImmutableArray<ArgumentElement> arguments, int cursorPosition)
     {
-        var current = ArgumentElement.CreateEmptyArgument(cursorPosition);
+        var current = -1;
         var i = 0;
         for (; i < arguments.Length; i++)
         {
@@ -134,13 +136,13 @@ public sealed class CompletionContext
             }
             else if (arg.StartOffset < cursorPosition && cursorPosition <= arg.EndOffset)
             {
-                current = arg;
+                current = i;
                 break;
             }
         }
-        var targetArguments = arguments[..i];
-        var remainingArguments = current.IsEmpty ? arguments[i..] : arguments[(i + 1)..];
-        return (targetArguments, current, remainingArguments);
+        var argumentsBeforeCursorRange = ..i;
+        var remainingArgumentsRange = current < 0 ? i.. : (i + 1)..;
+        return (argumentsBeforeCursorRange, current, remainingArgumentsRange);
     }
 
     /// <summary>
