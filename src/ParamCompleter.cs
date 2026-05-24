@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -242,29 +243,29 @@ public class ParamCompleter
     /// <summary>
     /// Parse parameter from input value
     /// </summary>
-    /// <param name="inputValue">A command argument which may contains option prefix and adjacented value with a value separator.</param>
+    /// <param name="arg">A command argument which may contains option prefix and adjacented value with a value separator.</param>
     /// <param name="paramName"></param>
     /// <param name="paramValue"></param>
     /// <param name="optionPrefix"></param>
     /// <returns></returns>
-    public bool ParseParam(ReadOnlySpan<char> inputValue,
+    public bool ParseParam(ArgumentElement arg,
                            out ReadOnlySpan<char> paramName,
                            out ReadOnlySpan<char> paramValue,
                            [MaybeNullWhen(false)] out string optionPrefix)
     {
         ParameterStyle style = Style;
         optionPrefix = style.LongOptionPrefix;
-        if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+        if (arg.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            var nameSpan = inputValue[optionPrefix.Length..];
+            var nameSpan = arg[optionPrefix.Length..];
             if (ParseLongParam(nameSpan, out paramName, out paramValue))
                 return true;
         }
 
         optionPrefix = style.ShortOptionPrefix;
-        if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+        if (arg.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            var nameSpan = inputValue[optionPrefix.Length..];
+            var nameSpan = arg[optionPrefix.Length..];
             if (ParseStandardParam(nameSpan, out paramName, out paramValue))
                 return true;
         }
@@ -429,7 +430,7 @@ public class ParamCompleter
                               CompletionContext context,
                               ReadOnlySpan<char> paramName,
                               ReadOnlySpan<char> paramValue,
-                              string[] paramArgs,
+                              ReadOnlyCollection<ArgumentElement> paramArgs,
                               int position,
                               string optionPrefix,
                               string prefix = "")
@@ -455,14 +456,14 @@ public class ParamCompleter
             return true;
         }
 
-        int argumentIndex = paramArgs.Length;
+        int argumentIndex = paramArgs.Count;
         var ac = Arguments.GetByArgumentIndex(argumentIndex);
         if (ac is null)
             return true;
 
         var tooltipPrefix = $"""
             {GetSyntaxes(expandArguments: false)} : {Description}
-            {(paramArgs.Length > 1 ? $"[{argumentIndex + 1}]" : "")}{ac.Name}:
+            {(paramArgs.Count > 1 ? $"[{argumentIndex + 1}]" : "")}{ac.Name}:
             """;
 
         NativeCompleter.Debug($"[{context.Name}] Start Completion: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");

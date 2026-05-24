@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Host;
@@ -8,7 +9,7 @@ namespace Sabamiso;
 
 internal record PendingParamCompleter(ParamCompleter Completer,
                                       string ParamName,
-                                      string[] ParamArgs,
+                                      IList<ArgumentElement> ParamArgs,
                                       string OptionPrefix,
                                       bool CompleteOnly);
 
@@ -45,29 +46,27 @@ public sealed class CompletionContext
     /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
-    public ReadOnlyCollection<Token> Arguments { get; }
+    public ImmutableArray<ArgumentElement> Arguments { get; }
     /// <summary>
     /// Token at the cursor position
     /// </summary>
-    public Token? CurrentToken { get; private set; }
+    public ArgumentElement CurrentArgument { get; }
     /// <summary>
     /// Arguments after the cursor position
     /// </summary>
-    public ReadOnlyCollection<Token> RemainingArguments { get; }
+    public ImmutableArray<ArgumentElement> RemainingArguments { get; }
 
     /// <summary>
     /// Arguments before the cursor position that are not parameters and not the parameter's values
     /// </summary>
-    public ReadOnlyCollection<Token> UnboundArguments { get; }
+    public ReadOnlyCollection<ArgumentElement> UnboundArguments { get; }
 
     /// <summary>
     /// Dictionary parsed parameters to parameters and their value
     /// </summary>
     public ReadOnlyDictionary<string, ArrayList> BoundParameters { get; }
 
-    private List<Token> _arguments = [];
-    private List<Token> _remainingArguments = [];
-    private List<Token> _unboundArguments = [];
+    private List<ArgumentElement> _unboundArguments = [];
     private Dictionary<string, ArrayList> _boundParameters = [];
 
     private PendingParamCompleter? _pendingParam;
@@ -82,10 +81,10 @@ public sealed class CompletionContext
         CursorPosition = cursorPosition;
         Host = host;
         CurrentDirectory = cwd;
-        Arguments = _arguments.AsReadOnly();
-        RemainingArguments = _remainingArguments.AsReadOnly();
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
+        var arguments = Tokenizer.ReconstructArgv(ast);
+        (Arguments, CurrentArgument, RemainingArguments) = AnalyzeArguments(arguments, cursorPosition);
     }
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
@@ -97,17 +96,51 @@ public sealed class CompletionContext
         Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
-        if (argumentIndex < parentContext.Arguments.Count - 1)
-        {
-            _arguments = parentContext._arguments[(argumentIndex + 1)..];
-        }
-        _remainingArguments = parentContext._remainingArguments;
+        Arguments = argumentIndex < parentContext.Arguments.Length - 1
+                    ? parentContext.Arguments[(argumentIndex + 1)..]
+                    : default;
+        CurrentArgument = parentContext.CurrentToken;
+        RemainingArguments = parentContext.RemainingArguments;
         _boundParameters = parentContext._boundParameters;
-        CurrentToken = parentContext.CurrentToken;
-        Arguments = _arguments.AsReadOnly();
-        RemainingArguments = _remainingArguments.AsReadOnly();
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Split the list of command arguments into those preceding the cursor position, those at the cursor position, and the remaining arguments
+    /// </summary>
+    /// <returns>
+    /// Tupple:
+    /// <list type="table">
+    ///     <item><term>Arguments</term><description>preceding the cursor position</description></item>
+    ///     <item><term>Current</term><description>at cursor position</description></item>
+    ///     <item><term>RemainingArguments</term><description>the remainings</description></item>
+    /// </list>
+    /// </returns>
+    private static (ImmutableArray<ArgumentElement> Arguments, ArgumentElement CurrentArgument, ImmutableArray<ArgumentElement> RemainingArguments)
+        AnalyzeArguments(ImmutableArray<ArgumentElement> arguments, int cursorPosition)
+    {
+        var current = ArgumentElement.CreateEmptyArgument(cursorPosition);
+        var i = 0;
+        for (; i < arguments.Length; i++)
+        {
+            var arg = arguments[i];
+            if (arg.EndOffset < cursorPosition)
+                continue;
+
+            if (cursorPosition <= arg.StartOffset)
+            {
+                break;
+            }
+            else if (arg.StartOffset < cursorPosition && cursorPosition <= arg.EndOffset)
+            {
+                current = arg;
+                break;
+            }
+        }
+        var targetArguments = arguments[..i];
+        var remainingArguments = current.IsEmpty ? arguments[i..] : arguments[(i + 1)..];
+        return (targetArguments, current, remainingArguments);
     }
 
     /// <summary>
@@ -124,40 +157,6 @@ public sealed class CompletionContext
     {
         CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, host, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
-        int prevEndOffset = -1;
-        Token? prevToken = null;
-        for (var i = 1; i < ast.CommandElements.Count; i++)
-        {
-            var elm = ast.CommandElements[i];
-            var token = new Token(elm, cursorPosition);
-            if (elm.Extent.StartOffset == prevEndOffset && prevToken is not null)
-            {
-                // Merge tokens that have been split into separate tokens into a single token.
-                // e.g.) `-i.bk` -> splitted to `-i` and `.bk`
-                // See: https://github.com/PowerShell/PowerShell/issues/6291
-                token = prevToken;
-                token.Append(elm, cursorPosition);
-                if (token.IsTarget)
-                {
-                    context.CurrentToken = token;
-                    context._arguments.RemoveAt(context._arguments.Count - 1);
-                }
-            }
-            else if (elm.Extent.EndOffset < cursorPosition)
-            {
-                context._arguments.Add(token);
-            }
-            else if (token.IsTarget)
-            {
-                context.CurrentToken = token;
-            }
-            else
-            {
-                context._remainingArguments.Add(token);
-            }
-            prevEndOffset = elm.Extent.EndOffset;
-            prevToken = token;
-        }
         return commandCompleter.ParseArguments(context);
     }
 
@@ -196,9 +195,9 @@ public sealed class CompletionContext
         }
     }
 
-    internal void AddUnboundArgument(Token token)
+    internal void AddUnboundArgument(ArgumentElement arg)
     {
-        _unboundArguments.Add(token);
+        _unboundArguments.Add(arg);
     }
 
     /// <summary>
@@ -214,7 +213,7 @@ public sealed class CompletionContext
     /// </param>
     internal void SetPendingParameter(ParamCompleter parameter,
                                       string paramName,
-                                      string[] paramArgs,
+                                      IList<ArgumentElement> paramArgs,
                                       string optionPrefix,
                                       bool completeOnly = true)
     {
@@ -226,8 +225,7 @@ public sealed class CompletionContext
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
 
-        string tokenValue = CurrentToken?.Value ?? string.Empty;
-        int cursorPosition = CurrentToken?.Position ?? 0;
+        int cursorPosition = CursorPosition - CurrentArgument.StartOffset;
 
         CompletionDataCollection results = new();
         bool completed = false;
@@ -237,27 +235,27 @@ public sealed class CompletionContext
             completed = _pendingParam.Completer.CompleteValue(results,
                                                               this,
                                                               _pendingParam.ParamName,
-                                                              tokenValue,
-                                                              _pendingParam.ParamArgs,
+                                                              CurrentArgument.Value,
+                                                              _pendingParam.ParamArgs.AsReadOnly(),
                                                               cursorPosition,
                                                               _pendingParam.OptionPrefix);
             if (!_pendingParam.CompleteOnly)
             {
-                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+                completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
 
-                completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition)
+                completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorPosition)
                             || completed;
             }
         }
         else
         {
-            completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+            completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
 
-            completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition)
+            completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorPosition)
                         || completed;
 
             if (!completed)
-                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
+                completed = CommandCompleter.CompleteArgument(results, this, CurrentArgument, cursorPosition, _unboundArguments.Count);
         }
 
         NativeCompleter.Debug($"[{Name}] Completed = {completed}, Count = {results.Count}");
