@@ -8,25 +8,25 @@ namespace Sabamiso;
 /// </summary>
 /// <param name="Tokens">Tokens that make up the argument element</param>
 /// <param name="Value">String value of the argument. This is not the input value itself, but the value escaped characters have been expanded.</param>
-/// <param name="Range">The range of this argument within the command line.</param>
+/// <param name="RawRange">The range of this argument within the command line.</param>
 /// <param name="Type">This argument type.</param>
 /// <param name="ArrayElements"></param>
 /// <seealso cref="Tokenizer"/>
 public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
                                               string Value,
-                                              Range Range,
+                                              Range RawRange,
                                               ArgumentElementType Type,
                                               ImmutableArray<Range>? ArrayElements = null)
 {
     /// <summary>
     /// Starting position from the command-line
     /// </summary>
-    public int StartOffset => Range.Start.Value;
+    public int StartOffset => RawRange.Start.Value;
 
     /// <summary>
     /// End position from the command-line
     /// </summary>
-    public int EndOffset => Range.End.Value;
+    public int EndOffset => RawRange.End.Value;
 
     /// <summary>
     /// Value's length
