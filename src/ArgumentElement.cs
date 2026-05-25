@@ -21,17 +21,17 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
     /// <summary>
     /// Starting position from the command-line
     /// </summary>
-    public int StartOffset => RawRange.Start.Value;
+    public readonly int StartOffset => RawRange.Start.Value;
 
     /// <summary>
     /// End position from the command-line
     /// </summary>
-    public int EndOffset => RawRange.End.Value;
+    public readonly int EndOffset => RawRange.End.Value;
 
     /// <summary>
     /// Value's length
     /// </summary>
-    public int Length => Value.Length;
+    public readonly int Length => Value.Length;
 
     /// <summary>
     /// Indicates whether the input value is actually empty.
@@ -39,16 +39,16 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
     /// <remarks>
     /// In cases where the input value is <c>""</c> or <c>''</c>, it will return <see langword="false"/>.
     /// </remarks>
-    public bool IsEmpty => StartOffset == EndOffset;
+    public readonly bool IsEmpty => StartOffset == EndOffset;
 
-    public char this[int i] => Value[i];
-    public ReadOnlySpan<char> this[Range range] => Value.AsSpan(range);
+    public readonly char this[int i] => Value[i];
+    public readonly ReadOnlySpan<char> this[Range range] => Value.AsSpan(range);
 
     /// <inheritdoc cref="String.StartsWith(string, StringComparison)"/>
-    public bool StartsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.StartsWith(value, comparisonType);
+    public readonly bool StartsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.StartsWith(value, comparisonType);
 
     /// <inheritdoc cref="String.EndsWith(string, StringComparison)"/>
-    public bool EndsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.EndsWith(value, comparisonType);
+    public readonly bool EndsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.EndsWith(value, comparisonType);
 
     /// <summary>
     /// Create an argument from a single token.
