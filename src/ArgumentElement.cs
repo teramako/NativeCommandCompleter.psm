@@ -44,8 +44,6 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
     public char this[int i] => Value[i];
     public ReadOnlySpan<char> this[Range range] => Value.AsSpan(range);
 
-    public ReadOnlySpan<char> GetRawValue(string commandLine) => commandLine.AsSpan(Range);
-
     /// <inheritdoc cref="String.StartsWith(string, StringComparison)"/>
     public bool StartsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.StartsWith(value, comparisonType);
 
