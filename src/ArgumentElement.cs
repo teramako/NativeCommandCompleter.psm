@@ -12,12 +12,14 @@ namespace Sabamiso;
 /// <param name="Type">This argument type.</param>
 /// <param name="ArrayElements"></param>
 /// <seealso cref="Tokenizer"/>
-public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
-                                              string Value,
-                                              Range RawRange,
+public readonly record struct ArgumentElement(string Value,
                                               ArgumentElementType Type,
+                                              Range TokenRange,
+                                              Range RawRange,
                                               ImmutableArray<Range>? ArrayElements = null)
 {
+    public readonly string Value { get => field ?? string.Empty; } = Value;
+
     /// <summary>
     /// Starting position from the command-line
     /// </summary>
@@ -34,12 +36,9 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
     public readonly int Length => Value.Length;
 
     /// <summary>
-    /// Indicates whether the input value is actually empty.
+    /// Indicates whether the <see cref="Value"/ is empty
     /// </summary>
-    /// <remarks>
-    /// In cases where the input value is <c>""</c> or <c>''</c>, it will return <see langword="false"/>.
-    /// </remarks>
-    public readonly bool IsEmpty => StartOffset == EndOffset;
+    public readonly bool IsEmpty => Value.Length == 0;
 
     public readonly char this[int i] => Value[i];
     public readonly ReadOnlySpan<char> this[Range range] => Value.AsSpan(range);
@@ -54,7 +53,8 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
     /// Create an argument from a single token.
     /// </summary>
     /// <param name="token"></param>
-    public static ArgumentElement Create(Token token)
+    /// <param name="index"></param>
+    public static ArgumentElement Create(Token token, int index)
     {
         var rawValue = token.Text;
         (string value, ArgumentElementType type) = token switch
@@ -69,7 +69,7 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
             VariableToken variableToken => (rawValue, ArgumentElementType.VariableExpression),
             _ => (token.Text, ArgumentElementType.String)
         };
-        return new(ImmutableArray.Create(token), value, token.Extent.StartOffset..token.Extent.EndOffset, type);
+        return new(value, type, index..(index + 1), token.Extent.StartOffset..token.Extent.EndOffset);
     }
 
     /// <summary>
@@ -78,19 +78,19 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
     /// <param name="cmdline"></param>
     /// <param name="tokens"></param>
     /// <param name="arrayRnages"></param>
-    public static ArgumentElement Create(string cmdline, ImmutableArray<Token> tokens, ImmutableArray<Range>? arrayRnages = null)
+    public static ArgumentElement Create(string cmdline, int tokenStart, int tokenEnd, in ImmutableArray<Token> tokens, ImmutableArray<Range>? arrayRnages = null)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(tokens.Length, nameof(tokens));
-        if (tokens.Length == 1)
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(tokenStart, tokenEnd);
+        if (tokenStart == tokenEnd)
         {
-            return Create(tokens[0]);
+            return Create(tokens[tokenStart], tokenStart);
         }
 
-        var range = tokens[0].Extent.StartOffset..tokens[^1].Extent.EndOffset;
+        var range = tokens[tokenStart].Extent.StartOffset..tokens[tokenEnd].Extent.EndOffset;
         var value = cmdline[range];
         var type = arrayRnages is not null and { Length: > 0 }
                    ? ArgumentElementType.ArrayLiteral
-                   : tokens[0].Kind switch
+                   : tokens[tokenStart].Kind switch
                    {
                        TokenKind.LParen => ArgumentElementType.NestedExpression,
                        TokenKind.DollarParen => ArgumentElementType.NestedExpression,
@@ -99,14 +99,16 @@ public readonly record struct ArgumentElement(ImmutableArray<Token> Tokens,
                        TokenKind.Variable => ArgumentElementType.VariableExpression,
                        _ => ArgumentElementType.String,
                    };
-        return new(tokens, value, range, type, arrayRnages);
+        return new(value, type, tokenStart..(tokenEnd + 1), range, arrayRnages);
     }
+    public static ArgumentElement Create(string cmdline, Range tokenRange, in ImmutableArray<Token> tokens, ImmutableArray<Range>? arrayRnages = null)
+        => Create(cmdline, tokenRange.Start.Value, tokenRange.End.Value - 1, tokens, arrayRnages);
 
     /// <summary>
     /// Create a virtual argument (empty value) positioned <paramref name="cursorPosition"/>.
     /// </summary>
     /// <param name="cursorPosition"></param>
     public static ArgumentElement CreateEmptyArgument(int cursorPosition) =>
-        new(ImmutableArray<Token>.Empty, string.Empty, cursorPosition..cursorPosition, ArgumentElementType.String);
+        new(string.Empty, ArgumentElementType.String, default, cursorPosition..cursorPosition);
 
 }

@@ -12,11 +12,12 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandAst">AST built by PowerShell</param>
-    public static ImmutableArray<ArgumentElement> ReconstructArgv(CommandAst commandAst)
+    public static ImmutableArray<ArgumentElement> ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
     {
         var commandLine = commandAst.ToString();
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
-        return ReconstructArgvImpl(commandLine, tokens);
+        immutableTokens = tokens.ToImmutableArray();
+        return ReconstructArgvImpl(commandLine, immutableTokens);
     }
 
     /// <summary>
@@ -26,10 +27,11 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandLine">Command-line string</param>
-    public static ImmutableArray<ArgumentElement> ReconstructArgv(string commandLine)
+    public static ImmutableArray<ArgumentElement> ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
     {
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
-        return ReconstructArgvImpl(commandLine, tokens);
+        immutableTokens = tokens.ToImmutableArray();
+        return ReconstructArgvImpl(commandLine, immutableTokens);
     }
 
     [Flags]
@@ -43,7 +45,7 @@ public static class Tokenizer
         InMember   = InVariable | InDot,
     }
 
-    private static ImmutableArray<ArgumentElement> ReconstructArgvImpl(string commandLine, Token[] tokens)
+    private static ImmutableArray<ArgumentElement> ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
@@ -130,9 +132,7 @@ public static class Tokenizer
                 (start, index) = (index, ScanBalancedExpression());
                 if (!IsArrayLiteralAhead(index))
                 {
-                    builder.Add(ArgumentElement.Create(commandLine,
-                                                       tokens[start..(index + 1)].ToImmutableArray(),
-                                                       state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
+                    builder.Add(ArgumentElement.Create(commandLine, start, index, tokens, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
                     state = default;
                     arrayRangeBuilder.Clear();
                     start = index + 1;
@@ -200,7 +200,7 @@ public static class Tokenizer
             }
             else
             {
-                builder.Add(ArgumentElement.Create(tokens[index]));
+                builder.Add(ArgumentElement.Create(tokens[index], index));
                 start = index + 1;
             }
         }
@@ -215,11 +215,11 @@ public static class Tokenizer
             {
                 if (state.HasFlag(State.InArray))
                 {
-                    arrayRangeBuilder.Add((arrayStart - start)..(index - start));
+                    arrayRangeBuilder.Add(arrayStart..index);
                 }
                 else
                 {
-                    arrayRangeBuilder.Add(0..(index - start));
+                    arrayRangeBuilder.Add(start..index);
                     state |= State.InArray;
                 }
                 arrayStart = index + 1;
@@ -246,11 +246,9 @@ public static class Tokenizer
             {
                 if (state.HasFlag(State.InArray) && arrayStart < index)
                 {
-                    arrayRangeBuilder.Add((arrayStart - start)..(index - start));
+                    arrayRangeBuilder.Add(arrayStart..index);
                 }
-                builder.Add(ArgumentElement.Create(commandLine,
-                                                   tokens[start..index].ToImmutableArray(),
-                                                   state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
+                builder.Add(ArgumentElement.Create(commandLine, start, index - 1, tokens, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
                 state = default;
                 arrayRangeBuilder.Clear();
             }
@@ -267,7 +265,7 @@ public static class Tokenizer
         }
     }
 
-    private static int ScanBalancedExpression(Token[] tokens, int index, TokenKind endKind, params scoped ReadOnlySpan<TokenKind> startKinds)
+    private static int ScanBalancedExpression(in ImmutableArray<Token> tokens, int index, TokenKind endKind, params scoped ReadOnlySpan<TokenKind> startKinds)
     {
         int level = 0;
         for (index += 1; index < tokens.Length; index++)

@@ -28,6 +28,8 @@ public sealed class CompletionContext
     /// </summary>
     public CommandAst CommandAst { get; }
 
+    public ImmutableArray<Token> Tokens { get; }
+
     /// <summary>
     /// Cursor position in the command line
     /// </summary>
@@ -91,7 +93,8 @@ public sealed class CompletionContext
         CurrentDirectory = cwd;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
-        Arguments = Tokenizer.ReconstructArgv(ast);
+        Arguments = Tokenizer.ReconstructArgv(ast, out var tokens);
+        Tokens = tokens;
         (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
         CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
     }
@@ -101,6 +104,7 @@ public sealed class CompletionContext
         CommandCompleter = commandCompleter;
         WordToComplete = parentContext.WordToComplete;
         CommandAst = parentContext.CommandAst;
+        Tokens = parentContext.Tokens;
         CursorPosition = parentContext.CursorPosition;
         Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
