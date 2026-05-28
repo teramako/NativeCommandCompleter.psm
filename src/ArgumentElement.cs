@@ -36,6 +36,11 @@ public readonly record struct ArgumentElement(string Value,
     public readonly int Length => Value.Length;
 
     /// <summary>
+    /// RawValue's length
+    /// </summary>
+    public readonly int RawLength => EndOffset - StartOffset;
+
+    /// <summary>
     /// Indicates whether the <see cref="Value"/ is empty
     /// </summary>
     public readonly bool IsEmpty => Value.Length == 0;
