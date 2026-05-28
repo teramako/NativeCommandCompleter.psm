@@ -13,6 +13,16 @@ internal record PendingParamCompleter(ParamCompleter Completer,
                                       string OptionPrefix,
                                       bool CompleteOnly);
 
+/// <param name="IsAvailable">
+/// <see langword="true"/> indicates that an element at the cursor position is found, otherwise <see langword="false"/>.
+/// </param>
+/// <param name="Element">
+/// The element at the cursor position.</param>
+/// <param name="Index">
+/// The array index where the cursor is located. If invalid, it will be <c>-1</c>.
+/// </param>
+internal readonly record struct CursorElement(bool IsAvailable, ArgumentElement Element, int Index);
+
 public sealed class CompletionContext
 {
     public string Name { get; }
@@ -73,6 +83,14 @@ public sealed class CompletionContext
     /// </summary>
     public ReadOnlyDictionary<string, ArrayList> BoundParameters { get; }
 
+    /// <summary>
+    /// An element of the argument at the cursor.
+    /// </summary>
+    /// <remarks>
+    /// The difference from <see cref="CurrentArgument"/> is that, in the case of an array literal, it returns the value of the extracted element.
+    /// </remarks>
+    internal CursorElement CursorElement => _lazyCursorElement.Value;
+
     private Range _argumentsBeforeCursorRange;
     private Range _remainingArgumentsRange;
 
@@ -81,6 +99,8 @@ public sealed class CompletionContext
 
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
+
+    private readonly Lazy<CursorElement> _lazyCursorElement;
 
     private CompletionContext(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
     {
@@ -97,6 +117,7 @@ public sealed class CompletionContext
         Tokens = tokens;
         (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
         CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
+        _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out index), elem, index));
     }
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
@@ -118,6 +139,7 @@ public sealed class CompletionContext
         _boundParameters = parentContext._boundParameters;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
+        _lazyCursorElement = parentContext._lazyCursorElement;
     }
 
     /// <summary>
@@ -225,6 +247,82 @@ public sealed class CompletionContext
         _pendingParam = new(parameter, paramName, paramArgs, optionPrefix, completeOnly);
         NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}], Prefix='{optionPrefix}' }}");
     }
+
+    /// <summary>
+    /// Attempts to retrieve the element at the cursor position from <paramref name="arg"/>.
+    /// <para>
+    /// If <paramref name="arg"/> is an array literal, each element is scanned in an attempt to detect a match.
+    /// If it is not an array literal, <paramref name="arg"/> itself is scanned.
+    /// </para>
+    /// </summary>
+    /// <param name="arg">Argument value to be scanned</param>
+    /// <param name="element">The detected element.</param>
+    /// <param name="index">The array index where the cursor is located. If invalid, it will be <c>-1</c>.</param>
+    /// <returns>
+    /// <see langword="true"/> indicates that an element at the cursor position is found, otherwise <see langword="false"/>.
+    /// </returns>
+    internal bool TryGetElementAtCursor(ArgumentElement arg, out ArgumentElement element, out int index)
+    {
+        index = -1;
+
+        if (arg.ArrayElements is null)
+        {
+            if (arg.StartOffset == CursorPosition)
+            {
+                element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+                return true;
+            }
+            else if (arg.StartOffset < CursorPosition && CursorPosition <= arg.EndOffset)
+            {
+                element = arg;
+                return true;
+            }
+            element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+            return false;
+        }
+
+        if (arg.StartOffset < CursorPosition && CursorPosition <= arg.EndOffset)
+        {
+            var arrayElements = arg.ArrayElements.Value;
+            for (index = arrayElements.Length - 1; index >= 0; index--)
+            {
+                var arrayElementRange = arrayElements[index];
+                var end = arrayElementRange.End.Value - 1;
+                var lastToken = Tokens[end];
+
+                if (lastToken.Extent.EndOffset < CursorPosition)
+                {
+                    element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+                    index += 1;
+                    return true;
+                }
+
+                var start = arrayElementRange.Start.Value;
+                var firstToken = Tokens[start];
+
+                if (firstToken.Extent.StartOffset == CursorPosition)
+                {
+                    element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+                    return true;
+                }
+
+                if (firstToken.Extent.StartOffset < CursorPosition && CursorPosition <= lastToken.Extent.EndOffset)
+                {
+                    element = ArgumentElement.Create(CommandLine, start, end, Tokens);
+                    return true;
+                }
+            }
+        }
+
+        index = -1;
+        element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+        return false;
+    }
+    /// <summary>
+    /// Attempts to retrieve the element at the cursor position.
+    /// </summary>
+    /// <inheritdoc cref="TryGetElementAtCursor(in ArgumentElement, out ArgumentElement, out int)"/>
+    public bool TryGetElementAtCursor(out ArgumentElement element, out int index) => TryGetElementAtCursor(CurrentArgument, out element, out index);
 
     public IEnumerable<CompletionResult?> Complete()
     {
