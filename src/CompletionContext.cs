@@ -324,11 +324,110 @@ public sealed class CompletionContext
     /// <inheritdoc cref="TryGetElementAtCursor(in ArgumentElement, out ArgumentElement, out int)"/>
     public bool TryGetElementAtCursor(out ArgumentElement element, out int index) => TryGetElementAtCursor(CurrentArgument, out element, out index);
 
+    /// <summary>
+    /// Get cursor offset position in the <paramref name="arg"/>.
+    /// </summary>
+    /// <returns>Cursor offset position from the start position of the argument</returns>
+    /// <exception cref="ArgumentOutOfRangeException"/>
+    public int GetCursorOffsetInValue(ArgumentElement arg)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(arg.StartOffset, CursorPosition);
+        ArgumentOutOfRangeException.ThrowIfLessThan(arg.EndOffset, CursorPosition);
+
+        if (arg.Value.Length == arg.EndOffset - arg.StartOffset)
+            return CursorPosition - arg.StartOffset;
+
+        if (arg.Type.HasFlag(ArgumentElementType.Expression))
+            return CursorPosition - arg.StartOffset;
+
+        var rawValue = CommandLine.AsSpan(arg.RawRange);
+        int offset = 0;
+        int i = 0;
+        int cursorOffset = CursorPosition - arg.StartOffset;
+        for (; i < rawValue.Length; i++)
+        {
+            char c = rawValue[i];
+
+            switch (c)
+            {
+                case '\'':
+                    i = ProcessInnerSingleQuote(rawValue, i, ref offset, cursorOffset);
+                    if (offset >= cursorOffset)
+                        return offset;
+                    continue;
+                case '"':
+                    i = ProcessInnerDoubleQuote(rawValue, i, ref offset, cursorOffset);
+                    if (offset >= cursorOffset)
+                        return offset;
+                    continue;
+                case '`':
+                    if (i + 1 < rawValue.Length)
+                        i++;
+                    break;
+            }
+            offset++;
+            if (offset >= cursorOffset)
+                break;
+        }
+
+        return offset;
+    }
+
+    /// <summary>
+    /// Get cursor offset position in the argument at cursor.
+    /// </summary>
+    /// <returns>Cursor offset position from the start position of the current argument</returns>
+    public int GetCursorOffsetInValue() => GetCursorOffsetInValue(CurrentArgument);
+
+    /// <seealso cref="GetCursorOffsetInValue(ArgumentElement)"/>
+    private static int ProcessInnerDoubleQuote(scoped ReadOnlySpan<char> rawValue, int index, ref int offset, int cursorOffset)
+    {
+        for (index += 1; index < rawValue.Length; index++)
+        {
+            char qc = rawValue[index];
+            switch (qc)
+            {
+                case '"':
+                    if (index + 1 < rawValue.Length && rawValue[index + 1] == '"')
+                        index++;
+                    break;
+                case '`':
+                    if (index + 1 < rawValue.Length)
+                        index++;
+                    break;
+            }
+            offset++;
+            if (offset >= cursorOffset)
+                return index;
+        }
+        return index;
+    }
+
+    /// <seealso cref="GetCursorOffsetInValue(ArgumentElement)"/>
+    private static int ProcessInnerSingleQuote(scoped ReadOnlySpan<char> rawValue, int index, ref int offset, int cursorOffset)
+    {
+        for (index += 1; index < rawValue.Length; index++)
+        {
+            char qc = rawValue[index];
+            if (qc is '\'')
+            {
+                if (index + 1 < rawValue.Length && rawValue[index + 1] == '\'')
+                    index++;
+                else
+                    break;
+            }
+            offset++;
+            if (offset >= cursorOffset)
+                return index;
+        }
+        return index;
+    }
+
     public IEnumerable<CompletionResult?> Complete()
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
 
-        int cursorPosition = CursorPosition - CurrentArgument.StartOffset;
+        int cursorOffsetPosition = GetCursorOffsetInValue();
 
         CompletionDataCollection results = new();
         bool completed = false;
@@ -340,13 +439,13 @@ public sealed class CompletionContext
                                                               _pendingParam.ParamName,
                                                               CurrentArgument.Value,
                                                               _pendingParam.ParamArgs.AsReadOnly(),
-                                                              cursorPosition,
+                                                              cursorOffsetPosition,
                                                               _pendingParam.OptionPrefix);
             if (!_pendingParam.CompleteOnly)
             {
                 completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
 
-                completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorPosition)
+                completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorOffsetPosition)
                             || completed;
             }
         }
@@ -354,11 +453,11 @@ public sealed class CompletionContext
         {
             completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
 
-            completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorPosition)
+            completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorOffsetPosition)
                         || completed;
 
             if (!completed)
-                completed = CommandCompleter.CompleteArgument(results, this, CurrentArgument, cursorPosition, _unboundArguments.Count);
+                completed = CommandCompleter.CompleteArgument(results, this, cursorOffsetPosition, _unboundArguments.Count);
         }
 
         NativeCompleter.Debug($"[{Name}] Completed = {completed}, Count = {results.Count}");
