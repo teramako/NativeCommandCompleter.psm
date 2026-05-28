@@ -446,15 +446,18 @@ public class ParamCompleter
         // See: https://github.com/PowerShell/PowerShell/issues/6291
         //
         // Quoting completion text for proper handling.
-        bool shouldBeQuoted = !string.IsNullOrEmpty(prefix) && optionPrefix == "-";
-        if (shouldBeQuoted && !context.WordToComplete.StartsWith('-'))
-        {
-            // As a workaround, fix to quoted value
-            var cv = new CompletionValue($"{paramValue}", "Fix to quoted");
-            cv.QuoteText();
-            results.Add(cv);
-            return true;
-        }
+        //
+        // FIXME: 引用符が処理されていない生データの paramValue が欲しい。
+        //
+        // bool shouldBeQuoted = !string.IsNullOrEmpty(prefix) && optionPrefix == "-";
+        // if (shouldBeQuoted && !context.WordToComplete.StartsWith('-'))
+        // {
+        //     // As a workaround, fix to quoted value
+        //     var cv = new CompletionValue($"{paramValue}", "Fix to quoted");
+        //     cv.QuoteText();
+        //     results.Add(cv);
+        //     return true;
+        // }
 
         int argumentIndex = paramArgs.Count;
         var ac = Arguments.GetByArgumentIndex(argumentIndex);
@@ -467,31 +470,34 @@ public class ParamCompleter
             """;
 
         NativeCompleter.Debug($"[{context.Name}] Start Completion: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-        IEnumerable<CompletionData> candidates;
-        if (ac.List)
+        var cursorElement = context.CursorElement;
+        if (cursorElement.IsAvailable)
         {
-            var result = Helper.ResolveListElement(paramValue, position);
-            if (result.Index > 0)
+            if (cursorElement.Index > 0)
             {
+                if (!ac.List)
+                {
+                    // Don't perform completion if the argument completer does not support comma-separated list.
+                    return true;
+                }
                 prefix = string.Empty;
+                position = context.GetCursorOffsetInValue(cursorElement.Element);
+                paramValue = cursorElement.Element.Value;
             }
-            NativeCompleter.Debug($"[{context.Name}] CompleteValue[List]: {{ name '{paramName}', value: '{result.Slice(paramValue)}', position: {result.Range.Start}, prefix: '{prefix}' }}");
-            candidates = ac.Complete(context, result.Slice(paramValue), result.OffsetPosition, argumentIndex);
-        }
-        else
-        {
             NativeCompleter.Debug($"[{context.Name}] CompleteValue: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-            candidates = ac.Complete(context, paramValue, position, argumentIndex);
-        }
 
-        int count = 0;
-        foreach (var data in candidates)
-        {
-            results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
-            NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
-            count++;
+            // TODO: should care quoted text
+
+            int count = 0;
+            foreach (var data in ac.Complete(context, paramValue, position, argumentIndex))
+            {
+                results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
+                NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
+                count++;
+            }
+            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
+            return true;
         }
-        NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
         return true;
     }
 }

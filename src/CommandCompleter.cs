@@ -639,7 +639,6 @@ public class CommandCompleter
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>
-    /// <param name="arg">a token of command line argument</param>
     /// <param name="offsetPosition">Position of cursor in token</param>.
     /// <param name="argumentIndex">argument's index which starts 0 without command name</param>
     /// <returns>
@@ -647,7 +646,6 @@ public class CommandCompleter
     /// </returns>
     public bool CompleteArgument(ICollection<CompletionData> results,
                                  CompletionContext context,
-                                 ArgumentElement arg,
                                  int offsetPosition,
                                  int argumentIndex)
     {
@@ -660,25 +658,34 @@ public class CommandCompleter
             [{argumentIndex + 1}]: 
             """;
 
-        NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: '{arg}', index: {argumentIndex} }}");
-        IEnumerable<CompletionData> candidates;
-        if (ac.List)
+        var cursorElement = context.CursorElement;
+        NativeCompleter.Debug($"[{context.Name}] ArgumentCompleter {{ name: '{ac.Name}', value: {cursorElement}, index: {argumentIndex} }}");
+        if (cursorElement.IsAvailable)
         {
-            var result = Helper.ResolveListElement(arg.Value, offsetPosition);
-            candidates = ac.Complete(context, arg.Value.AsSpan(result.Range), result.OffsetPosition, argumentIndex);
+            if (cursorElement.Index > 0)
+            {
+                if (!ac.List)
+                {
+                    // Don't perform completion if the argument completer does not support comma-separated list.
+                    return true;
+                }
+                offsetPosition = context.GetCursorOffsetInValue(cursorElement.Element);
+            }
+            ReadOnlySpan<char> paramValue = cursorElement.Element.Value;
+
+            // TODO: should care quoted text
+
+            int count = 0;
+            foreach (var data in ac.Complete(context, paramValue, offsetPosition, argumentIndex))
+            {
+                results.Add(data.SetTooltipPrefix(tooltipPrefix));
+                NativeCompleter.Debug($"  Matched: '{data.Text}', '{data.ListItemText}'");
+                count++;
+            }
+            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
+            return true;
         }
-        else
-        {
-            candidates = ac.Complete(context, arg.Value, offsetPosition, argumentIndex);
-        }
-        int count = 0;
-        foreach (var data in candidates)
-        {
-            results.Add(data.SetTooltipPrefix(tooltipPrefix));
-            count++;
-        }
-        NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
-        return true;
+        return NoFileCompletions;
     }
 
     /// <summary>
