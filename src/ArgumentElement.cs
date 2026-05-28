@@ -22,12 +22,12 @@ public readonly record struct ArgumentElement(string Value,
     public readonly string Value { get => field ?? string.Empty; } = Value;
 
     /// <summary>
-    /// Starting position from the command-line
+    /// Starting offset in the original command-line, based on RawRange.
     /// </summary>
     public readonly int StartOffset => RawRange.Start.Value;
 
     /// <summary>
-    /// End position from the command-line
+    /// Ending offset in the original command-line, based on RawRange.
     /// </summary>
     public readonly int EndOffset => RawRange.End.Value;
 
@@ -55,6 +55,19 @@ public readonly record struct ArgumentElement(string Value,
     /// <inheritdoc cref="String.EndsWith(string, StringComparison)"/>
     public readonly bool EndsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.EndsWith(value, comparisonType);
 
+    /// <summary>
+    /// Reconstructs a PowerShell-valid string representation of this argument.
+    /// </summary>
+    /// <remarks>
+    /// If <see cref="Type"/> is one of the following, the <see cref="Value"/> is
+    /// enclosed in the corresponding quotation marks, and any quotation marks
+    /// inside the content are escaped according to PowerShell rules:
+    /// <list type="bullet">
+    ///     <item><term><see cref="ArgumentElementType.StringSingleQuoted"/></term><description>enclosed in single quotes, internal <c>'</c> becomes <c>''</c></description></item>
+    ///     <item><term><see cref="ArgumentElementType.StringDoubleQuoted"/></term><description>enclosed in double quotes, internal <c>"</c> becomes <c>""</c></description></item>
+    /// </list>
+    /// For all other types (e.g., bare words), <see cref="Value"/> is returned as-is.
+    /// </remarks>
     public override string ToString() => RawLength == 0
               ? string.Empty
               : Type switch
