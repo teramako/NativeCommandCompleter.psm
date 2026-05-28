@@ -65,7 +65,7 @@ public sealed class CompletionContext
     /// </summary>
     public ReadOnlySpan<ArgumentElement> ArgumentsBeforeCursor => Arguments.AsSpan(_argumentsBeforeCursorRange);
     /// <summary>
-    /// Token at the cursor position
+    /// Argument at the cursor position
     /// </summary>
     public ArgumentElement CurrentArgument { get; }
     /// <summary>
