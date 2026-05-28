@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Management.Automation.Language;
+using System.Text;
 
 namespace Sabamiso;
 
@@ -53,6 +54,30 @@ public readonly record struct ArgumentElement(string Value,
 
     /// <inheritdoc cref="String.EndsWith(string, StringComparison)"/>
     public readonly bool EndsWith(ReadOnlySpan<char> value, StringComparison comparisonType) => Value.EndsWith(value, comparisonType);
+
+    public override string ToString() => RawLength == 0
+              ? string.Empty
+              : Type switch
+              {
+                  ArgumentElementType.StringSingleQuoted => Quote(Value, '\''),
+                  ArgumentElementType.StringDoubleQuoted => Quote(Value, '"'),
+                  _ => Value
+              };
+
+    private static string Quote(ReadOnlySpan<char> text, char quote)
+    {
+        StringBuilder sb = new(text.Length + 2);
+        sb.Append(quote);
+        foreach (char c in text)
+        {
+            if (c == quote)
+                sb.Append(c, 2);
+            else
+                sb.Append(c);
+        }
+        sb.Append(quote);
+        return sb.ToString();
+    }
 
     /// <summary>
     /// Create an argument from a single token.
