@@ -19,9 +19,9 @@ public sealed class CompletionContext
     public CommandCompleter CommandCompleter { get; }
 
     /// <summary>
-    /// Completion target words supplied from PowerShell-Core
+    /// Command-line string
     /// </summary>
-    public string WordToComplete { get; }
+    public string CommandLine { get; }
 
     /// <summary>
     /// Abstract Syntax Tree of the command
@@ -82,18 +82,18 @@ public sealed class CompletionContext
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
 
-    private CompletionContext(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
-        WordToComplete = wordToComplete;
-        CommandAst = ast;
+        CommandLine = commandAst.ToString();
+        CommandAst = commandAst;
         CursorPosition = cursorPosition;
         Host = host;
         CurrentDirectory = cwd;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
-        Arguments = Tokenizer.ReconstructArgv(ast, out var tokens);
+        Arguments = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
         Tokens = tokens;
         (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
         CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
@@ -102,7 +102,7 @@ public sealed class CompletionContext
     {
         Name = $"{parentContext.Name} {cmdName}";
         CommandCompleter = commandCompleter;
-        WordToComplete = parentContext.WordToComplete;
+        CommandLine = parentContext.CommandLine;
         CommandAst = parentContext.CommandAst;
         Tokens = parentContext.Tokens;
         CursorPosition = parentContext.CursorPosition;
@@ -153,15 +153,14 @@ public sealed class CompletionContext
     /// Create new CompletionContext from CommandAst
     /// </summary>
     /// <param name="commandCompleter">CommandCompleter</param>
-    /// <param name="wordToComplete">Word to complete</param>
-    /// <param name="ast">CommandAst</param>
+    /// <param name="commandAst">CommandAst</param>
     /// <param name="cursorPosition">Cursor position</param>
     /// <param name="host">Host interface</param>
     /// <param name="cwd">Current directory</param>
     /// <returns>CompletionContext</returns>
-    public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, host, cwd);
+        CompletionContext context = new(commandCompleter, commandAst, cursorPosition, host, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
         return commandCompleter.ParseArguments(context);
     }
