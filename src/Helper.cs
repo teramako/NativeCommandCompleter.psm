@@ -14,7 +14,7 @@ public static class Helper
                                                               string? prefix = null,
                                                               string? suffix = null)
     {
-        string pathToComplete = context.CurrentToken?.Value ?? string.Empty;
+        string pathToComplete = context.CurrentArgument.Value;
         string cwd = context.CurrentDirectory.Path;
         return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter, prefix, suffix);
     }
@@ -182,7 +182,7 @@ public static class Helper
     /// <param name="context">Completion context</param>
     public static IEnumerable<CompletionData> CompleteCommandOrFilename(CompletionContext context)
     {
-        string tokenValue = context.CurrentToken?.Value ?? string.Empty;
+        string tokenValue = context.CurrentArgument.Value;
         IEnumerable<CompletionResult>? commandsResults
             = CompletionCompleters.CompleteCommand(tokenValue, string.Empty, CommandTypes.Application);
         if (commandsResults is not null)

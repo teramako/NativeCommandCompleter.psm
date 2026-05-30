@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Host;
@@ -8,9 +9,19 @@ namespace Sabamiso;
 
 internal record PendingParamCompleter(ParamCompleter Completer,
                                       string ParamName,
-                                      string[] ParamArgs,
+                                      IList<ArgumentElement> ParamArgs,
                                       string OptionPrefix,
                                       bool CompleteOnly);
+
+/// <param name="IsAvailable">
+/// <see langword="true"/> indicates that an element at the cursor position is found, otherwise <see langword="false"/>.
+/// </param>
+/// <param name="Element">
+/// The element at the cursor position.</param>
+/// <param name="Index">
+/// The array index where the cursor is located. If invalid, it will be <c>-1</c>.
+/// </param>
+internal readonly record struct CursorElement(bool IsAvailable, ArgumentElement Element, int Index);
 
 public sealed class CompletionContext
 {
@@ -18,14 +29,16 @@ public sealed class CompletionContext
     public CommandCompleter CommandCompleter { get; }
 
     /// <summary>
-    /// Completion target words supplied from PowerShell-Core
+    /// Command-line string
     /// </summary>
-    public string WordToComplete { get; }
+    public string CommandLine { get; }
 
     /// <summary>
     /// Abstract Syntax Tree of the command
     /// </summary>
     public CommandAst CommandAst { get; }
+
+    public ImmutableArray<Token> Tokens { get; }
 
     /// <summary>
     /// Cursor position in the command line
@@ -43,121 +56,134 @@ public sealed class CompletionContext
     public PathInfo CurrentDirectory { get; }
 
     /// <summary>
+    /// All arguments
+    /// </summary>
+    public ImmutableArray<ArgumentElement> Arguments { get; }
+
+    /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
-    public ReadOnlyCollection<Token> Arguments { get; }
+    public ReadOnlySpan<ArgumentElement> ArgumentsBeforeCursor => Arguments.AsSpan(_argumentsBeforeCursorRange);
     /// <summary>
-    /// Token at the cursor position
+    /// Argument at the cursor position
     /// </summary>
-    public Token? CurrentToken { get; private set; }
+    public ArgumentElement CurrentArgument { get; }
     /// <summary>
     /// Arguments after the cursor position
     /// </summary>
-    public ReadOnlyCollection<Token> RemainingArguments { get; }
+    public ReadOnlySpan<ArgumentElement> RemainingArguments => Arguments.AsSpan(_remainingArgumentsRange);
 
     /// <summary>
     /// Arguments before the cursor position that are not parameters and not the parameter's values
     /// </summary>
-    public ReadOnlyCollection<Token> UnboundArguments { get; }
+    public ReadOnlyCollection<ArgumentElement> UnboundArguments { get; }
 
     /// <summary>
     /// Dictionary parsed parameters to parameters and their value
     /// </summary>
     public ReadOnlyDictionary<string, ArrayList> BoundParameters { get; }
 
-    private List<Token> _arguments = [];
-    private List<Token> _remainingArguments = [];
-    private List<Token> _unboundArguments = [];
+    /// <summary>
+    /// An element of the argument at the cursor.
+    /// </summary>
+    /// <remarks>
+    /// The difference from <see cref="CurrentArgument"/> is that, in the case of an array literal, it returns the value of the extracted element.
+    /// </remarks>
+    internal CursorElement CursorElement => _lazyCursorElement.Value;
+
+    private Range _argumentsBeforeCursorRange;
+    private Range _remainingArgumentsRange;
+
+    private List<ArgumentElement> _unboundArguments = [];
     private Dictionary<string, ArrayList> _boundParameters = [];
 
     private PendingParamCompleter? _pendingParam;
     private CompletionContext? _parent = null;
 
-    private CompletionContext(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
+    private readonly Lazy<CursorElement> _lazyCursorElement;
+
+    private CompletionContext(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
-        WordToComplete = wordToComplete;
-        CommandAst = ast;
+        CommandLine = commandAst.ToString();
+        CommandAst = commandAst;
         CursorPosition = cursorPosition;
         Host = host;
         CurrentDirectory = cwd;
-        Arguments = _arguments.AsReadOnly();
-        RemainingArguments = _remainingArguments.AsReadOnly();
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
+        Arguments = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
+        Tokens = tokens;
+        (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
+        CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
+        _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out index), elem, index));
     }
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
         Name = $"{parentContext.Name} {cmdName}";
         CommandCompleter = commandCompleter;
-        WordToComplete = parentContext.WordToComplete;
+        CommandLine = parentContext.CommandLine;
         CommandAst = parentContext.CommandAst;
+        Tokens = parentContext.Tokens;
         CursorPosition = parentContext.CursorPosition;
         Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
-        if (argumentIndex < parentContext.Arguments.Count - 1)
-        {
-            _arguments = parentContext._arguments[(argumentIndex + 1)..];
-        }
-        _remainingArguments = parentContext._remainingArguments;
+        Arguments = parentContext.Arguments;
+        _argumentsBeforeCursorRange = argumentIndex < parentContext.ArgumentsBeforeCursor.Length
+                ? (argumentIndex + 1)..
+                : default;
+        CurrentArgument = parentContext.CurrentArgument;
+        _remainingArgumentsRange = parentContext._remainingArgumentsRange;
         _boundParameters = parentContext._boundParameters;
-        CurrentToken = parentContext.CurrentToken;
-        Arguments = _arguments.AsReadOnly();
-        RemainingArguments = _remainingArguments.AsReadOnly();
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
+        _lazyCursorElement = parentContext._lazyCursorElement;
+    }
+
+    /// <summary>
+    /// Split the list of command arguments into those preceding the cursor position, those at the cursor position, and the remaining arguments
+    /// </summary>
+    private static (Range ArgumentsBeforeCursorRange, int CurrentArgumentIndex, Range RemainingArgumentsRange)
+        AnalyzeArguments(ImmutableArray<ArgumentElement> arguments, int cursorPosition)
+    {
+        var current = -1;
+        var i = 0;
+        for (; i < arguments.Length; i++)
+        {
+            var arg = arguments[i];
+            if (arg.EndOffset < cursorPosition)
+                continue;
+
+            if (cursorPosition <= arg.StartOffset)
+            {
+                break;
+            }
+            else if (arg.StartOffset < cursorPosition && cursorPosition <= arg.EndOffset)
+            {
+                current = i;
+                break;
+            }
+        }
+        var argumentsBeforeCursorRange = ..i;
+        var remainingArgumentsRange = current < 0 ? i.. : (i + 1)..;
+        return (argumentsBeforeCursorRange, current, remainingArgumentsRange);
     }
 
     /// <summary>
     /// Create new CompletionContext from CommandAst
     /// </summary>
     /// <param name="commandCompleter">CommandCompleter</param>
-    /// <param name="wordToComplete">Word to complete</param>
-    /// <param name="ast">CommandAst</param>
+    /// <param name="commandAst">CommandAst</param>
     /// <param name="cursorPosition">Cursor position</param>
     /// <param name="host">Host interface</param>
     /// <param name="cwd">Current directory</param>
     /// <returns>CompletionContext</returns>
-    public static CompletionContext Create(CommandCompleter commandCompleter, string wordToComplete, CommandAst ast, int cursorPosition, PSHost host, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, wordToComplete, ast, cursorPosition, host, cwd);
+        CompletionContext context = new(commandCompleter, commandAst, cursorPosition, host, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
-        int prevEndOffset = -1;
-        Token? prevToken = null;
-        for (var i = 1; i < ast.CommandElements.Count; i++)
-        {
-            var elm = ast.CommandElements[i];
-            var token = new Token(elm, cursorPosition);
-            if (elm.Extent.StartOffset == prevEndOffset && prevToken is not null)
-            {
-                // Merge tokens that have been split into separate tokens into a single token.
-                // e.g.) `-i.bk` -> splitted to `-i` and `.bk`
-                // See: https://github.com/PowerShell/PowerShell/issues/6291
-                token = prevToken;
-                token.Append(elm, cursorPosition);
-                if (token.IsTarget)
-                {
-                    context.CurrentToken = token;
-                    context._arguments.RemoveAt(context._arguments.Count - 1);
-                }
-            }
-            else if (elm.Extent.EndOffset < cursorPosition)
-            {
-                context._arguments.Add(token);
-            }
-            else if (token.IsTarget)
-            {
-                context.CurrentToken = token;
-            }
-            else
-            {
-                context._remainingArguments.Add(token);
-            }
-            prevEndOffset = elm.Extent.EndOffset;
-            prevToken = token;
-        }
         return commandCompleter.ParseArguments(context);
     }
 
@@ -196,9 +222,9 @@ public sealed class CompletionContext
         }
     }
 
-    internal void AddUnboundArgument(Token token)
+    internal void AddUnboundArgument(ArgumentElement arg)
     {
-        _unboundArguments.Add(token);
+        _unboundArguments.Add(arg);
     }
 
     /// <summary>
@@ -214,7 +240,7 @@ public sealed class CompletionContext
     /// </param>
     internal void SetPendingParameter(ParamCompleter parameter,
                                       string paramName,
-                                      string[] paramArgs,
+                                      IList<ArgumentElement> paramArgs,
                                       string optionPrefix,
                                       bool completeOnly = true)
     {
@@ -222,12 +248,186 @@ public sealed class CompletionContext
         NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}], Prefix='{optionPrefix}' }}");
     }
 
+    /// <summary>
+    /// Attempts to retrieve the element at the cursor position from <paramref name="arg"/>.
+    /// <para>
+    /// If <paramref name="arg"/> is an array literal, each element is scanned in an attempt to detect a match.
+    /// If it is not an array literal, <paramref name="arg"/> itself is scanned.
+    /// </para>
+    /// </summary>
+    /// <param name="arg">Argument value to be scanned</param>
+    /// <param name="element">The detected element.</param>
+    /// <param name="index">The array index where the cursor is located. If invalid, it will be <c>-1</c>.</param>
+    /// <returns>
+    /// <see langword="true"/> indicates that an element at the cursor position is found, otherwise <see langword="false"/>.
+    /// </returns>
+    internal bool TryGetElementAtCursor(ArgumentElement arg, out ArgumentElement element, out int index)
+    {
+        index = -1;
+
+        if (arg.ArrayElements is null)
+        {
+            if (arg.StartOffset == CursorPosition)
+            {
+                element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+                return true;
+            }
+            else if (arg.StartOffset < CursorPosition && CursorPosition <= arg.EndOffset)
+            {
+                element = arg;
+                return true;
+            }
+            element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+            return false;
+        }
+
+        if (arg.StartOffset < CursorPosition && CursorPosition <= arg.EndOffset)
+        {
+            var arrayElements = arg.ArrayElements.Value;
+            for (index = arrayElements.Length - 1; index >= 0; index--)
+            {
+                var arrayElementRange = arrayElements[index];
+                var end = arrayElementRange.End.Value - 1;
+                var lastToken = Tokens[end];
+
+                if (lastToken.Extent.EndOffset < CursorPosition)
+                {
+                    element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+                    index += 1;
+                    return true;
+                }
+
+                var start = arrayElementRange.Start.Value;
+                var firstToken = Tokens[start];
+
+                if (firstToken.Extent.StartOffset == CursorPosition)
+                {
+                    element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+                    return true;
+                }
+
+                if (firstToken.Extent.StartOffset < CursorPosition && CursorPosition <= lastToken.Extent.EndOffset)
+                {
+                    element = ArgumentElement.Create(CommandLine, start, end, Tokens);
+                    return true;
+                }
+            }
+        }
+
+        index = -1;
+        element = ArgumentElement.CreateEmptyArgument(CursorPosition);
+        return false;
+    }
+    /// <summary>
+    /// Attempts to retrieve the element at the cursor position.
+    /// </summary>
+    /// <inheritdoc cref="TryGetElementAtCursor(in ArgumentElement, out ArgumentElement, out int)"/>
+    public bool TryGetElementAtCursor(out ArgumentElement element, out int index) => TryGetElementAtCursor(CurrentArgument, out element, out index);
+
+    /// <summary>
+    /// Get cursor offset position in the <paramref name="arg"/>.
+    /// </summary>
+    /// <returns>Cursor offset position from the start position of the argument</returns>
+    /// <exception cref="ArgumentOutOfRangeException"/>
+    public int GetCursorOffsetInValue(ArgumentElement arg)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(arg.StartOffset, CursorPosition);
+        ArgumentOutOfRangeException.ThrowIfLessThan(arg.EndOffset, CursorPosition);
+
+        if (arg.Value.Length == arg.EndOffset - arg.StartOffset)
+            return CursorPosition - arg.StartOffset;
+
+        if (arg.Type.HasFlag(ArgumentElementType.Expression))
+            return CursorPosition - arg.StartOffset;
+
+        var rawValue = CommandLine.AsSpan(arg.RawRange);
+        int offset = 0;
+        int i = 0;
+        int cursorOffset = CursorPosition - arg.StartOffset;
+        for (; i < rawValue.Length; i++)
+        {
+            char c = rawValue[i];
+
+            switch (c)
+            {
+                case '\'':
+                    i = ProcessInnerSingleQuote(rawValue, i, ref offset, cursorOffset);
+                    if (offset >= cursorOffset)
+                        return offset;
+                    continue;
+                case '"':
+                    i = ProcessInnerDoubleQuote(rawValue, i, ref offset, cursorOffset);
+                    if (offset >= cursorOffset)
+                        return offset;
+                    continue;
+                case '`':
+                    if (i + 1 < rawValue.Length)
+                        i++;
+                    break;
+            }
+            offset++;
+            if (offset >= cursorOffset)
+                break;
+        }
+
+        return offset;
+    }
+
+    /// <summary>
+    /// Get cursor offset position in the argument at cursor.
+    /// </summary>
+    /// <returns>Cursor offset position from the start position of the current argument</returns>
+    public int GetCursorOffsetInValue() => GetCursorOffsetInValue(CurrentArgument);
+
+    /// <seealso cref="GetCursorOffsetInValue(ArgumentElement)"/>
+    private static int ProcessInnerDoubleQuote(scoped ReadOnlySpan<char> rawValue, int index, ref int offset, int cursorOffset)
+    {
+        for (index += 1; index < rawValue.Length; index++)
+        {
+            char qc = rawValue[index];
+            switch (qc)
+            {
+                case '"':
+                    if (index + 1 < rawValue.Length && rawValue[index + 1] == '"')
+                        index++;
+                    break;
+                case '`':
+                    if (index + 1 < rawValue.Length)
+                        index++;
+                    break;
+            }
+            offset++;
+            if (offset >= cursorOffset)
+                return index;
+        }
+        return index;
+    }
+
+    /// <seealso cref="GetCursorOffsetInValue(ArgumentElement)"/>
+    private static int ProcessInnerSingleQuote(scoped ReadOnlySpan<char> rawValue, int index, ref int offset, int cursorOffset)
+    {
+        for (index += 1; index < rawValue.Length; index++)
+        {
+            char qc = rawValue[index];
+            if (qc is '\'')
+            {
+                if (index + 1 < rawValue.Length && rawValue[index + 1] == '\'')
+                    index++;
+                else
+                    break;
+            }
+            offset++;
+            if (offset >= cursorOffset)
+                return index;
+        }
+        return index;
+    }
+
     public IEnumerable<CompletionResult?> Complete()
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
 
-        string tokenValue = CurrentToken?.Value ?? string.Empty;
-        int cursorPosition = CurrentToken?.Position ?? 0;
+        int cursorOffsetPosition = GetCursorOffsetInValue();
 
         CompletionDataCollection results = new();
         bool completed = false;
@@ -237,27 +437,27 @@ public sealed class CompletionContext
             completed = _pendingParam.Completer.CompleteValue(results,
                                                               this,
                                                               _pendingParam.ParamName,
-                                                              tokenValue,
-                                                              _pendingParam.ParamArgs,
-                                                              cursorPosition,
+                                                              CurrentArgument.Value,
+                                                              _pendingParam.ParamArgs.AsReadOnly(),
+                                                              cursorOffsetPosition,
                                                               _pendingParam.OptionPrefix);
             if (!_pendingParam.CompleteOnly)
             {
-                completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+                completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
 
-                completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition)
+                completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorOffsetPosition)
                             || completed;
             }
         }
         else
         {
-            completed = CommandCompleter.CompleteSubCommands(results, this, tokenValue);
+            completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
 
-            completed = CommandCompleter.CompleteParams(results, this, tokenValue, cursorPosition)
+            completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorOffsetPosition)
                         || completed;
 
             if (!completed)
-                completed = CommandCompleter.CompleteArgument(results, this, tokenValue, cursorPosition, _unboundArguments.Count);
+                completed = CommandCompleter.CompleteArgument(results, this, cursorOffsetPosition, _unboundArguments.Count);
         }
 
         NativeCompleter.Debug($"[{Name}] Completed = {completed}, Count = {results.Count}");
