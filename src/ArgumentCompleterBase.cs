@@ -9,7 +9,7 @@ public abstract class ArgumentCompleterBase : IArgumentCompleter
     public string Description { get; set; } = string.Empty;
     public Nargs Nargs { get; init; } = Nargs.One;
     public bool List { get; init; } = false;
-    public abstract IEnumerable<CompletionData> Complete(CompletionContext context, ReadOnlySpan<char> tokenValue, int offsetPosiion, int argumentIndex);
+    public abstract IEnumerable<CompletionData> Complete(CompletionContext context, ReadOnlySpan<char> wordToComplete, int offsetPosiion, int argumentIndex);
     public override string ToString()
     {
         return $"ArgumentCompleter {{ Name = {Name}, Nargs = {Nargs} }}";

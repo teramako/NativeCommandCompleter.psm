@@ -29,9 +29,9 @@ public interface IArgumentCompleter
     /// Returns completion candidates for the argument
     /// </summary>
     /// <param name="context">The completion context</param>
-    /// <param name="tokenValue">The token value to be completed</param>
-    /// <param name="offsetPosition">The offset position of the token value</param>
-    /// <param name="argumentIndex">The index of the argument in the command</param
+    /// <param name="wordToComplete">The word to be completed</param>
+    /// <param name="offsetPosition">The offset position of the <paramref name="wordToComplete"/></param>
+    /// <param name="argumentIndex">The index of the argument in the command</param>
     /// <returns>Completion candidates</returns>
-    IEnumerable<CompletionData> Complete(CompletionContext context, ReadOnlySpan<char> tokenValue, int offsetPosition, int argumentIndex);
+    IEnumerable<CompletionData> Complete(CompletionContext context, ReadOnlySpan<char> wordToComplete, int offsetPosition, int argumentIndex);
 }

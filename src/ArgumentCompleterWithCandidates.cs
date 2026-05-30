@@ -12,11 +12,11 @@ public class ArgumentCompleterWithCandidates : ArgumentCompleterBase
     public required CompletionValue[] Candidates { get; init; }
 
     public override IEnumerable<CompletionData> Complete(CompletionContext context,
-                                                         ReadOnlySpan<char> tokenValue,
+                                                         ReadOnlySpan<char> wordToComplete,
                                                          int offsetPosition,
                                                          int argumentIndex)
     {
-        string arg = $"{tokenValue}";
+        string arg = $"{wordToComplete}";
         return Candidates.Where(data => data.IsMatch(arg, ignoreCase: true));
     }
 }
