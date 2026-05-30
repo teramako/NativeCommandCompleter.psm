@@ -15,7 +15,7 @@ public class ArgumentCompleterWithScript : ArgumentCompleterBase
     public required ScriptBlock Script { get; init; }
 
     public override IEnumerable<CompletionData> Complete(CompletionContext context,
-                                                         ReadOnlySpan<char> tokenValue,
+                                                         ReadOnlySpan<char> wordToComplete,
                                                          int offsetPosition,
                                                          int argumentIndex)
     {
@@ -23,7 +23,7 @@ public class ArgumentCompleterWithScript : ArgumentCompleterBase
         try
         {
             invokeResults = Script.InvokeWithContext(null,
-                                                     [new("_", $"{tokenValue}"), new("this", context)],
+                                                     [new("_", $"{wordToComplete}"), new("this", context)],
                                                      offsetPosition,
                                                      argumentIndex);
             return NativeCompleter.PSObjectsToCompletionData(invokeResults);
