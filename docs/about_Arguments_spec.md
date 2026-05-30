@@ -58,7 +58,7 @@ To configure type-based autocompletion, specify the type using the `Type` key.
 
 #### With `Candidates`
 
-To use a list of static completion candidates, set the completion list in the `Candidates` key.
+Static completion list:
 
 ```powershell
 @{
@@ -73,13 +73,14 @@ This is probably the easiest format to handle.
 
 #### With `Script`
 
-To generate dynamic completion candidates using a PowerShell script, set the `Script` key to `ScriptBlock`.
+Dynamic completion using a ScriptBlock:
 
 ```powershell
 @{
     Name = "animal";
     Script = {
-        $q = $this.WordToComplete + "*"
+        param([string] $wordToComplete, [int] $offsetPosition, [int] $argumentIndex)
+        $q = $wordToComplete + "*"
         "textA", "textB", "textC" | Where-Object { $_ -like $q } # outputs of the completion list
     }
 }
@@ -87,35 +88,26 @@ To generate dynamic completion candidates using a PowerShell script, set the `Sc
 
 ## Script specification
 
-A script that returns a completion list of arguments dynamically.
+A script that returns completion candidates dynamically.
 
-### Automatic Variabls
+### Automatic Variabls in ScriptBlock
 
 | Name             | Type              | Description       |
 |:-----------------|:-----------------:|:------------------|
-| `$_`             | string            | Word to complete. |
-| `$this`          | CompletionContext | Objects with different values as a result of command line parsing. |
+| `$this`          | CompletionContext | Parsed command-line context |
 
 ### Arguments
 
 | Index | Type              | Description       |
 |:------|:-----------------:|:------------------|
-| 0     | int               | Cursor position in the word to be completed. |
-| 1     | int               | Index of the list of arguments not parsed into parameters.(starting with `0`). |
+| 0     | string            | Word to complete. |
+| 1     | int               | Cursor position within the word. |
+| 2     | int               | Index of the argument (0-based). |
 
 > [!WARNING]
-> Other variables and functions defined outside of a `ScriptBlock` cannot be referenced.
-> This is because they are kicked in a different context.
->
-> ```powershell
-> $outsideVariable = 10;
-> New-ParamCompleter ... -Arguments @{
->     Name = "arg";
->     Script = {
->         $outsideVariable # <- cannt reference
->     }
-> }
-> ```
+> The first argument, which is the word to complete, may differ from PowerShell's native `$wordToComplete`.
+> - Quotes are removed (`'abc'` → `abc`)
+> - For `--opt=value`, only `value` is passed
 
 ### Outputs
 
