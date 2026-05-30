@@ -21,6 +21,7 @@ public enum ArgumentElementType
 
     StringDoubleQuoted = String | DoubleQuoted,
     StringSingleQuoted = String | SingleQuoted,
+    ArrayLiteral = String | Array,
 
     VariableExpression = Expression | Variable,
     ArrayExpression = Expression | Array,
