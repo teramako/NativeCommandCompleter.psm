@@ -22,8 +22,7 @@ public class ArgumentCompleterWithScript : ArgumentCompleterBase
         Collection<PSObject?>? invokeResults = null;
         try
         {
-            invokeResults = Script.GetNewClosure()
-                                  .InvokeWithContext(null,
+            invokeResults = Script.InvokeWithContext(null,
                                                      [new("_", $"{tokenValue}"), new("this", context)],
                                                      offsetPosition,
                                                      argumentIndex);
