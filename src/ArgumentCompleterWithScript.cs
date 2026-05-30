@@ -23,7 +23,8 @@ public class ArgumentCompleterWithScript : ArgumentCompleterBase
         try
         {
             invokeResults = Script.InvokeWithContext(null,
-                                                     [new("_", $"{wordToComplete}"), new("this", context)],
+                                                     [new("this", context)],
+                                                     $"{wordToComplete}",
                                                      offsetPosition,
                                                      argumentIndex);
             return NativeCompleter.PSObjectsToCompletionData(invokeResults);
