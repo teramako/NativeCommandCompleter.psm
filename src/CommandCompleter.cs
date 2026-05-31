@@ -270,18 +270,17 @@ public class CommandCompleter
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>
-    /// <param name="arg">a token of command line argument</param>
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
     public bool CompleteSubCommands(ICollection<CompletionData> results,
-                                    CompletionContext context,
-                                    ArgumentElement arg)
+                                    CompletionContext context)
     {
         bool completed = false;
         if (SubCommands.Count == 0)
             return completed;
 
+        var arg = context.CurrentArgument;
         foreach (var subCommand in SubCommands.Where(subCmd => !subCmd.Hidden))
         {
             if (arg.IsEmpty
@@ -312,20 +311,19 @@ public class CommandCompleter
     /// </summary>
     /// <param name="results">Completion result data to be stored</param>
     /// <param name="context">Completion context</param>.
-    /// <param name="arg">a token of command line argument</param>
     /// <param name="offsetPosition">Position of cursor in token</param>.
     /// <returns>
     /// <see langword="true"/> if completion is end (prevent fallback to filename completion); otherwise, <see langword="false"/>.
     /// </returns>
     public bool CompleteParams(ICollection<CompletionData> results,
                                CompletionContext context,
-                               ArgumentElement arg,
                                int offsetPosition)
     {
         bool completed = false;
         if (Params.Count == 0)
             return completed;
 
+        var arg = context.CurrentArgument;
         if (arg.IsEmpty)
         {
             if (Params.Any(p => !p.Style.HasShortOptionPrefix || !p.Style.HasLongOptionPrefix))

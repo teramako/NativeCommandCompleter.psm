@@ -443,17 +443,17 @@ public sealed class CompletionContext
                                                               _pendingParam.OptionPrefix);
             if (!_pendingParam.CompleteOnly)
             {
-                completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
+                completed = CommandCompleter.CompleteSubCommands(results, this);
 
-                completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorOffsetPosition)
+                completed = CommandCompleter.CompleteParams(results, this, cursorOffsetPosition)
                             || completed;
             }
         }
         else
         {
-            completed = CommandCompleter.CompleteSubCommands(results, this, CurrentArgument);
+            completed = CommandCompleter.CompleteSubCommands(results, this);
 
-            completed = CommandCompleter.CompleteParams(results, this, CurrentArgument, cursorOffsetPosition)
+            completed = CommandCompleter.CompleteParams(results, this, cursorOffsetPosition)
                         || completed;
 
             if (!completed)
