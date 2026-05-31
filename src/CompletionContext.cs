@@ -63,14 +63,18 @@ public sealed class CompletionContext
     /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
+    [Hidden]
     public ReadOnlySpan<ArgumentElement> ArgumentsBeforeCursor => Arguments.AsSpan(_argumentsBeforeCursorRange);
+
     /// <summary>
     /// Argument at the cursor position
     /// </summary>
     public ArgumentElement CurrentArgument { get; }
+
     /// <summary>
     /// Arguments after the cursor position
     /// </summary>
+    [Hidden]
     public ReadOnlySpan<ArgumentElement> RemainingArguments => Arguments.AsSpan(_remainingArgumentsRange);
 
     /// <summary>
