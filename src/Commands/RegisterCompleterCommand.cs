@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsLifecycle.Register, "NativeCompleter")]
 [OutputType(typeof(void))]
@@ -54,11 +53,6 @@ public class RegisterCompleterCommand : CommandCompleterBase
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "NoFileCompletions")]
     public SwitchParameter NoFileCompletions { get; set; }
 
-    [Parameter(ParameterSetName = ParameterSetNew,
-               HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "DelegateArgumentIndex")]
-    [ValidateRange(0, int.MaxValue)]
-    public int DelegateArgumentIndex { get; set; } = -1;
-
     [Parameter(ParameterSetName = ParameterSetInput, Mandatory = true, ValueFromPipeline = true, Position = 0,
                HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "Completer")]
     public CommandCompleter? Completer { get; set; } = null;
@@ -90,8 +84,7 @@ public class RegisterCompleterCommand : CommandCompleterBase
                                                  SubCommands,
                                                  defaultParameterStyle,
                                                  Arguments,
-                                                 NoFileCompletions,
-                                                 DelegateArgumentIndex),
+                                                 NoFileCompletions),
                           Force);
     }
 }

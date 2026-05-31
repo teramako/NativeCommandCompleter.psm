@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// Represents a constraint on the number of argument values accepted by a parameter.

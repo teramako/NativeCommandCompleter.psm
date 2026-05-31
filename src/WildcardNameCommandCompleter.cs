@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// A command completer which matches command name with wildcard pattern
@@ -26,11 +26,8 @@ public class WildcardNameCommandCompleter : CommandCompleter
 
     private readonly WildcardPattern _wildcard;
 
-    protected override bool IsMatch(ReadOnlySpan<char> tokenValue, out ReadOnlySpan<char> cmdName)
+    protected override bool IsMatch(ReadOnlySpan<char> tokenValue)
     {
-        cmdName = tokenValue;
-        if (tokenValue.IsEmpty)
-            return false;
-        return _wildcard.IsMatch($"{tokenValue}");
+        return tokenValue.IsEmpty ? false : _wildcard.IsMatch($"{tokenValue}");
     }
 }

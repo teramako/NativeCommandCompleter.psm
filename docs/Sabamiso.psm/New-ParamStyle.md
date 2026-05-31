@@ -1,9 +1,9 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
+Module Name: Sabamiso.psm
 ms.date: 12/10/2025
 PlatyPS schema version: 2024-05-01
 title: New-ParamStyle
@@ -80,7 +80,7 @@ Specifies the predefined parameter style to use.
 Valid values are `GNU`, `Windows`, and `Unix`.
 
 ```yaml
-Type: MT.Comp.Commands.CommandParameterStyle
+Type: Sabamiso.Commands.CommandParameterStyle
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -145,7 +145,7 @@ Specifies the style of parameter values in the custom parameter style.
 Valid values are `Adjacent`, `Separated`, and `Both`.
 
 ```yaml
-Type: MT.Comp.ParameterValueStyle
+Type: Sabamiso.ParameterValueStyle
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -174,7 +174,7 @@ None.
 
 ## OUTPUTS
 
-### MT.Comp.ParameterStyle
+### Sabamiso.ParameterStyle
 
 Returns an instance of the `ParameterStyle` class representing the created or retrieved parameter style.
 

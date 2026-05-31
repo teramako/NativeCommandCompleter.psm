@@ -1,12 +1,12 @@
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsCommon.New, "ParamCompleter", DefaultParameterSetName = "Default")]
 [OutputType(typeof(ParamCompleter))]
 public class NewParamCompleterCommand : Cmdlet
 {
-    private const string MessageBaseName = "MT.Comp.resources.ParamCompleter";
+    private const string MessageBaseName = "Sabamiso.resources.ParamCompleter";
 
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "StandardName")]
     [Alias("Name", "n")]

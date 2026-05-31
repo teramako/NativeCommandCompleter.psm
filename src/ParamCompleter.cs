@@ -1,7 +1,8 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public enum ParameterType
 {
@@ -37,6 +38,17 @@ public enum ArgumentType
     /// Indicates that the argument is a directory path
     /// </summary>
     Directory = 1 << 3,
+
+    /// <summary>
+    /// Indicates that the argument is a command or a path
+    /// </summary>
+    Command = 1 << 4,
+
+    /// <summary>
+    /// Just like <see cref="Command"/>, indicates that the argument is a command or a path.
+    /// Additionally, the subsequent arguments serve as arguments for that command.
+    /// </summary>
+    DelegatingCommand = Command | (1 << 1),
 }
 
 public class ParamCompleter
@@ -231,29 +243,29 @@ public class ParamCompleter
     /// <summary>
     /// Parse parameter from input value
     /// </summary>
-    /// <param name="inputValue">A command argument which may contains option prefix and adjacented value with a value separator.</param>
+    /// <param name="arg">A command argument which may contains option prefix and adjacented value with a value separator.</param>
     /// <param name="paramName"></param>
     /// <param name="paramValue"></param>
     /// <param name="optionPrefix"></param>
     /// <returns></returns>
-    public bool ParseParam(ReadOnlySpan<char> inputValue,
+    public bool ParseParam(ArgumentElement arg,
                            out ReadOnlySpan<char> paramName,
                            out ReadOnlySpan<char> paramValue,
                            [MaybeNullWhen(false)] out string optionPrefix)
     {
         ParameterStyle style = Style;
         optionPrefix = style.LongOptionPrefix;
-        if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+        if (arg.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            var nameSpan = inputValue[optionPrefix.Length..];
+            var nameSpan = arg[optionPrefix.Length..];
             if (ParseLongParam(nameSpan, out paramName, out paramValue))
                 return true;
         }
 
         optionPrefix = style.ShortOptionPrefix;
-        if (inputValue.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
+        if (arg.StartsWith(optionPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            var nameSpan = inputValue[optionPrefix.Length..];
+            var nameSpan = arg[optionPrefix.Length..];
             if (ParseStandardParam(nameSpan, out paramName, out paramValue))
                 return true;
         }
@@ -418,7 +430,7 @@ public class ParamCompleter
                               CompletionContext context,
                               ReadOnlySpan<char> paramName,
                               ReadOnlySpan<char> paramValue,
-                              string[] paramArgs,
+                              ReadOnlyCollection<ArgumentElement> paramArgs,
                               int position,
                               string optionPrefix,
                               string prefix = "")
@@ -434,52 +446,58 @@ public class ParamCompleter
         // See: https://github.com/PowerShell/PowerShell/issues/6291
         //
         // Quoting completion text for proper handling.
-        bool shouldBeQuoted = !string.IsNullOrEmpty(prefix) && optionPrefix == "-";
-        if (shouldBeQuoted && !context.WordToComplete.StartsWith('-'))
-        {
-            // As a workaround, fix to quoted value
-            var cv = new CompletionValue($"{paramValue}", "Fix to quoted");
-            cv.QuoteText();
-            results.Add(cv);
-            return true;
-        }
+        //
+        // FIXME: 引用符が処理されていない生データの paramValue が欲しい。
+        //
+        // bool shouldBeQuoted = !string.IsNullOrEmpty(prefix) && optionPrefix == "-";
+        // if (shouldBeQuoted && !context.WordToComplete.StartsWith('-'))
+        // {
+        //     // As a workaround, fix to quoted value
+        //     var cv = new CompletionValue($"{paramValue}", "Fix to quoted");
+        //     cv.QuoteText();
+        //     results.Add(cv);
+        //     return true;
+        // }
 
-        int argumentIndex = paramArgs.Length;
+        int argumentIndex = paramArgs.Count;
         var ac = Arguments.GetByArgumentIndex(argumentIndex);
         if (ac is null)
             return true;
 
         var tooltipPrefix = $"""
             {GetSyntaxes(expandArguments: false)} : {Description}
-            {(paramArgs.Length > 1 ? $"[{argumentIndex + 1}]" : "")}{ac.Name}:
+            {(paramArgs.Count > 1 ? $"[{argumentIndex + 1}]" : "")}{ac.Name}:
             """;
 
         NativeCompleter.Debug($"[{context.Name}] Start Completion: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-        IEnumerable<CompletionData> candidates;
-        if (ac.List)
+        var cursorElement = context.CursorElement;
+        if (cursorElement.IsAvailable)
         {
-            var result = Helper.ResolveListElement(paramValue, position);
-            if (result.Index > 0)
+            if (cursorElement.Index > 0)
             {
+                if (!ac.List)
+                {
+                    // Don't perform completion if the argument completer does not support comma-separated list.
+                    return true;
+                }
                 prefix = string.Empty;
+                position = context.GetCursorOffsetInValue(cursorElement.Element);
+                paramValue = cursorElement.Element.Value;
             }
-            NativeCompleter.Debug($"[{context.Name}] CompleteValue[List]: {{ name '{paramName}', value: '{result.Slice(paramValue)}', position: {result.Range.Start}, prefix: '{prefix}' }}");
-            candidates = ac.Complete(context, result.Slice(paramValue), result.OffsetPosition, argumentIndex);
-        }
-        else
-        {
             NativeCompleter.Debug($"[{context.Name}] CompleteValue: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-            candidates = ac.Complete(context, paramValue, position, argumentIndex);
-        }
 
-        int count = 0;
-        foreach (var data in candidates)
-        {
-            results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
-            NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
-            count++;
+            // TODO: should care quoted text
+
+            int count = 0;
+            foreach (var data in ac.Complete(context, paramValue, position, argumentIndex))
+            {
+                results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
+                NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
+                count++;
+            }
+            NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
+            return true;
         }
-        NativeCompleter.Debug($"  ArgumentCompleter results {{ count = {count} }}");
         return true;
     }
 }

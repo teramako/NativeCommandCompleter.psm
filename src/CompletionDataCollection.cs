@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Host;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// Collection to store completion data

@@ -1,4 +1,4 @@
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// A command and parameter argument completer.
@@ -12,14 +12,15 @@ public class ArgumentCompleterWithType : ArgumentCompleterBase
     public ArgumentType Type { get; init; }
 
     public override IEnumerable<CompletionData> Complete(CompletionContext context,
-                                                         ReadOnlySpan<char> tokenValue,
+                                                         ReadOnlySpan<char> wordToComplete,
                                                          int offsetPosition,
                                                          int argumentIndex)
     {
         return Type switch
         {
-            ArgumentType.File => Helper.CompleteFilename($"{tokenValue}", $"{context.CurrentDirectory}", true, false),
-            ArgumentType.Directory => Helper.CompleteFilename($"{tokenValue}", $"{context.CurrentDirectory}", true, true),
+            ArgumentType.File => Helper.CompleteFilename($"{wordToComplete}", $"{context.CurrentDirectory}", true, false),
+            ArgumentType.Directory => Helper.CompleteFilename($"{wordToComplete}", $"{context.CurrentDirectory}", true, true),
+            ArgumentType.Command or ArgumentType.DelegatingCommand => Helper.CompleteCommandOrFilename(context),
             _ => []
         };
     }

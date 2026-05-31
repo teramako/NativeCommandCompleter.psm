@@ -1,10 +1,10 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
-ms.date: 04/25/2026
+Module Name: Sabamiso.psm
+ms.date: 05/31/2026
 PlatyPS schema version: 2024-05-01
 title: New-ArgumentCompleter
 ---
@@ -14,6 +14,23 @@ title: New-ArgumentCompleter
 ## SYNOPSIS
 
 Create an argument definition for commands and parameters.
+
+An argument definition consists of:
+
+- **Basic properties**
+  - `Name`
+  - `Description`
+  - `Nargs`
+  - `List`
+
+- **One (and only one) completer source**
+  - `Type`
+  - `Candidates`
+  - `Script`
+
+> [!NOTE]
+> `Type`, `Candidates`, and `Script` are *mutually exclusive*.
+> Only one of them can be specified in a single argument definition.
 
 ## SYNTAX
 
@@ -81,7 +98,8 @@ New-ArgumentCompleter -Name animal -Candidates "dog", "cat"
 
 ```powershell
 New-ArgumentCompleter -Name animal -Script {
-  $q = $this.WordToComplete + "*"
+  param([string] $wordToComplete, [int] $offsetPosition, [int] $argumentIndex)
+  $q = $wordToComplete + "*"
   "dog", "cat" | Where-Object { $_ -like $q }
 }
 ```
@@ -93,7 +111,7 @@ New-ArgumentCompleter -Name animal -Script {
 Array of static completion candidates.
 
 ```yaml
-Type: MT.Comp.CompletionValue[]
+Type: Sabamiso.CompletionValue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -185,7 +203,7 @@ e.g.:
 - "?" — zero or one values (flag-or-value). This is same as "0-1"
 
 ```yaml
-Type: MT.Comp.Nargs
+Type: Sabamiso.Nargs
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -228,9 +246,13 @@ Argument type for completion.
 
 - **`File`**: Performs a file or directory path completion.
 - **`Directory`**: Performs directory path completion.
+- **`Command`**: Performs command or file completion.
+- **`DelegatingCommand`**: Same as `Command`, but subsequent arguments are passed to that command. (used for like such as `sudo` and `time`)
+
+This parameter belongs to the `WithType` parameter set and cannot be used together with `-Candidates` or `-Script`.
 
 ```yaml
-Type: MT.Comp.ArgumentType
+Type: Sabamiso.ArgumentType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -259,11 +281,11 @@ None
 
 ## OUTPUTS
 
-### MT.Comp.ArgumentCompleterWithType
+### Sabamiso.ArgumentCompleterWithType
 
-### MT.Comp.ArgumentCompleterWithCandidates
+### Sabamiso.ArgumentCompleterWithCandidates
 
-### MT.Comp.ArgumentCompleterWithScript
+### Sabamiso.ArgumentCompleterWithScript
 
 ## NOTES
 
@@ -271,4 +293,4 @@ None
 
 - [New-ParamCompleter](./New-ParamCompleter.md)
 - [New-CommandCompleter](./New-CommandCompleter.md)
-- [Register-NativeCommandCompleter](./Register-NativeCommandCompleter.md)
+- [Register-Sabamiso](./Register-Sabamiso.md)

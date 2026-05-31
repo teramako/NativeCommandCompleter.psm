@@ -4,19 +4,19 @@ Help Version: 1.0.0.0
 HelpInfoUri: ''
 Locale: en-US
 Module Guid: 5fa2cf45-9bbe-4ad1-82d4-7aaa6e886cb7
-Module Name: NativeCommandCompleter.psm
+Module Name: Sabamiso.psm
 ms.date: 04/25/2026
 PlatyPS schema version: 2024-05-01
-title: NativeCommandCompleter.psm Module
+title: Sabamiso.psm Module
 ---
 
-# NativeCommandCompleter.psm Module
+# Sabamiso.psm Module
 
 ## Description
 
 Native Command Completer
 
-## NativeCommandCompleter.psm Cmdlets
+## Sabamiso.psm Cmdlets
 
 ### [Get-NativeCompleterScript](Get-NativeCompleterScript.md)
 

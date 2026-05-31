@@ -1,4 +1,4 @@
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// Interface for argument completers, which provides completion candidates for command and parameter arguments.
@@ -21,18 +21,6 @@ public interface IArgumentCompleter
     Nargs Nargs { get; }
 
     /// <summary>
-    /// Indicates that the arguments is required or optional
-    /// </summary>
-    /// <seealso cref="Nargs"/>
-    bool Required { get; }
-
-    /// <summary>
-    /// Indicates whether all remaining arguments are accepted.
-    /// </summary>
-    /// <seealso cref="Nargs"/>
-    bool Remainings { get; }
-
-    /// <summary>
     /// Indicates that the argument is a comma-separated list
     /// </summary>
     bool List { get; }
@@ -41,9 +29,9 @@ public interface IArgumentCompleter
     /// Returns completion candidates for the argument
     /// </summary>
     /// <param name="context">The completion context</param>
-    /// <param name="tokenValue">The token value to be completed</param>
-    /// <param name="offsetPosition">The offset position of the token value</param>
-    /// <param name="argumentIndex">The index of the argument in the command</param
+    /// <param name="wordToComplete">The word to be completed</param>
+    /// <param name="offsetPosition">The offset position of the <paramref name="wordToComplete"/></param>
+    /// <param name="argumentIndex">The index of the argument in the command</param>
     /// <returns>Completion candidates</returns>
-    IEnumerable<CompletionData> Complete(CompletionContext context, ReadOnlySpan<char> tokenValue, int offsetPosition, int argumentIndex);
+    IEnumerable<CompletionData> Complete(CompletionContext context, ReadOnlySpan<char> wordToComplete, int offsetPosition, int argumentIndex);
 }

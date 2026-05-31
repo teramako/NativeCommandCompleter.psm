@@ -1,6 +1,6 @@
 # Arguments specification
 
-To complete an argument, define "Arguments" for completing arguments of commands or parameters.
+Arguments define how to complete argument values for commands or parameters.
 
 ```powershell
 New-CommandCompleter ... -Arguments [argumentDefinitions]
@@ -13,9 +13,9 @@ New-ParamCompleter ... -Arguments [argumentDefinitions]
 
 There are two ways to define "Arguments": using the [New-ArgumentCompleter] cmdlet and using a PowerShell Hashtable literal.
 
-[New-CommandCompleter]: ./NativeCommandCompleter.psm/New-CommandCompleter.md
-[New-ParamCompleter]: ./NativeCommandCompleter.psm/New-ParamCompleter.md
-[New-ArgumentCompleter]: ./NativeCommandCompleter.psm/New-ArgumentCompleter.md
+[New-CommandCompleter]: ./Sabamiso.psm/New-CommandCompleter.md
+[New-ParamCompleter]: ./Sabamiso.psm/New-ParamCompleter.md
+[New-ArgumentCompleter]: ./Sabamiso.psm/New-ArgumentCompleter.md
 
 ## Define with `New-ArgumentCompleter` cmdlet
 
@@ -34,17 +34,23 @@ For details on the syntax, see [New-ArgumentCompleter].
 }
 ```
 
-### Additional completer definition
+### Additional Keys and Values (mutually exclusive)
+
+The following keys define **how completion candidates are generated**.
+
+**Only one of these keys can be specified at a time**:
+`Type`, `Candidates`, or `Script`.
 
 #### With `Type`
 
 To configure type-based autocompletion, specify the type using the `Type` key.
 
-| Type        | Description                  |
-|:------------|:-----------------------------|
-| `File`      | File or directory completion |
-| `Directory` | Directory completion         |
-
+| Type                 | Description                                                                                     |
+|:---------------------|:------------------------------------------------------------------------------------------------|
+| `File`               | File or directory completion                                                                    |
+| `Directory`          | Directory completion                                                                            |
+| `Command`            | Command or file completion                                                                      |
+| `DelegatingCommand`  | Same as `Command`, but subsequent arguments are passed to that command                          |
 
 ##### Example: File or Directory completion
 ```powershell
@@ -57,7 +63,7 @@ To configure type-based autocompletion, specify the type using the `Type` key.
 
 #### With `Candidates`
 
-To use a list of static completion candidates, set the completion list in the `Candidates` key.
+Static completion list:
 
 ```powershell
 @{
@@ -72,13 +78,14 @@ This is probably the easiest format to handle.
 
 #### With `Script`
 
-To generate dynamic completion candidates using a PowerShell script, set the `Script` key to `ScriptBlock`.
+Dynamic completion using a ScriptBlock:
 
 ```powershell
 @{
     Name = "animal";
     Script = {
-        $q = $this.WordToComplete + "*"
+        param([string] $wordToComplete, [int] $offsetPosition, [int] $argumentIndex)
+        $q = $wordToComplete + "*"
         "textA", "textB", "textC" | Where-Object { $_ -like $q } # outputs of the completion list
     }
 }
@@ -86,46 +93,37 @@ To generate dynamic completion candidates using a PowerShell script, set the `Sc
 
 ## Script specification
 
-A script that returns a completion list of arguments dynamically.
+A script that returns completion candidates dynamically.
 
-### Automatic Variabls
+### Automatic Variabls in ScriptBlock
 
 | Name             | Type              | Description       |
 |:-----------------|:-----------------:|:------------------|
-| `$_`             | string            | Word to complete. |
-| `$this`          | CompletionContext | Objects with different values as a result of command line parsing. |
+| `$this`          | CompletionContext | Parsed command-line context |
 
 ### Arguments
 
 | Index | Type              | Description       |
 |:------|:-----------------:|:------------------|
-| 0     | int               | Cursor position in the word to be completed. |
-| 1     | int               | Index of the list of arguments not parsed into parameters.(starting with `0`). |
+| 0     | string            | Word to complete. |
+| 1     | int               | Cursor position within the word. |
+| 2     | int               | Index of the argument (0-based). |
 
 > [!WARNING]
-> Other variables and functions defined outside of a `ScriptBlock` cannot be referenced.
-> This is because they are kicked in a different context.
->
-> ```powershell
-> $outsideVariable = 10;
-> New-ParamCompleter ... -Arguments @{
->     Name = "arg";
->     Script = {
->         $outsideVariable # <- cannt reference
->     }
-> }
-> ```
+> The first argument, which is the word to complete, may differ from PowerShell's native `$wordToComplete`.
+> - Quotes are removed (`'abc'` → `abc`)
+> - For `--opt=value`, only `value` is passed
 
 ### Outputs
 
 Following types are supported:
 
-- `MT.Comp.CompletionValue`
+- `Sabamiso.CompletionValue`
 - `System.Management.Automation.CompletionResult`
 - `string`: A completion text and description delimited by a leading tab (`\t`) or newline (`\n`, `\r`) character.
 - `Array`: Array of completion text and descriptions.
 
-#### `MT.Comp.CompletionValue`
+#### `Sabamiso.CompletionValue`
 
 The output of the script is eventually converted to this `CompletionValue` object.
 
@@ -186,7 +184,7 @@ New-CommandCompleter -Name readtxt -Arguments @{
     Name = "textfile";
     Nargs = "1+";
     Script = {
-        [MT.Comp.Helper]::CompleteFilename($this, $false, $false, {
+        [Sabamiso.Helper]::CompleteFilename($this, $false, $false, {
             $_.Attributes.HasFlag([System.IO.FileAttributes]::Directory) -or $_.Extension -eq ".txt"
         })
     }

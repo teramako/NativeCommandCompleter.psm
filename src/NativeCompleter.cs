@@ -6,7 +6,7 @@ using System.Management.Automation;
 using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 public static class NativeCompleter
 {
@@ -188,7 +188,7 @@ public static class NativeCompleter
         };
         if (TryGetCommandCompleter(cmdName, scriptParameters, out var commandCompleter, out var loadResults))
         {
-            var context = CompletionContext.Create(commandCompleter, wordToComplete, commandAst, cursorPosition, host, cwd);
+            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition, host, cwd);
             LatestContext = context;
             return context.Complete();
         }

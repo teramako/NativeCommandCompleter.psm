@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Test NativeCommandCompleter.psm
+Test Sabamiso.psm
 
 .PARAMETER FullName
 Filter names
@@ -11,7 +11,7 @@ param(
 )
 
 $ParnetDir = Join-Path -Path $PSScriptRoot -ChildPath .. -Resolve
-Import-Module (Join-Path -Path $ParnetDir -ChildPath NativeCommandCompleter.psm.psd1)
+Import-Module (Join-Path -Path $ParnetDir -ChildPath Sabamiso.psm.psd1)
 Import-Module -Name Pester
 
 $conf = New-PesterConfiguration

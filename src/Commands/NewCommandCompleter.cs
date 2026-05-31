@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 [Cmdlet(VerbsCommon.New, "CommandCompleter")]
 [OutputType(typeof(CommandCompleter))]
@@ -43,10 +42,6 @@ public class NewCommandCompleterCommand : CommandCompleterBase
     [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "CustomStyle")]
     public ParameterStyle? CustomStyle { get; set; }
 
-    [Parameter(HelpMessageBaseName = MessageBaseName, HelpMessageResourceId = "DelegateArgumentIndex")]
-    [ValidateRange(0, int.MaxValue)]
-    public int DelegateArgumentIndex { get; set; } = -1;
-
     protected override void EndProcessing()
     {
         var defaultParameterStyle = CustomStyle is not null
@@ -60,8 +55,7 @@ public class NewCommandCompleterCommand : CommandCompleterBase
                                            SubCommands,
                                            defaultParameterStyle,
                                            Arguments,
-                                           NoFileCompletions,
-                                           DelegateArgumentIndex),
+                                           NoFileCompletions),
                     false);
     }
 }

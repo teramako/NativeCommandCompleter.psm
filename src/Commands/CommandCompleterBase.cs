@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace MT.Comp.Commands;
+namespace Sabamiso.Commands;
 
 public enum CommandParameterStyle
 {
@@ -36,7 +36,7 @@ public enum CommandParameterStyle
 
 public abstract class CommandCompleterBase : PSCmdlet
 {
-    protected const string MessageBaseName = "MT.Comp.resources.CommandCompleter";
+    protected const string MessageBaseName = "Sabamiso.resources.CommandCompleter";
 
     protected CommandCompleter CreateCommandCompleter(string name,
                                                       string description,
@@ -45,8 +45,7 @@ public abstract class CommandCompleterBase : PSCmdlet
                                                       CommandCompleter[] subCommands,
                                                       ParameterStyle style,
                                                       ArgumentCompleterCollection? argumentCompleters = null,
-                                                      bool noFileCompletions = false,
-                                                      int delegateArgumentIndex = -1)
+                                                      bool noFileCompletions = false)
     {
         argumentCompleters ??= [];
         CommandCompleter completer = WildcardPattern.ContainsWildcardCharacters(name)
@@ -55,14 +54,12 @@ public abstract class CommandCompleterBase : PSCmdlet
                 Aliases = aliases,
                 Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
-                DelegateArgumentIndex = delegateArgumentIndex,
             }
             : new CommandCompleter(name, description, style, paramCompleters, subCommands)
             {
                 Aliases = aliases,
                 Arguments = argumentCompleters,
                 NoFileCompletions = noFileCompletions,
-                DelegateArgumentIndex = delegateArgumentIndex,
             };
         return completer;
     }

@@ -11,7 +11,7 @@ Sleep 1s
 Type "Set-PSReadLineKeyHandler -Chord 'Ctrl+o' MenuComplete"
 Enter
 
-Type "Import-Module -Name NativeCommandCompleter.psm"
+Type "Import-Module -Name Sabamiso.psm"
 Enter
 Sleep 1s
 

@@ -1,9 +1,9 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
+Module Name: Sabamiso.psm
 ms.date: 03/21/2026
 PlatyPS schema version: 2024-05-01
 title: Get-NativeCompleterScript
@@ -110,7 +110,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### MT.Comp.CompleterScript
+### Sabamiso.CompleterScript
 
 An object with the following properties:
 

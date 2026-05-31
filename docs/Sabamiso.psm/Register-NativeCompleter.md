@@ -1,50 +1,53 @@
 ---
 document type: cmdlet
-external help file: NativeCommandCompleter.dll-Help.xml
+external help file: Sabamiso.dll-Help.xml
 HelpUri: ''
 Locale: en-US
-Module Name: NativeCommandCompleter.psm
-ms.date: 04/22/2026
+Module Name: Sabamiso.psm
+ms.date: 05/06/2026
 PlatyPS schema version: 2024-05-01
-title: New-CommandCompleter
+title: Register-NativeCompleter
 ---
 
-# New-CommandCompleter
+# Register-NativeCompleter
 
 ## SYNOPSIS
 
-Create a CommandCompleter object.
+Create and register a CommandCompleter object.
 
 ## SYNTAX
 
-### __AllParameterSets
+### New
 
 ```
-New-CommandCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
+Register-NativeCompleter [-Name] <string> [[-Description] <string>] [-Aliases <string[]>]
  [-Parameters <ParamCompleter[]>] [-SubCommands <CommandCompleter[]>]
- [-Arguments <ArgumentCompleterCollection>] [-NoFileCompletions] [-Style <CommandParameterStyle>]
- [-CustomStyle <ParameterStyle>] [-DelegateArgumentIndex <int>]
+ [-Arguments <ArgumentCompleterCollection>] [-Style <CommandParameterStyle>]
+ [-CustomStyle <ParameterStyle>] [-NoFileCompletions] [-Force] [<CommonParameters>]
+```
+
+### Input
+
+```
+Register-NativeCompleter [-Completer] <CommandCompleter> [-Force] [<CommonParameters>]
 ```
 
 ## ALIASES
 
 ## DESCRIPTION
 
-Create a CommandCompleter object and output.
-Unlike `Register-NativeCompleter`, it does not register the completer.
+Create and **register** a CommandCompleter object.
 
-Typically, this command will be used for creating subcommands.
-It would be easier to use `Register-NativeCompleter`, which can also be registered for normal commands.
+Typically, this command will be used for registering normal commands not subcommands.
 
 ## EXAMPLES
 
-### Example 1. Create a completer
+### Example 1. Register normal command
 
 ```powershell
-$completer = New-CommandCompleter -Name cmd-name -Description 'command explanation' -Parameters @(
+Register-NativeCompleter -Name cmd-name -Parameters @(
     New-ParamCompleter -ShortName h -LongName help -Description 'Display help'
-) -SubCommands @(
-    New-CommandCompleter -Name sub-command-name -Description '...' # -Parameters ... -SubCommands ...
+    # ...
 )
 ```
 
@@ -60,7 +63,7 @@ DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -87,20 +90,20 @@ For examples:
 
 ```powershell
 # Perform file‑path completion for one or more arguments
-New-CommandCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
+Register-NativeCompleter ... -Arguments @{ Name = 'path'; Type = 'File'; Nargs = '1+' }
 
 # Perform autocompletion from a statically defined list
-New-CommandCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
+Register-NativeCompleter ... -Arguments @{ Name = 'animal'; Candidates = "dog", "cat"; }
 
 # Define separate completers for two arguments
-New-CommandCompleter ... -Arguments @{
+Register-NativeCompleter ... -Arguments @{
   Name = '1st'; Candidates = "A", "B", "C";
 }, @{
   Name = '2nd'; Candidates = "X", "Y", "Z"
 }
 
 # Use a script block for dynamic autocompletion
-New-CommandCompleter ... -Arguments @{
+Register-NativeCompleter ... -Arguments @{
   Name = 'animal';
   Script = {
     param([int] $position, [int] $argumentIndex)
@@ -115,17 +118,39 @@ New-CommandCompleter ... -Arguments @{
 For more details, see [Arguments specification](../about_Arguments_spec.md).
 
 ```yaml
-Type: MT.Comp.ArgumentCompleterCollection
+Type: Sabamiso.ArgumentCompleterCollection
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - a
 - ArgumentCompleter
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Completer
+
+Specify the CommadCompleter object to be registered.
+Typically, used for registering the command completer which created by `New-CommandCompleter` cmdlet.
+
+```yaml
+Type: Sabamiso.CommandCompleter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Input
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -139,40 +164,12 @@ Sets a special non-standard parameter style.
 This setting is inherited by each parameter.
 
 ```yaml
-Type: MT.Comp.ParameterStyle
+Type: Sabamiso.ParameterStyle
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -DelegateArgumentIndex
-
-Argument index of a command to delegate completions.
-
-Specifies the index of the argument that will be "{COMMAND}". (starting from 0)
-
-For examples:
-
- - `sudo {COMMAND} [args...]`
- - `time {COMMAND} [args...]`
-
-```yaml
-Type: System.Int32
-DefaultValue: -1
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -186,7 +183,6 @@ HelpMessage: ''
 ### -Description
 
 Command Description.
-This is primarily used to output a completion list of subcommands.
 
 ```yaml
 Type: System.String
@@ -195,8 +191,30 @@ SupportsWildcards: false
 Aliases:
 - d
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Force
+
+Even if a command with the same name is already registered, it will be forcibly overwritten.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- f
+ParameterSets:
+- Name: (All)
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -217,7 +235,7 @@ SupportsWildcards: false
 Aliases:
 - n
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: 0
   IsRequired: true
   ValueFromPipeline: false
@@ -238,7 +256,7 @@ DefaultValue: false
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -254,13 +272,13 @@ HelpMessage: ''
 List of parameters that can be used in the command or subcommand.
 
 ```yaml
-Type: MT.Comp.ParamCompleter[]
+Type: Sabamiso.ParamCompleter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - p
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -279,15 +297,16 @@ Availables:
 
 - `GNU`: Set long option prefix to `--`, short option prefix to `-` and value spprator to `=`. (Default)
 - `Windows`: Set short option prefix to `-` and value spprator to `:`.
+- `Unix`: Similer to `GNU`, but disallow adjacent value parameter like `-key=value`
 
 ```yaml
-Type: MT.Comp.Commands.CommandParameterStyle
+Type: Sabamiso.Commands.CommandParameterStyle
 DefaultValue: GNU
 SupportsWildcards: false
 Aliases:
 - t
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -303,13 +322,13 @@ HelpMessage: ''
 List of subcommands.
 
 ```yaml
-Type: MT.Comp.CommandCompleter[]
+Type: Sabamiso.CommandCompleter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - s
 ParameterSets:
-- Name: (All)
+- Name: New
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -329,15 +348,20 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### Sabamiso.CommandCompleter
+
+Registers the CommandCompleter input from the pipeline.
+
 ## OUTPUTS
 
-### MT.Comp.CommandCompleter
+### System.Void
 
-Created command completer.
+None of output
 
 ## NOTES
 
 ## RELATED LINKS
 
-- [Register-NativeCommandCompleter](./Register-NativeCommandCompleter.md)
+- [New-CommandCompleter](./New-CommandCompleter.md)
 - [New-ParamCompleter](./New-ParamCompleter.md)
+- [Unregister-NativeCompleter](./Unregister-NativeCompleter.md)

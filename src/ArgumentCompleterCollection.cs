@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text;
 
-namespace MT.Comp;
+namespace Sabamiso;
 
 /// <summary>
 /// <see cref="IArgumentCompleter"/> 's container
@@ -33,11 +33,11 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
         if (Count > 0)
         {
             var lastAc = this[^1];
-            if (lastAc.Remainings)
+            if (lastAc.Nargs.ConsumeRest)
             {
                 throw new ArgumentException($"Could not add because the last completer's `Remaining` flag is set: {lastAc}");
             }
-            if (!lastAc.Required && ac.Required)
+            if (lastAc.Nargs.MinCount == 0 && ac.Nargs.MinCount > 0)
             {
                 throw new ArgumentException($"Cound not add a required item after a non-required item.");
 
@@ -70,7 +70,7 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
                 sb.Append(' ');
 
             var name = ac.List ? $"{ac.Name}[,…]" : ac.Name;
-            if (!ac.Required)
+            if (ac.Nargs.MinCount == 0)
             {
                 if (i > 0 || !asRequired)
                 {
@@ -83,7 +83,7 @@ public class ArgumentCompleterCollection : Collection<IArgumentCompleter>
             {
                 sb.AppendJoin(' ', Enumerable.Repeat(name, ac.Nargs.MinCount));
             }
-            if (ac.Remainings)
+            if (ac.Nargs.ConsumeRest)
             {
                 sb.Append(" …");
             }

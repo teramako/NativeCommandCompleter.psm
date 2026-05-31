@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Root module of NativeCommandCompleter.psm
+    Root module of Sabamiso.psm
 .DESCRIPTION
     1. Setup `PS_COMPLETE_PATH` environment variable, if not defined
     2. Register completer as `NativeFallback`
@@ -22,6 +22,6 @@ if ([string]::IsNullOrEmpty($env:PS_COMPLETE_PATH))
 Register-ArgumentCompleter -NativeFallback -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
     $currentDirectory = Get-Location -PSProvider FileSystem
-    [MT.Comp.NativeCompleter]::Complete($wordToComplete, $commandAst, $cursorPosition, $Host, $currentDirectory)
+    [Sabamiso.NativeCompleter]::Complete($wordToComplete, $commandAst, $cursorPosition, $Host, $currentDirectory)
 }
 

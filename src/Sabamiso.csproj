@@ -5,16 +5,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutDir>../libs</OutDir>
-    <VersionPrefix>0.3.0</VersionPrefix>
+    <VersionPrefix>0.4.0</VersionPrefix>
 
-    <AssemblyName>NativeCommandCompleter</AssemblyName>
-    <RootNamespace>MT.Comp</RootNamespace>
+    <AssemblyName>Sabamiso</AssemblyName>
+    <RootNamespace>Sabamiso</RootNamespace>
 
     <!-- Disable deps.json generation -->
     <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.4.*" PrivateAssets="All"/>
+    <PackageReference Include="System.Management.Automation" Version="7.6.*" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
