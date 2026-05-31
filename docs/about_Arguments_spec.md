@@ -1,6 +1,6 @@
 # Arguments specification
 
-To complete an argument, define "Arguments" for completing arguments of commands or parameters.
+Arguments define how to complete argument values for commands or parameters.
 
 ```powershell
 New-CommandCompleter ... -Arguments [argumentDefinitions]
@@ -34,7 +34,12 @@ For details on the syntax, see [New-ArgumentCompleter].
 }
 ```
 
-### Additional completer definition
+### Additional Keys and Values (mutually exclusive)
+
+The following keys define **how completion candidates are generated**.
+
+**Only one of these keys can be specified at a time**:
+`Type`, `Candidates`, or `Script`.
 
 #### With `Type`
 
@@ -45,7 +50,7 @@ To configure type-based autocompletion, specify the type using the `Type` key.
 | `File`               | File or directory completion                                                                    |
 | `Directory`          | Directory completion                                                                            |
 | `Command`            | Command or file completion                                                                      |
-| `DelegatingCommand` | Just like `Command`. Additionaly, the subsequent arguments serve as arguments for that command  |
+| `DelegatingCommand`  | Same as `Command`, but subsequent arguments are passed to that command                          |
 
 ##### Example: File or Directory completion
 ```powershell
