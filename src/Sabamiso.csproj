@@ -15,6 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.4.*" PrivateAssets="All"/>
+    <PackageReference Include="System.Management.Automation" Version="7.6.*" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
