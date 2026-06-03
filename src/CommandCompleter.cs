@@ -671,12 +671,10 @@ public class CommandCompleter
             }
             ReadOnlySpan<char> paramValue = cursorElement.Element.Value;
 
-            // TODO: should care quoted text
-
             int count = 0;
             foreach (var data in ac.Complete(context, paramValue, offsetPosition, argumentIndex))
             {
-                results.Add(data.SetTooltipPrefix(tooltipPrefix));
+                results.Add(data.SetTooltipPrefix(tooltipPrefix).SetType(cursorElement.Element.Type));
                 NativeCompleter.Debug($"  Matched: '{data.Text}', '{data.ListItemText}'");
                 count++;
             }
