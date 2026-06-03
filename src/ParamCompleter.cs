@@ -400,7 +400,7 @@ public class ParamCompleter
                               ReadOnlySpan<char> paramValue,
                               ReadOnlyCollection<ArgumentElement> paramArgs,
                               int position,
-                              string prefix = "")
+                              ReadOnlySpan<char> prefix = default)
     {
         // | tokenValue  | WordToComplete | prefix | paramValue | Note
         // |:------------|:---------------|:-------|:-----------|:-------------------------------------------------
@@ -437,7 +437,7 @@ public class ParamCompleter
                     // Don't perform completion if the argument completer does not support comma-separated list.
                     return true;
                 }
-                prefix = string.Empty;
+                prefix = default;
                 position = context.GetCursorOffsetInValue(cursorElement.Element);
                 paramValue = cursorElement.Element.Value;
             }
@@ -445,7 +445,7 @@ public class ParamCompleter
             {
                 if (paramValue.ContainsAny("."))
                 {
-                    prefix = string.Empty;
+                    prefix = default;
                 }
             }
             NativeCompleter.Debug($"[{context.Name}] CompleteValue: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
@@ -455,7 +455,7 @@ public class ParamCompleter
             {
                 data.SetType(cursorElement.Element.Type, isValueAdjacentToParameter)
                     .SetTooltipPrefix(tooltipPrefix)
-                    .SetPrefix(prefix);
+                    .SetPrefix(prefix.ToString());
                 results.Add(data);
                 NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
                 count++;
