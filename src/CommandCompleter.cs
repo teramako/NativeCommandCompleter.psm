@@ -281,13 +281,14 @@ public class CommandCompleter
             return completed;
 
         var arg = context.CurrentArgument;
+        var tooltipPrefix = $"[{context.Name}] ";
         foreach (var subCommand in SubCommands.Where(subCmd => !subCmd.Hidden))
         {
             if (arg.IsEmpty
                 || subCommand.Name.StartsWith(arg.Value, StringComparison.OrdinalIgnoreCase))
             {
                 var text = subCommand.Name;
-                results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix($"[{context.Name}] "));
+                results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix(tooltipPrefix));
                 completed = true;
             }
             else if (subCommand.Aliases.Length > 0)
@@ -297,7 +298,7 @@ public class CommandCompleter
                     if (alias.StartsWith(arg.Value, StringComparison.OrdinalIgnoreCase))
                     {
                         var text = alias;
-                        results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix($"[{context.Name}] "));
+                        results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix(tooltipPrefix));
                         completed = true;
                     }
                 }
