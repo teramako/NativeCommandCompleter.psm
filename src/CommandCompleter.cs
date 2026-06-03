@@ -152,7 +152,7 @@ public class CommandCompleter
                     //      \ ^ cursor
                     //       i
                     // the argument of `c` param is NOT supplied
-                    context.SetPendingParameter(p, $"{c}", [], p.Style.ShortOptionPrefix);
+                    context.SetPendingParameter(p, $"{c}", []);
                 }
             }
             else
@@ -201,14 +201,14 @@ public class CommandCompleter
             {
                 // `-param ..value(minCount) .. | .. valueN(maxCount)
                 //                              ^ cursor
-                context.SetPendingParameter(param, $"{paramName}", paramArgs, $"{optionPrefix}", false);
+                context.SetPendingParameter(param, $"{paramName}", paramArgs, false);
             }
         }
         else
         {
             // `-param |`      or `-param value1 .. | ..valueN(minCount)
             //         ^ cursor                     ^ cursor
-            context.SetPendingParameter(param, $"{paramName}", paramArgs, $"{optionPrefix}", true);
+            context.SetPendingParameter(param, $"{paramName}", paramArgs, true);
         }
 
         return paramArgs.Length;
@@ -382,7 +382,6 @@ public class CommandCompleter
                                     paramValue,
                                     [],
                                     offsetPosition - separatorPosition - 1,
-                                    param.Style.LongOptionPrefix,
                                     $"{arg.Value[..(separatorPosition + 1)]}");
                 return true;
             }
@@ -458,7 +457,6 @@ public class CommandCompleter
                                     paramValue,
                                     [],
                                     offsetPosition - separatorPosition - 1,
-                                    param.Style.ShortOptionPrefix,
                                     $"{arg.Value[..(separatorPosition + 1)]}");
                 return true;
             }
@@ -570,7 +568,6 @@ public class CommandCompleter
                                                    arg[pending.Position..],
                                                    [],
                                                    offsetPosition - pending.Position,
-                                                   pending.Completer.Style.ShortOptionPrefix,
                                                    arg.Value[..pending.Position]);
         }
 

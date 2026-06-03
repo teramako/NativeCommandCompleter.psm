@@ -10,7 +10,6 @@ namespace Sabamiso;
 internal record PendingParamCompleter(ParamCompleter Completer,
                                       string ParamName,
                                       IList<ArgumentElement> ParamArgs,
-                                      string OptionPrefix,
                                       bool CompleteOnly);
 
 /// <param name="IsAvailable">
@@ -237,7 +236,6 @@ public sealed class CompletionContext
     /// <param name="parameter">The parameter object</param>
     /// <param name="paramName">Parameter name of the parameter</param>
     /// <param name="paramArgs">Arguments of the parameter</param>
-    /// <param name="optionPrefix">Prefix of the prameter name. e.g) <c>-</c>, <c>--</c></param>
     /// <param name="completeOnly">
     /// <see langword="true"/> for only completion of this parameter argument,
     /// <see langword="false"/> for completion of other parameters as well
@@ -245,11 +243,10 @@ public sealed class CompletionContext
     internal void SetPendingParameter(ParamCompleter parameter,
                                       string paramName,
                                       IList<ArgumentElement> paramArgs,
-                                      string optionPrefix,
                                       bool completeOnly = true)
     {
-        _pendingParam = new(parameter, paramName, paramArgs, optionPrefix, completeOnly);
-        NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}], Prefix='{optionPrefix}' }}");
+        _pendingParam = new(parameter, paramName, paramArgs, completeOnly);
+        NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}] }}");
     }
 
     /// <summary>
@@ -443,8 +440,7 @@ public sealed class CompletionContext
                                                               _pendingParam.ParamName,
                                                               CurrentArgument.Value,
                                                               _pendingParam.ParamArgs.AsReadOnly(),
-                                                              cursorOffsetPosition,
-                                                              _pendingParam.OptionPrefix);
+                                                              cursorOffsetPosition);
             if (!_pendingParam.CompleteOnly)
             {
                 completed = CommandCompleter.CompleteSubCommands(results, this);

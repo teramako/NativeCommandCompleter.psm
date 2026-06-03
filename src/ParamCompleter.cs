@@ -385,9 +385,6 @@ public class ParamCompleter
     /// <param name="paramValue">Parameter value to be completed</param>
     /// <param name="paramArgs">Other parameter arguments</param>.
     /// <param name="position">Position of cursor in <paramref name="paramValue"/></param>.
-    /// <param name="optionPrefix">
-    /// <see cref="CommandCompleter.LongOptionPrefix"/> or <see cref="CommandCompleter.ShortOptionPrefix"/>
-    /// </param>
     /// <param name="prefix">Prefix string of <paramref name="paramValue"/>.
     /// <para>
     /// e.g.)
@@ -403,7 +400,6 @@ public class ParamCompleter
                               ReadOnlySpan<char> paramValue,
                               ReadOnlyCollection<ArgumentElement> paramArgs,
                               int position,
-                              string optionPrefix,
                               string prefix = "")
     {
         // | tokenValue  | WordToComplete | prefix | paramValue | Note
