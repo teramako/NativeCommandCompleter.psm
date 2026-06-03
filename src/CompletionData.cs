@@ -13,6 +13,8 @@ public abstract class CompletionData
     protected string tooltip = string.Empty;
     protected string tooltipPrefix = string.Empty;
     protected CompletionResultType resultType;
+    protected ArgumentElementType elementType = ArgumentElementType.String;
+    protected bool isValueAdjacentToParameter = false;
 
     public string Text => text;
     // public string ListItemText => string.IsNullOrEmpty(description) ? itemText : $"{itemText}  ({description})";
@@ -92,6 +94,51 @@ public abstract class CompletionData
                + /* margin */ 2;
     }
 
+    /// <summary>
+    /// Configures settings related to whether quotation marks should be added.
+    /// </summary>
+    /// <param name="elementType">
+    /// Indicates whether the original input value (before completion) was enclosed in quotes.
+    /// <para>
+    /// This setting only takes effect when the value was originally one of:
+    /// <list type="bullet">
+    ///     <item><see cref="ArgumentElementType.StringSingleQuoted"/></item>
+    ///     <item><see cref="ArgumentElementType.StringDoubleQuoted"/></item>
+    /// </list>
+    /// </para>
+    /// </param>
+    /// <param name="isValueAdjacentToParameter">
+    /// Indicates whether the value is directly adjacent to a PowerShell-style parameter
+    /// (for example <c>-i.bak</c>), where PowerShell may incorrectly treat part of the
+    /// value as part of the parameter name.
+    /// <para>
+    /// This flag does <b>not</b> refer to Sabamiso's own parameter model (e.g. <c>--opt</c>).
+    /// It refers specifically to PowerShell's native parameter syntax that begins with a
+    /// single dash (<c>-</c>).
+    /// </para>
+    /// <para>
+    /// When this flag is true, quoting rules become stricter to avoid PowerShell's
+    /// tokenization issue described in:
+    /// https://github.com/PowerShell/PowerShell/issues/6291
+    /// </para>
+    /// </param>
+    public CompletionData SetType(ArgumentElementType elementType, bool isValueAdjacentToParameter = false)
+    {
+        this.elementType = elementType;
+        this.isValueAdjacentToParameter = isValueAdjacentToParameter;
+        return this;
+    }
+    public void SetOptions(string prefix = "",
+                           string tooltipPrefix = "",
+                           ArgumentElementType elementType = ArgumentElementType.String,
+                           bool isValueAdjacentToParameter = false)
+    {
+        this.prefix = prefix;
+        this.tooltipPrefix = tooltipPrefix;
+        this.elementType = elementType;
+        this.isValueAdjacentToParameter = isValueAdjacentToParameter;
+    }
+
     public CompletionData SetPrefix(string prefix)
     {
         this.prefix = prefix;
@@ -109,7 +156,7 @@ public abstract class CompletionData
     /// <returns></returns>
     public CompletionResult Build()
     {
-        return new($"{prefix}{text}", ListItemText, ResultType, Tooltip);
+        return new(BuildText(), ListItemText, ResultType, Tooltip);
     }
 
     /// <summary>
@@ -120,7 +167,7 @@ public abstract class CompletionData
     /// <returns></returns>
     public CompletionResult Build(PSHost host, int maxLength)
     {
-        return new($"{prefix}{text}",
+        return new(BuildText(),
                    GetListItemTextRightAligned(host, maxLength),
                    resultType,
                    Tooltip);
@@ -143,6 +190,69 @@ public abstract class CompletionData
         }
         var trimedValue = value.TrimEnd();
         text = $"{q}{trimedValue}{q}{value[trimedValue.Length..]}";
+    }
+
+    /// <summary>
+    /// token-breaking characters of PowerShell
+    /// </summary>
+    private const string MetaChars = "\"'{}()<>;|& ";
+    /// <summary>
+    /// token-breaking characters of PowerShell
+    /// <para>
+    /// This is a workaround for PowerShell's parsing behavior described in:
+    /// https://github.com/PowerShell/PowerShell/issues/6291
+    /// When a parameter and its value are adjacent (e.g. <c>-i.bak</c>),
+    /// PowerShell may incorrectly treat the value as part of the parameter name.
+    /// To avoid this, values containing <c>.</c> must be quoted.
+    /// </para>
+    /// </summary>
+    private const string MetaChars2 = ".\"'{}()<>;|& ";
+
+    private static bool NeedsQuoting(ReadOnlySpan<char> rawText, bool isValueAdjacentToParameter = false)
+    {
+        if (rawText.IsEmpty)
+            return false;
+
+        if (IsFullyQuoted(rawText))
+            return false;
+
+        if (isValueAdjacentToParameter && rawText.ContainsAny(MetaChars2))
+            return true;
+
+        if (rawText.ContainsAny(MetaChars))
+            return true;
+
+        return false;
+    }
+    private static bool IsFullyQuoted(ReadOnlySpan<char> text)
+    {
+        if (text.Length < 2)
+            return false;
+
+        char first = text[0];
+        char last = text[^1];
+
+        if (first != last)
+            return false;
+
+        if (first != '\'' && first != '"')
+            return false;
+
+        return true;
+    }
+
+    private string BuildText()
+    {
+        if (elementType is ArgumentElementType.StringSingleQuoted)
+            return Helper.Quote('\'', prefix, text);
+
+        if (elementType is ArgumentElementType.StringDoubleQuoted)
+            return Helper.Quote('"', prefix, text);
+
+        if (NeedsQuoting(text, isValueAdjacentToParameter))
+            return $"{prefix}{Helper.Quote('\'', text)}";
+
+        return $"{prefix}{text}";
     }
 }
 
