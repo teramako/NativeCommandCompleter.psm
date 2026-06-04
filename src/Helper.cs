@@ -108,6 +108,15 @@ public static class Helper
         foreach (string path in directoryEnumerator)
         {
             var file = new FileInfo(path);
+            bool isDirectory;
+            try
+            {
+                isDirectory = file.Attributes.HasFlag(FileAttributes.Directory);
+            }
+            catch
+            {
+                continue;
+            }
             bool filtered = false;
             if (filter is not null)
             {
@@ -167,7 +176,7 @@ public static class Helper
                 text = $"'{text}'";
             }
 
-            if (file.Attributes.HasFlag(FileAttributes.Directory))
+            if (isDirectory)
             {
                 results.Add(new CompletionValue(text, "Directory", $"{file.Name}{Path.DirectorySeparatorChar}",
                                                 file.FullName, CompletionResultType.ProviderContainer));
