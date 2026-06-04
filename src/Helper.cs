@@ -163,19 +163,6 @@ public static class Helper
                 text = $"{prefix}{file.FullName}{suffix}";
             }
 
-            if (quote > 0)
-            {
-                text = $"{quote}{text}{quote}";
-            }
-            else if (text.Contains(' '))
-            {
-                text = $"'{text}'";
-            }
-            else if (text[0] is '@' or '$')
-            {
-                text = $"'{text}'";
-            }
-
             if (isDirectory)
             {
                 results.Add(new CompletionValue(text, "Directory", $"{file.Name}{Path.DirectorySeparatorChar}",
