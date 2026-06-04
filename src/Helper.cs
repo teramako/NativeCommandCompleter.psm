@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Management.Automation;
+using System.Text;
 
 namespace Sabamiso;
 
@@ -206,6 +207,70 @@ public static class Helper
             {
                 yield return result;
             }
+        }
+    }
+
+    /// <summary>
+    /// Reconstructs a PowerShell-valid string representation of this argument.
+    /// </summary>
+    /// <remarks>
+    /// If <paramref name="quote"/> is one of the following, the <paramref name="text"/> is
+    /// enclosed in the corresponding quotation marks, and any quotation marks
+    /// inside the content are escaped according to PowerShell rules:
+    /// <list type="bullet">
+    ///     <item><term><c>'</c></term><description>enclosed in single quotes, internal <c>'</c> becomes <c>''</c></description></item>
+    ///     <item><term><c>"</c></term><description>enclosed in double quotes, internal <c>"</c> becomes <c>""</c></description></item>
+    /// </list>
+    /// For all other types (e.g., bare words), <see cref="Value"/> is returned as-is.
+    /// </remarks>
+    /// <param name="quote"></param>
+    /// <param name="text"></param>
+    public static string Quote(char quote, ReadOnlySpan<char> text)
+    {
+        StringBuilder sb = new(text.Length + 2);
+        sb.Append(quote);
+        Quote(sb, text, quote);
+        sb.Append(quote);
+        return sb.ToString();
+    }
+
+    internal static string Quote(char quote, ReadOnlySpan<char> text1, ReadOnlySpan<char> text2)
+    {
+        StringBuilder sb = new(text1.Length + text2.Length + 2);
+        sb.Append(quote);
+        Quote(sb, text1, quote);
+        Quote(sb, text2, quote);
+        sb.Append(quote);
+        return sb.ToString();
+    }
+
+    internal static void Quote(StringBuilder sb, ReadOnlySpan<char> text, char quote)
+    {
+        if (quote is '\'')
+        {
+            foreach (char c in text)
+            {
+                if (c == quote)
+                    sb.Append(c, 2);
+                else
+                    sb.Append(c);
+            }
+        }
+        else if (quote is '"')
+        {
+            foreach (char c in text)
+            {
+                if (c is '"')
+                    sb.Append("`\"");
+                else if (c is '`')
+                    sb.Append("``");
+                else
+                    sb.Append(c);
+            }
+        }
+        else
+        {
+            sb.Append(text);
         }
     }
 }
