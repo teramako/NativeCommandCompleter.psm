@@ -383,7 +383,7 @@ public class CommandCompleter
                                     paramValue,
                                     [],
                                     offsetPosition - separatorPosition - 1,
-                                    arg.Value.AsSpan(..(separatorPosition + 1)));
+                                    arg[..(separatorPosition + 1)]);
                 return true;
             }
         }
@@ -458,7 +458,7 @@ public class CommandCompleter
                                     paramValue,
                                     [],
                                     offsetPosition - separatorPosition - 1,
-                                    $"{arg.Value[..(separatorPosition + 1)]}");
+                                    arg[..(separatorPosition + 1)]);
                 return true;
             }
         }
@@ -569,7 +569,7 @@ public class CommandCompleter
                                                    arg[pending.Position..],
                                                    [],
                                                    offsetPosition - pending.Position,
-                                                   arg.Value[..pending.Position]);
+                                                   arg[..pending.Position]);
         }
 
         //

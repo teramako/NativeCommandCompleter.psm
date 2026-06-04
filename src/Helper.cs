@@ -12,10 +12,10 @@ public static class Helper
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
                                                               ScriptBlock? filter = null,
-                                                              string? prefix = null,
-                                                              string? suffix = null)
+                                                              ReadOnlySpan<char> prefix = default,
+                                                              ReadOnlySpan<char> suffix = default)
     {
-        string pathToComplete = context.CurrentArgument.Value;
+        ReadOnlySpan<char> pathToComplete = context.CurrentArgument.Value;
         string cwd = context.CurrentDirectory.Path;
         return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter, prefix, suffix);
     }
@@ -33,34 +33,38 @@ public static class Helper
     /// <param name="prefix">Prefix string of the completion text</param>
     /// <param name="suffix">Suffix string of the completion text</param>
     /// <returns>Completion candidates</returns>
-    public static Collection<CompletionData> CompleteFilename(string pathToComplete,
+    public static Collection<CompletionData> CompleteFilename(ReadOnlySpan<char> pathToComplete,
                                                               string cwd,
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
                                                               ScriptBlock? filter = null,
-                                                              string? prefix = null,
-                                                              string? suffix = null)
+                                                              ReadOnlySpan<char> prefix = default,
+                                                              ReadOnlySpan<char> suffix = default)
     {
         bool isStartsWithTilde = false;
         char quote = default;
-        if (!string.IsNullOrEmpty(pathToComplete) && pathToComplete[0] is '\'' or '"')
+        if (!pathToComplete.IsEmpty && pathToComplete[0] is '\'' or '"')
         {
             quote = pathToComplete[0];
-            pathToComplete = pathToComplete.Replace($"{quote}", string.Empty);
+            pathToComplete = pathToComplete[1..];
+            if (!pathToComplete.IsEmpty && pathToComplete[^1] == quote)
+            {
+                pathToComplete = pathToComplete[..^1];
+            }
         }
-        if (!string.IsNullOrEmpty(prefix)
+        if (!prefix.IsEmpty
             && pathToComplete.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
         {
-            pathToComplete = pathToComplete.Substring(prefix.Length);
+            pathToComplete = pathToComplete[prefix.Length..];
         }
-        if (!string.IsNullOrEmpty(suffix)
+        if (!suffix.IsEmpty
             && pathToComplete.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
         {
-            pathToComplete = pathToComplete.Substring(0, pathToComplete.Length - suffix.Length);
+            pathToComplete = pathToComplete[..^suffix.Length];
         }
         bool isAbsolutePath = Path.IsPathFullyQualified(pathToComplete);
         string homeDir = string.Empty;
-        if (string.IsNullOrEmpty(pathToComplete))
+        if (pathToComplete.IsEmpty)
         {
             pathToComplete = $".{Path.DirectorySeparatorChar}";
         }
@@ -81,7 +85,7 @@ public static class Helper
         }
 
         string absPath = isAbsolutePath
-            ? pathToComplete
+            ? pathToComplete.ToString()
             : Path.Join(cwd, pathToComplete);
 
         var targetDir = Path.GetDirectoryName(absPath);
