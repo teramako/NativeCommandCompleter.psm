@@ -243,16 +243,20 @@ public abstract class CompletionData
 
     private string BuildText()
     {
+        ReadOnlySpan<char> textAll = this.text;
+        ReadOnlySpan<char> text = textAll.TrimEnd();
+        ReadOnlySpan<char> tailingSpaces = textAll[text.Length..];
+
         if (elementType is ArgumentElementType.StringSingleQuoted)
-            return Helper.Quote('\'', prefix, text);
+            return $"{Helper.Quote('\'', prefix, text)}{tailingSpaces}";
 
         if (elementType is ArgumentElementType.StringDoubleQuoted)
-            return Helper.Quote('"', prefix, text);
+            return $"{Helper.Quote('"', prefix, text)}{tailingSpaces}";
 
         if (NeedsQuoting(text, isValueAdjacentToParameter))
-            return $"{prefix}{Helper.Quote('\'', text)}";
+            return $"{prefix}{Helper.Quote('\'', text)}{tailingSpaces}";
 
-        return $"{prefix}{text}";
+        return $"{prefix}{text}{tailingSpaces}";
     }
 }
 
