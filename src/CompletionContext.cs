@@ -43,11 +43,6 @@ public sealed class CompletionContext
     public int CursorPosition { get; }
 
     /// <summary>
-    /// Host interface
-    /// </summary>
-    public PSHost Host { get; }
-
-    /// <summary>
     /// Current directory
     /// </summary>
     public PathInfo CurrentDirectory { get; }
@@ -103,13 +98,12 @@ public sealed class CompletionContext
 
     private readonly Lazy<CursorElement> _lazyCursorElement;
 
-    private CompletionContext(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PSHost host, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
         CommandLine = commandLine;
         CursorPosition = cursorPosition;
-        Host = host;
         CurrentDirectory = cwd;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
@@ -127,7 +121,6 @@ public sealed class CompletionContext
         CommandLine = parentContext.CommandLine;
         Tokens = parentContext.Tokens;
         CursorPosition = parentContext.CursorPosition;
-        Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
         Arguments = parentContext.Arguments;
@@ -177,12 +170,11 @@ public sealed class CompletionContext
     /// <param name="commandCompleter">CommandCompleter</param>
     /// <param name="commandLine">Command-line</param>
     /// <param name="cursorPosition">Cursor position</param>
-    /// <param name="host">Host interface</param>
     /// <param name="cwd">Current directory</param>
     /// <returns>CompletionContext</returns>
-    public static CompletionContext Create(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PSHost host, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, commandLine, cursorPosition, host, cwd);
+        CompletionContext context = new(commandCompleter, commandLine, cursorPosition, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
         return commandCompleter.ParseArguments(context);
     }
@@ -192,8 +184,8 @@ public sealed class CompletionContext
     /// </summary>
     /// <param name="commandAst">CommandAst</param>
     /// <inheritdoc cref="Create(CommandCompleter, string, int, PSHost, PathInfo)"/>
-    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
-        => Create(commandCompleter, commandAst.ToString(), cursorPosition, host, cwd);
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PathInfo cwd)
+        => Create(commandCompleter, commandAst.ToString(), cursorPosition, cwd);
 
     /// <summary>
     /// Create nested CompletionContext for sub-command
@@ -429,7 +421,7 @@ public sealed class CompletionContext
         return index;
     }
 
-    public IEnumerable<CompletionResult?> Complete()
+    public IEnumerable<CompletionResult?> Complete(PSHost? host = null)
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
 
@@ -472,6 +464,6 @@ public sealed class CompletionContext
             return [null];
         }
         NativeCompleter.Debug($"[{Name}] Build completion data");
-        return results.Build(Host);
+        return results.Build(host);
     }
 }

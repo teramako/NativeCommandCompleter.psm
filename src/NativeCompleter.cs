@@ -159,22 +159,22 @@ public static class NativeCompleter
     /// <summary>
     /// Get completion results from <paramref name="commandLine"/>
     /// </summary>
-    /// <seealso cref="Complete(string, CommandAst, int, PSHost, PathInfo)"/>
-    public static IEnumerable<CompletionResult?> Complete(string commandLine, int cursorPosition, PSHost host, PathInfo cwd)
+    /// <seealso cref="Complete(string, CommandAst, int, PathInfo, PSHost?)"/>
+    public static IEnumerable<CompletionResult?> Complete(string commandLine, int cursorPosition, PathInfo cwd, PSHost? host = null)
     {
         var ast = Parser.ParseInput(commandLine, out _, out _);
         var commandAst = ast.Find(a => a is CommandAst, false) as CommandAst;
         if (commandAst is null)
             return [];
 
-        return Complete(string.Empty, commandAst, cursorPosition, host, cwd);
+        return Complete(string.Empty, commandAst, cursorPosition, cwd, host);
     }
 
     /// <summary>
     /// Get completion results from <paramref name="commandAst"/>.
     /// It is assumed to be called from ScriptBlock registered with <c>Register-ArgumentCompleter</c> cmdlet.
     /// </summary>
-    public static IEnumerable<CompletionResult?> Complete(string wordToComplete, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
+    public static IEnumerable<CompletionResult?> Complete(string wordToComplete, CommandAst commandAst, int cursorPosition, PathInfo cwd, PSHost? host = null)
     {
         var fullName = commandAst.GetCommandName();
         var cmdName = Path.GetFileName(fullName);
@@ -188,9 +188,9 @@ public static class NativeCompleter
         };
         if (TryGetCommandCompleter(cmdName, scriptParameters, out var commandCompleter, out var loadResults))
         {
-            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition, host, cwd);
+            var context = CompletionContext.Create(commandCompleter, commandAst, cursorPosition, cwd);
             LatestContext = context;
-            return context.Complete();
+            return context.Complete(host);
         }
 
         return PSObjectsToCompletionResults(loadResults);
