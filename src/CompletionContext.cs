@@ -33,11 +33,6 @@ public sealed class CompletionContext
     public string CommandLine { get; }
 
     /// <summary>
-    /// Abstract Syntax Tree of the command
-    /// </summary>
-    public CommandAst CommandAst { get; }
-
-    /// <summary>
     /// All tokens in the command-line
     /// </summary>
     public ImmutableArray<Token> Tokens { get; }
@@ -108,12 +103,11 @@ public sealed class CompletionContext
 
     private readonly Lazy<CursorElement> _lazyCursorElement;
 
-    private CompletionContext(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PSHost host, PathInfo cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
-        CommandLine = commandAst.ToString();
-        CommandAst = commandAst;
+        CommandLine = commandLine;
         CursorPosition = cursorPosition;
         Host = host;
         CurrentDirectory = cwd;
@@ -125,12 +119,12 @@ public sealed class CompletionContext
         CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
         _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out index), elem, index));
     }
+
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
         Name = $"{parentContext.Name} {cmdName}";
         CommandCompleter = commandCompleter;
         CommandLine = parentContext.CommandLine;
-        CommandAst = parentContext.CommandAst;
         Tokens = parentContext.Tokens;
         CursorPosition = parentContext.CursorPosition;
         Host = parentContext.Host;
@@ -178,20 +172,28 @@ public sealed class CompletionContext
     }
 
     /// <summary>
-    /// Create new CompletionContext from CommandAst
+    /// Create new CompletionContext
     /// </summary>
     /// <param name="commandCompleter">CommandCompleter</param>
-    /// <param name="commandAst">CommandAst</param>
+    /// <param name="commandLine">Command-line</param>
     /// <param name="cursorPosition">Cursor position</param>
     /// <param name="host">Host interface</param>
     /// <param name="cwd">Current directory</param>
     /// <returns>CompletionContext</returns>
-    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PSHost host, PathInfo cwd)
     {
-        CompletionContext context = new(commandCompleter, commandAst, cursorPosition, host, cwd);
+        CompletionContext context = new(commandCompleter, commandLine, cursorPosition, host, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
         return commandCompleter.ParseArguments(context);
     }
+
+    /// <summary>
+    /// Create new CompletionContext from <paramref name="commandAst"/>
+    /// </summary>
+    /// <param name="commandAst">CommandAst</param>
+    /// <inheritdoc cref="Create(CommandCompleter, string, int, PSHost, PathInfo)"/>
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
+        => Create(commandCompleter, commandAst.ToString(), cursorPosition, host, cwd);
 
     /// <summary>
     /// Create nested CompletionContext for sub-command
