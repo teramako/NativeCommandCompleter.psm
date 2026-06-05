@@ -14,11 +14,7 @@ public static class Helper
                                                               ScriptBlock? filter = null,
                                                               ReadOnlySpan<char> prefix = default,
                                                               ReadOnlySpan<char> suffix = default)
-    {
-        ReadOnlySpan<char> pathToComplete = context.CurrentArgument.Value;
-        string cwd = context.CurrentDirectory.Path;
-        return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter, prefix, suffix);
-    }
+        => CompleteFilename(context.CurrentArgument.Value, context.CurrentDirectory, includeHidden, onlyDirectory, filter, prefix, suffix);
 
     /// <summary>
     /// Generate a completion list for a file or directory paths

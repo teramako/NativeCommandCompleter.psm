@@ -45,7 +45,7 @@ public sealed class CompletionContext
     /// <summary>
     /// Current directory
     /// </summary>
-    public PathInfo CurrentDirectory { get; }
+    public string CurrentDirectory { get; }
 
     /// <summary>
     /// All arguments
@@ -98,7 +98,7 @@ public sealed class CompletionContext
 
     private readonly Lazy<CursorElement> _lazyCursorElement;
 
-    private CompletionContext(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, string commandLine, int cursorPosition, string cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
@@ -172,7 +172,7 @@ public sealed class CompletionContext
     /// <param name="cursorPosition">Cursor position</param>
     /// <param name="cwd">Current directory</param>
     /// <returns>CompletionContext</returns>
-    public static CompletionContext Create(CommandCompleter commandCompleter, string commandLine, int cursorPosition, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, string commandLine, int cursorPosition, string cwd)
     {
         CompletionContext context = new(commandCompleter, commandLine, cursorPosition, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
@@ -184,7 +184,7 @@ public sealed class CompletionContext
     /// </summary>
     /// <param name="commandAst">CommandAst</param>
     /// <inheritdoc cref="Create(CommandCompleter, string, int, PSHost, PathInfo)"/>
-    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, string cwd)
         => Create(commandCompleter, commandAst.ToString(), cursorPosition, cwd);
 
     /// <summary>
