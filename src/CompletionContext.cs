@@ -37,6 +37,9 @@ public sealed class CompletionContext
     /// </summary>
     public CommandAst CommandAst { get; }
 
+    /// <summary>
+    /// All tokens in the command-line
+    /// </summary>
     public ImmutableArray<Token> Tokens { get; }
 
     /// <summary>
