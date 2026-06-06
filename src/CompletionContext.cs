@@ -110,7 +110,12 @@ public sealed class CompletionContext
         Arguments = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
         Tokens = tokens;
         (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
-        CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
+        CurrentArgument = index switch
+        {
+            0 => Arguments[index],
+            < 0 => ArgumentElement.CreateEmptyArgument(cursorPosition),
+            _ => ComputeEffectiveCurrentArgument(index, Arguments, ref _argumentsBeforeCursorRange)
+        };
         _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out index), elem, index));
     }
 
@@ -220,6 +225,35 @@ public sealed class CompletionContext
             _boundParameters.Add(name, values);
             NativeCompleter.Debug($"[{Name}] AddBoundParameter {{ Id='{name}', Value='{string.Join(',', values.Cast<object>().Select(o=>$"{o}"))}' (New) }}");
         }
+    }
+
+    /// <summary>
+    /// Computes the effective argument at the cursor position.
+    /// <para>
+    /// If the argument at the cursor can be combined with the previous argument,
+    /// this method returns the combined value; otherwise, it returns the original argument.
+    /// </para>
+    /// <para>
+    /// For example, when the command-line input is <c>'/path/to'/file</c>,
+    /// PowerShell splits it into two arguments: <c>'/path/to'</c> and <c>/file</c>.
+    /// However, this is usually not what the user intends.
+    /// For completion purposes, treat only the argument at the cursor position as a single combined argument.
+    /// </para>
+    /// </summary>
+    private static ArgumentElement ComputeEffectiveCurrentArgument(int currentArgIndex, ImmutableArray<ArgumentElement> arguments, ref Range beforeCursorRange)
+    {
+        var prev = arguments[currentArgIndex - 1];
+        var current = arguments[currentArgIndex];
+        if (prev.Type is ArgumentElementType.StringSingleQuoted or ArgumentElementType.StringDoubleQuoted
+            && prev.EndOffset == current.StartOffset)
+        {
+            beforeCursorRange = beforeCursorRange.Start..(beforeCursorRange.End.Value - 1);
+            return new($"{prev.Value}{current.Value}",
+                       ArgumentElementType.Expression,
+                       prev.TokenRange.Start..current.TokenRange.End,
+                       prev.RawRange.Start..current.RawRange.End);
+        }
+        return current;
     }
 
     internal void AddUnboundArgument(ArgumentElement arg)
