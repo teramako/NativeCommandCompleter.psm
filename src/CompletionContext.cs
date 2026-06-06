@@ -87,6 +87,25 @@ public sealed class CompletionContext
     /// </remarks>
     internal CursorElement CursorElement => _lazyCursorElement.Value;
 
+    /// <summary>
+    /// Word to compelete.
+    /// </summary>
+    /// <remarks>
+    /// This is the value with quotes and other characters removed, not the input value itself.
+    /// <para>
+    /// Note: This may differ from the native PowerShell <c>$WordToComplete</c>.
+    /// </para>
+    /// </remarks>
+    public string WordToComplete => CursorElement.Element.Value;
+
+    /// <summary>
+    /// Raw word to complete.
+    /// </summary>
+    /// <remarks>
+    /// This is the actual value from the command line.
+    /// </remarks>
+    public string RawWordToComplete => CursorElement.IsAvailable ? GetRawValue(CursorElement.Element) : string.Empty;
+
     private Range _argumentsBeforeCursorRange;
     private Range _remainingArgumentsRange;
 
@@ -279,6 +298,11 @@ public sealed class CompletionContext
         _pendingParam = new(parameter, paramName, paramArgs, completeOnly);
         NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}] }}");
     }
+
+    /// <summary>
+    /// Get the raw string in command-line of the target argument.
+    /// </summary>
+    public string GetRawValue(ArgumentElement arg) => CommandLine[arg.RawRange];
 
     /// <summary>
     /// Attempts to retrieve the element at the cursor position from <paramref name="arg"/>.
