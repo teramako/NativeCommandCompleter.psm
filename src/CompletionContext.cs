@@ -501,6 +501,10 @@ public sealed class CompletionContext
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
 
+        // delegate completions to PowerShell core
+        if (CurrentArgument.Type is ArgumentElementType.RedirectionTarget)
+            return [];
+
         int cursorOffsetPosition = GetCursorOffsetInValue();
 
         CompletionDataCollection results = new();
