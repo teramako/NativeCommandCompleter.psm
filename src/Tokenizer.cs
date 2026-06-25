@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Management.Automation.Language;
 
 namespace Sabamiso;
@@ -41,8 +42,18 @@ public static class Tokenizer
         InVariable = 1 << 1,
         InBracket  = 1 << 2,
         InDot      = 1 << 3,
+        InRedirection = 1 << 4,
         InIndex    = InVariable | InBracket,
         InMember   = InVariable | InDot,
+    }
+
+    [Conditional("DEBUG")]
+    private static void PrintDebug(string msg, ConsoleColor foreground = ConsoleColor.Red)
+    {
+        var c = Console.ForegroundColor;
+        Console.ForegroundColor = foreground;
+        Console.Error.WriteLine(msg);
+        Console.ForegroundColor = c;
     }
 
     private static ImmutableArray<ArgumentElement> ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
@@ -87,6 +98,9 @@ public static class Tokenizer
                 case TokenKind.Variable:
                     HandleVariable();
                     break;
+                case TokenKind.Redirection:
+                    HandleRedirection();
+                    break;
                 default:
                     HandleDefault();
                     break;
@@ -97,6 +111,11 @@ public static class Tokenizer
         endLoop:
 
         FlushCurrent();
+
+        // Cases where the command-line ends with a redirection token like `>` (no file path)
+        if (state.HasFlag(State.InRedirection) && start > 0)
+            Add(start - 1, start -1);
+
         return builder.ToImmutableArray();
 
         // ---------------------------------------------------------------------
@@ -132,7 +151,7 @@ public static class Tokenizer
                 (start, index) = (index, ScanBalancedExpression());
                 if (!IsArrayLiteralAhead(index))
                 {
-                    builder.Add(ArgumentElement.Create(commandLine, start, index, tokens, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
+                    Add(start, index, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null);
                     state = default;
                     arrayRangeBuilder.Clear();
                     start = index + 1;
@@ -200,7 +219,7 @@ public static class Tokenizer
             }
             else
             {
-                builder.Add(ArgumentElement.Create(tokens[index], index));
+                Add(index, index);
                 start = index + 1;
             }
         }
@@ -236,8 +255,26 @@ public static class Tokenizer
         }
         void HandleDot()
         {
-            state &= State.InBracket;
+            state &= State.InBracket | State.InRedirection;
             state |= State.InMember;
+        }
+
+        void HandleRedirection()
+        {
+            FlushCurrent();
+
+            // e.g) `2>&1`
+            if (tokens[index] is MergingRedirectionToken)
+            {
+                Add(index, index);
+                start = index + 1;
+                return;
+            }
+
+            // FileRedirectionToken:
+            // Only set the flag and skip the rest here. The redirection check is performed in Add() function.
+            state = State.InRedirection;
+            start = index + 1;
         }
 
         void FlushCurrent()
@@ -248,9 +285,7 @@ public static class Tokenizer
                 {
                     arrayRangeBuilder.Add(arrayStart..index);
                 }
-                builder.Add(ArgumentElement.Create(commandLine, start, index - 1, tokens, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
-                state = default;
-                arrayRangeBuilder.Clear();
+                Add(start, index - 1, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null);
             }
         }
 
@@ -262,6 +297,26 @@ public static class Tokenizer
                 return end < commandLine.Length && !char.IsWhiteSpace(commandLine[end]);
             }
             return false;
+        }
+
+        void Add(int start, int end, ImmutableArray<Range>? arrayRanges = null)
+        {
+            // Check if the previous token is a "Redirection"
+            if (state.HasFlag(State.InRedirection) && start > 0 && tokens[start - 1].Kind is TokenKind.Redirection)
+            {
+                start -= 1;
+            }
+
+            if (end - start == 0 && arrayRanges is null)
+            {
+                builder.Add(ArgumentElement.Create(tokens[start], start));
+            }
+            else
+            {
+                builder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+            }
+            state = default;
+            arrayRangeBuilder.Clear();
         }
     }
 

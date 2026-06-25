@@ -94,6 +94,8 @@ public readonly record struct ArgumentElement(string Value,
                  rawValue.StartsWith('\'') ? ArgumentElementType.StringSingleQuoted : ArgumentElementType.String),
             NumberToken numberToken => (rawValue, ArgumentElementType.Number),
             VariableToken variableToken => (rawValue, ArgumentElementType.VariableExpression),
+            MergingRedirectionToken => (rawValue, ArgumentElementType.RedirectionTarget),
+            FileRedirectionToken => (rawValue, ArgumentElementType.RedirectionTarget),
             _ => (token.Text, ArgumentElementType.String)
         };
         return new(value, type, index..(index + 1), token.Extent.StartOffset..token.Extent.EndOffset);
@@ -115,7 +117,9 @@ public readonly record struct ArgumentElement(string Value,
 
         var range = tokens[tokenStart].Extent.StartOffset..tokens[tokenEnd].Extent.EndOffset;
         var value = cmdline[range];
-        var type = arrayRnages is not null and { Length: > 0 }
+        var type = tokens[tokenStart].Kind is TokenKind.Redirection
+                   ? ArgumentElementType.RedirectionTarget
+                   : arrayRnages is not null and { Length: > 0 }
                    ? ArgumentElementType.ArrayLiteral
                    : tokens[tokenStart].Kind switch
                    {
