@@ -1,3 +1,5 @@
+global using TokenizerResult = (System.Collections.Immutable.ImmutableArray<Sabamiso.ArgumentElement> Argv,
+                                System.Collections.Immutable.ImmutableArray<Sabamiso.ArgumentElement> Redirections);
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Management.Automation.Language;
@@ -13,7 +15,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandAst">AST built by PowerShell</param>
-    public static ImmutableArray<ArgumentElement> ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
+    public static TokenizerResult ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
     {
         var commandLine = commandAst.ToString();
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
@@ -28,7 +30,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandLine">Command-line string</param>
-    public static ImmutableArray<ArgumentElement> ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
+    public static TokenizerResult ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
     {
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
         immutableTokens = tokens.ToImmutableArray();
@@ -56,11 +58,12 @@ public static class Tokenizer
         Console.ForegroundColor = c;
     }
 
-    private static ImmutableArray<ArgumentElement> ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
+    private static TokenizerResult ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
-        var builder = ImmutableArray.CreateBuilder<ArgumentElement>();
+        var argvBuilder = ImmutableArray.CreateBuilder<ArgumentElement>();
+        var redirectionsBuilder = ImmutableArray.CreateBuilder<ArgumentElement>();
         var arrayRangeBuilder = ImmutableArray.CreateBuilder<Range>();
 
         int start = 1;
@@ -116,7 +119,7 @@ public static class Tokenizer
         if (state.HasFlag(State.InRedirection) && start > 0)
             Add(start - 1, start -1);
 
-        return builder.ToImmutableArray();
+        return (argvBuilder.ToImmutableArray(), redirectionsBuilder.ToImmutableArray());
 
         // ---------------------------------------------------------------------
         // Helper functions
@@ -301,19 +304,27 @@ public static class Tokenizer
 
         void Add(int start, int end, ImmutableArray<Range>? arrayRanges = null)
         {
+            bool isRedirection = false;
             // Check if the previous token is a "Redirection"
             if (state.HasFlag(State.InRedirection) && start > 0 && tokens[start - 1].Kind is TokenKind.Redirection)
             {
                 start -= 1;
+                isRedirection = true;
             }
 
             if (end - start == 0 && arrayRanges is null)
             {
-                builder.Add(ArgumentElement.Create(tokens[start], start));
+                if (isRedirection)
+                    redirectionsBuilder.Add(ArgumentElement.Create(tokens[start], start));
+                else
+                    argvBuilder.Add(ArgumentElement.Create(tokens[start], start));
             }
             else
             {
-                builder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+                if (isRedirection)
+                    redirectionsBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+                else
+                    argvBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
             }
             state = default;
             arrayRangeBuilder.Clear();
