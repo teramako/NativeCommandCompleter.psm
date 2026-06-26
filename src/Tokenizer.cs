@@ -1,5 +1,3 @@
-global using TokenizerResult = (System.Collections.Immutable.ImmutableArray<Sabamiso.ArgumentElement> Argv,
-                                System.Collections.Immutable.ImmutableArray<Sabamiso.ArgumentElement> Redirections);
 using System.Collections.Immutable;
 using System.Management.Automation.Language;
 
@@ -7,6 +5,9 @@ namespace Sabamiso;
 
 public static class Tokenizer
 {
+    public readonly record struct Result(ImmutableArray<ArgumentElement> Arguments,
+                                         ImmutableArray<ArgumentElement> Redirections);
+
     /// <summary>
     /// Reconstruct command arguments from <paramref name="commandAst"/>.
     /// <para>
@@ -14,7 +15,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandAst">AST built by PowerShell</param>
-    public static TokenizerResult ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
+    public static Result ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
     {
         var commandLine = commandAst.ToString();
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
@@ -29,7 +30,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandLine">Command-line string</param>
-    public static TokenizerResult ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
+    public static Result ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
     {
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
         immutableTokens = tokens.ToImmutableArray();
@@ -48,7 +49,7 @@ public static class Tokenizer
         InMember   = InVariable | InDot,
     }
 
-    private static TokenizerResult ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
+    private static Result ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
@@ -109,7 +110,7 @@ public static class Tokenizer
         if (state.HasFlag(State.InRedirection) && start > 0)
             AddRedirection(start - 1, start - 1);
 
-        return (argvBuilder.ToImmutableArray(), redirectionsBuilder.ToImmutableArray());
+        return new(argvBuilder.ToImmutableArray(), redirectionsBuilder.ToImmutableArray());
 
         // ---------------------------------------------------------------------
         // Helper functions
