@@ -48,9 +48,14 @@ public sealed class CompletionContext
     public string CurrentDirectory { get; }
 
     /// <summary>
-    /// All arguments
+    /// All arguments (excluded redirection elements)
     /// </summary>
     public ImmutableArray<ArgumentElement> Arguments { get; }
+
+    /// <summary>
+    /// Rediction elements
+    /// </summary>
+    public ImmutableArray<ArgumentElement> Redirections { get; }
 
     /// <summary>
     /// Arguments of the command that precedes the cursor position
@@ -126,16 +131,10 @@ public sealed class CompletionContext
         CurrentDirectory = cwd;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
-        Arguments = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
+        (Arguments, Redirections) = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
         Tokens = tokens;
-        (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
-        CurrentArgument = index switch
-        {
-            0 => Arguments[index],
-            < 0 => ArgumentElement.CreateEmptyArgument(cursorPosition),
-            _ => ComputeEffectiveCurrentArgument(index, Arguments, ref _argumentsBeforeCursorRange)
-        };
-        _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out index), elem, index));
+        CurrentArgument = AnalyzeArguments();
+        _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out var index), elem, index));
     }
 
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
@@ -148,6 +147,7 @@ public sealed class CompletionContext
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
         Arguments = parentContext.Arguments;
+        Redirections = parentContext.Redirections;
         _argumentsBeforeCursorRange = argumentIndex < parentContext.ArgumentsBeforeCursor.Length
                 ? (argumentIndex + 1)..
                 : default;
@@ -162,30 +162,48 @@ public sealed class CompletionContext
     /// <summary>
     /// Split the list of command arguments into those preceding the cursor position, those at the cursor position, and the remaining arguments
     /// </summary>
-    private static (Range ArgumentsBeforeCursorRange, int CurrentArgumentIndex, Range RemainingArgumentsRange)
-        AnalyzeArguments(ImmutableArray<ArgumentElement> arguments, int cursorPosition)
+    /// <returns><see cref="ArgumentElement"/> at the cursor position</returns>
+    private ArgumentElement AnalyzeArguments()
     {
         var current = -1;
         var i = 0;
-        for (; i < arguments.Length; i++)
+        for (; i < Arguments.Length; i++)
         {
-            var arg = arguments[i];
-            if (arg.EndOffset < cursorPosition)
+            var arg = Arguments[i];
+            if (arg.EndOffset < CursorPosition)
                 continue;
 
-            if (cursorPosition <= arg.StartOffset)
+            if (CursorPosition <= arg.StartOffset)
             {
                 break;
             }
-            else if (arg.StartOffset < cursorPosition && cursorPosition <= arg.EndOffset)
+            else if (arg.StartOffset < CursorPosition && CursorPosition <= arg.EndOffset)
             {
                 current = i;
                 break;
             }
         }
-        var argumentsBeforeCursorRange = ..i;
-        var remainingArgumentsRange = current < 0 ? i.. : (i + 1)..;
-        return (argumentsBeforeCursorRange, current, remainingArgumentsRange);
+        _argumentsBeforeCursorRange = ..i;
+        _remainingArgumentsRange = current < 0 ? i.. : (i + 1)..;
+        return current switch
+        {
+            0 => Arguments[0],
+            < 0 => GetElementAtCursorOrDefault(Redirections, CursorPosition),
+            _ => ComputeEffectiveCurrentArgument(current, Arguments, ref _argumentsBeforeCursorRange)
+        };
+    }
+
+    private static ArgumentElement GetElementAtCursorOrDefault(ImmutableArray<ArgumentElement> argumentElements, int cursorPosition)
+    {
+        for (var i = 0; i < argumentElements.Length; i++)
+        {
+            var r = argumentElements[i];
+            if (r.StartOffset < cursorPosition && cursorPosition <= r.EndOffset)
+            {
+                return r;
+            }
+        }
+        return ArgumentElement.CreateEmptyArgument(cursorPosition);
     }
 
     /// <summary>
@@ -482,6 +500,10 @@ public sealed class CompletionContext
     public IEnumerable<CompletionResult?> Complete(PSHost? host = null)
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
+
+        // delegate completions to PowerShell core
+        if (CurrentArgument.Type is ArgumentElementType.RedirectionTarget)
+            return [];
 
         int cursorOffsetPosition = GetCursorOffsetInValue();
 
