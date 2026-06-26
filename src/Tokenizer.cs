@@ -107,7 +107,7 @@ public static class Tokenizer
 
         // Cases where the command-line ends with a redirection token like `>` (no file path)
         if (state.HasFlag(State.InRedirection) && start > 0)
-            Add(start - 1, start -1);
+            AddRedirection(start - 1, start - 1);
 
         return (argvBuilder.ToImmutableArray(), redirectionsBuilder.ToImmutableArray());
 
@@ -259,7 +259,7 @@ public static class Tokenizer
             // e.g) `2>&1`
             if (tokens[index] is MergingRedirectionToken)
             {
-                Add(index, index);
+                AddRedirection(index, index);
                 start = index + 1;
                 return;
             }
@@ -294,27 +294,34 @@ public static class Tokenizer
 
         void Add(int start, int end, ImmutableArray<Range>? arrayRanges = null)
         {
-            bool isRedirection = false;
             // Check if the previous token is a "Redirection"
             if (state.HasFlag(State.InRedirection) && start > 0 && tokens[start - 1].Kind is TokenKind.Redirection)
             {
-                start -= 1;
-                isRedirection = true;
+                AddRedirection(start - 1, end, arrayRanges);
+                return;
             }
 
             if (end - start == 0 && arrayRanges is null)
             {
-                if (isRedirection)
-                    redirectionsBuilder.Add(ArgumentElement.Create(tokens[start], start));
-                else
-                    argvBuilder.Add(ArgumentElement.Create(tokens[start], start));
+                argvBuilder.Add(ArgumentElement.Create(tokens[start], start));
             }
             else
             {
-                if (isRedirection)
-                    redirectionsBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
-                else
-                    argvBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+                argvBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+            }
+            state = default;
+            arrayRangeBuilder.Clear();
+        }
+
+        void AddRedirection(int start, int end, ImmutableArray<Range>? arrayRanges = null)
+        {
+            if (end - start == 0 && arrayRanges is null)
+            {
+                redirectionsBuilder.Add(ArgumentElement.Create(tokens[start], start));
+            }
+            else
+            {
+                redirectionsBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
             }
             state = default;
             arrayRangeBuilder.Clear();
