@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutDir>../libs</OutDir>
-    <VersionPrefix>0.4.0</VersionPrefix>
+    <VersionPrefix>0.5.0</VersionPrefix>
 
     <AssemblyName>Sabamiso</AssemblyName>
     <RootNamespace>Sabamiso</RootNamespace>
