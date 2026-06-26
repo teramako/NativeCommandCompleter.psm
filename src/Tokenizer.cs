@@ -40,13 +40,13 @@ public static class Tokenizer
     [Flags]
     private enum State
     {
-        InArray    = 1 << 0,
-        InVariable = 1 << 1,
-        InBracket  = 1 << 2,
-        InDot      = 1 << 3,
+        InArray       = 1 << 0,
+        InExpression  = 1 << 1,
+        InBracket     = 1 << 2,
+        InDot         = 1 << 3,
         InRedirection = 1 << 4,
-        InIndex    = InVariable | InBracket,
-        InMember   = InVariable | InDot,
+        InIndex       = InExpression | InBracket,
+        InMember      = InExpression | InDot,
     }
 
     private static Result ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
@@ -126,7 +126,7 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            else if (state is State.InVariable or State.InIndex)
+            else if (state is State.InExpression or State.InIndex)
             {
                 FlushCurrent();
                 start = index;
@@ -143,14 +143,8 @@ public static class Tokenizer
             {
                 FlushCurrent();
                 (start, index) = (index, ScanBalancedExpression());
-                if (!IsArrayLiteralAhead(index))
-                {
-                    Add(start, index, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null);
-                    state = default;
-                    arrayRangeBuilder.Clear();
-                    start = index + 1;
-                }
             }
+            state |= State.InExpression;
         }
         void HandleBalancedCurly()
         {
@@ -171,7 +165,7 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            else if (state.HasFlag(State.InVariable))
+            else if (state.HasFlag(State.InExpression))
             {
                 state &= ~State.InDot;
                 state |= State.InIndex;
@@ -245,7 +239,7 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            state |= State.InVariable;
+            state |= State.InExpression;
         }
         void HandleDot()
         {

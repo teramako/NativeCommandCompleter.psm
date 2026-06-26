@@ -12,6 +12,8 @@ public class TokenizerTest
     [InlineData("cmd \"a\"b", new[] { "\"a\"", "b" }, new[] { "a", "b" }, new[] { ArgumentElementType.StringDoubleQuoted, ArgumentElementType.String })]
     [InlineData("cmd -i.bak file", new[] { "-i.bak", "file" }, null, new[] { ArgumentElementType.String, ArgumentElementType.String })]
     [InlineData("cmd (1,2,3)", new[] { "(1,2,3)" }, null, new[] { ArgumentElementType.NestedExpression })]
+    [InlineData("cmd (1,2,3)[0]", new[] { "(1,2,3)[0]" }, null, new[] { ArgumentElementType.NestedExpression })]
+    [InlineData("cmd (Get-Item foo).Name", new[] { "(Get-Item foo).Name" }, null, new[] { ArgumentElementType.NestedExpression })]
     [InlineData("cmd foo@(1,2,3)", new[] { "foo@", "(1,2,3)" }, null, new[] { ArgumentElementType.String, ArgumentElementType.NestedExpression })]
     [InlineData("cmd (1,(2,3),4)", new[] { "(1,(2,3),4)" }, null, new[] { ArgumentElementType.NestedExpression })]
     [InlineData("cmd {Write-Host hi}", new[] { "{Write-Host hi}" }, null, new[] { ArgumentElementType.String })]
@@ -83,6 +85,8 @@ public class TokenizerTest
     [InlineData("cmd >@(1,2)",         new[] { ">@(1,2)" })]
     [InlineData("cmd > $(GetFileName())",     new[] { "> $(GetFileName())" })]
     [InlineData("cmd >$val[0].Prop.Method()", new[] { ">$val[0].Prop.Method()" })]
+    [InlineData("cmd > $(GetFiles())[0]",     new[] { "> $(GetFiles())[0]" })]
+    [InlineData("cmd > (Get-Item foo).Name",  new[] { "> (Get-Item foo).Name" })]
     public void TestTokenizer_redirections(string input, string[] expectedRawValues)
     {
         (var args, var redirections) = Tokenizer.ReconstructArgv(input, out var tokens);
