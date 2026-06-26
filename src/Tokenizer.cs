@@ -143,14 +143,8 @@ public static class Tokenizer
             {
                 FlushCurrent();
                 (start, index) = (index, ScanBalancedExpression());
-                if (!IsArrayLiteralAhead(index))
-                {
-                    Add(start, index, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null);
-                    state = default;
-                    arrayRangeBuilder.Clear();
-                    start = index + 1;
-                }
             }
+            state |= State.InVariable;
         }
         void HandleBalancedCurly()
         {
