@@ -1,7 +1,6 @@
 global using TokenizerResult = (System.Collections.Immutable.ImmutableArray<Sabamiso.ArgumentElement> Argv,
                                 System.Collections.Immutable.ImmutableArray<Sabamiso.ArgumentElement> Redirections);
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Management.Automation.Language;
 
 namespace Sabamiso;
@@ -47,15 +46,6 @@ public static class Tokenizer
         InRedirection = 1 << 4,
         InIndex    = InVariable | InBracket,
         InMember   = InVariable | InDot,
-    }
-
-    [Conditional("DEBUG")]
-    private static void PrintDebug(string msg, ConsoleColor foreground = ConsoleColor.Red)
-    {
-        var c = Console.ForegroundColor;
-        Console.ForegroundColor = foreground;
-        Console.Error.WriteLine(msg);
-        Console.ForegroundColor = c;
     }
 
     private static TokenizerResult ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
