@@ -19,7 +19,7 @@ Actual completion definitions for individual commands are maintained separately 
 
 ## 🚨 Requirements
 
- - PowerShell >= 7.6.0-preview.5
+ - PowerShell >= 7.6.0
 
 ## 🚀 Build & Install
 
