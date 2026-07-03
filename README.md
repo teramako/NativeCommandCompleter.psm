@@ -26,7 +26,7 @@ Actual completion definitions for individual commands are maintained separately 
 ### 1.a. Install from PowerShell Gallery
 
 ```powershell
-Install-Module -Name Sabamiso.psm
+Install-PSResource -Name Sabamiso.psm
 ```
 
 > [!NOTE]
@@ -34,7 +34,7 @@ Install-Module -Name Sabamiso.psm
 > To install completion definitions for individual commands, please install [Sabamiso.completions].
 >
 > ```powershell
-> Install-Module -Name Sabamiso.completions
+> Install-PSResource -Name Sabamiso.completions
 > ```
 
 [Sabamiso.completions]: https://github.com/teramako/Sabamiso.completions
