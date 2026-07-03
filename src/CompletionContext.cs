@@ -10,7 +10,6 @@ namespace Sabamiso;
 internal record PendingParamCompleter(ParamCompleter Completer,
                                       string ParamName,
                                       IList<ArgumentElement> ParamArgs,
-                                      string OptionPrefix,
                                       bool CompleteOnly);
 
 /// <param name="IsAvailable">
@@ -34,10 +33,8 @@ public sealed class CompletionContext
     public string CommandLine { get; }
 
     /// <summary>
-    /// Abstract Syntax Tree of the command
+    /// All tokens in the command-line
     /// </summary>
-    public CommandAst CommandAst { get; }
-
     public ImmutableArray<Token> Tokens { get; }
 
     /// <summary>
@@ -46,31 +43,35 @@ public sealed class CompletionContext
     public int CursorPosition { get; }
 
     /// <summary>
-    /// Host interface
-    /// </summary>
-    public PSHost Host { get; }
-
-    /// <summary>
     /// Current directory
     /// </summary>
-    public PathInfo CurrentDirectory { get; }
+    public string CurrentDirectory { get; }
 
     /// <summary>
-    /// All arguments
+    /// All arguments (excluded redirection elements)
     /// </summary>
     public ImmutableArray<ArgumentElement> Arguments { get; }
 
     /// <summary>
+    /// Rediction elements
+    /// </summary>
+    public ImmutableArray<ArgumentElement> Redirections { get; }
+
+    /// <summary>
     /// Arguments of the command that precedes the cursor position
     /// </summary>
+    [Hidden]
     public ReadOnlySpan<ArgumentElement> ArgumentsBeforeCursor => Arguments.AsSpan(_argumentsBeforeCursorRange);
+
     /// <summary>
     /// Argument at the cursor position
     /// </summary>
     public ArgumentElement CurrentArgument { get; }
+
     /// <summary>
     /// Arguments after the cursor position
     /// </summary>
+    [Hidden]
     public ReadOnlySpan<ArgumentElement> RemainingArguments => Arguments.AsSpan(_remainingArgumentsRange);
 
     /// <summary>
@@ -91,6 +92,25 @@ public sealed class CompletionContext
     /// </remarks>
     internal CursorElement CursorElement => _lazyCursorElement.Value;
 
+    /// <summary>
+    /// Word to compelete.
+    /// </summary>
+    /// <remarks>
+    /// This is the value with quotes and other characters removed, not the input value itself.
+    /// <para>
+    /// Note: This may differ from the native PowerShell <c>$WordToComplete</c>.
+    /// </para>
+    /// </remarks>
+    public string WordToComplete => CursorElement.Element.Value;
+
+    /// <summary>
+    /// Raw word to complete.
+    /// </summary>
+    /// <remarks>
+    /// This is the actual value from the command line.
+    /// </remarks>
+    public string RawWordToComplete => CursorElement.IsAvailable ? GetRawValue(CursorElement.Element) : string.Empty;
+
     private Range _argumentsBeforeCursorRange;
     private Range _remainingArgumentsRange;
 
@@ -102,35 +122,32 @@ public sealed class CompletionContext
 
     private readonly Lazy<CursorElement> _lazyCursorElement;
 
-    private CompletionContext(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
+    private CompletionContext(CommandCompleter commandCompleter, string commandLine, int cursorPosition, string cwd)
     {
         Name = commandCompleter.Name;
         CommandCompleter = commandCompleter;
-        CommandLine = commandAst.ToString();
-        CommandAst = commandAst;
+        CommandLine = commandLine;
         CursorPosition = cursorPosition;
-        Host = host;
         CurrentDirectory = cwd;
         UnboundArguments = _unboundArguments.AsReadOnly();
         BoundParameters = _boundParameters.AsReadOnly();
-        Arguments = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
+        (Arguments, Redirections) = Tokenizer.ReconstructArgv(CommandLine, out var tokens);
         Tokens = tokens;
-        (_argumentsBeforeCursorRange, int index, _remainingArgumentsRange) = AnalyzeArguments(Arguments, cursorPosition);
-        CurrentArgument = index < 0 ? ArgumentElement.CreateEmptyArgument(cursorPosition) : Arguments[index];
-        _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out index), elem, index));
+        CurrentArgument = AnalyzeArguments();
+        _lazyCursorElement = new(() => new(TryGetElementAtCursor(out var elem, out var index), elem, index));
     }
+
     private CompletionContext(CommandCompleter commandCompleter, ReadOnlySpan<char> cmdName, CompletionContext parentContext, int argumentIndex)
     {
         Name = $"{parentContext.Name} {cmdName}";
         CommandCompleter = commandCompleter;
         CommandLine = parentContext.CommandLine;
-        CommandAst = parentContext.CommandAst;
         Tokens = parentContext.Tokens;
         CursorPosition = parentContext.CursorPosition;
-        Host = parentContext.Host;
         CurrentDirectory = parentContext.CurrentDirectory;
         _parent = parentContext;
         Arguments = parentContext.Arguments;
+        Redirections = parentContext.Redirections;
         _argumentsBeforeCursorRange = argumentIndex < parentContext.ArgumentsBeforeCursor.Length
                 ? (argumentIndex + 1)..
                 : default;
@@ -145,47 +162,72 @@ public sealed class CompletionContext
     /// <summary>
     /// Split the list of command arguments into those preceding the cursor position, those at the cursor position, and the remaining arguments
     /// </summary>
-    private static (Range ArgumentsBeforeCursorRange, int CurrentArgumentIndex, Range RemainingArgumentsRange)
-        AnalyzeArguments(ImmutableArray<ArgumentElement> arguments, int cursorPosition)
+    /// <returns><see cref="ArgumentElement"/> at the cursor position</returns>
+    private ArgumentElement AnalyzeArguments()
     {
         var current = -1;
         var i = 0;
-        for (; i < arguments.Length; i++)
+        for (; i < Arguments.Length; i++)
         {
-            var arg = arguments[i];
-            if (arg.EndOffset < cursorPosition)
+            var arg = Arguments[i];
+            if (arg.EndOffset < CursorPosition)
                 continue;
 
-            if (cursorPosition <= arg.StartOffset)
+            if (CursorPosition <= arg.StartOffset)
             {
                 break;
             }
-            else if (arg.StartOffset < cursorPosition && cursorPosition <= arg.EndOffset)
+            else if (arg.StartOffset < CursorPosition && CursorPosition <= arg.EndOffset)
             {
                 current = i;
                 break;
             }
         }
-        var argumentsBeforeCursorRange = ..i;
-        var remainingArgumentsRange = current < 0 ? i.. : (i + 1)..;
-        return (argumentsBeforeCursorRange, current, remainingArgumentsRange);
+        _argumentsBeforeCursorRange = ..i;
+        _remainingArgumentsRange = current < 0 ? i.. : (i + 1)..;
+        return current switch
+        {
+            0 => Arguments[0],
+            < 0 => GetElementAtCursorOrDefault(Redirections, CursorPosition),
+            _ => ComputeEffectiveCurrentArgument(current, Arguments, ref _argumentsBeforeCursorRange)
+        };
+    }
+
+    private static ArgumentElement GetElementAtCursorOrDefault(ImmutableArray<ArgumentElement> argumentElements, int cursorPosition)
+    {
+        for (var i = 0; i < argumentElements.Length; i++)
+        {
+            var r = argumentElements[i];
+            if (r.StartOffset < cursorPosition && cursorPosition <= r.EndOffset)
+            {
+                return r;
+            }
+        }
+        return ArgumentElement.CreateEmptyArgument(cursorPosition);
     }
 
     /// <summary>
-    /// Create new CompletionContext from CommandAst
+    /// Create new CompletionContext
     /// </summary>
     /// <param name="commandCompleter">CommandCompleter</param>
-    /// <param name="commandAst">CommandAst</param>
+    /// <param name="commandLine">Command-line</param>
     /// <param name="cursorPosition">Cursor position</param>
-    /// <param name="host">Host interface</param>
     /// <param name="cwd">Current directory</param>
     /// <returns>CompletionContext</returns>
-    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, PSHost host, PathInfo cwd)
+    public static CompletionContext Create(CommandCompleter commandCompleter, string commandLine, int cursorPosition, string cwd)
     {
-        CompletionContext context = new(commandCompleter, commandAst, cursorPosition, host, cwd);
+        CompletionContext context = new(commandCompleter, commandLine, cursorPosition, cwd);
         NativeCompleter.Debug($"[{context.Name}] Create CompletionContext");
         return commandCompleter.ParseArguments(context);
     }
+
+    /// <summary>
+    /// Create new CompletionContext from <paramref name="commandAst"/>
+    /// </summary>
+    /// <param name="commandAst">CommandAst</param>
+    /// <inheritdoc cref="Create(CommandCompleter, string, int, PSHost, PathInfo)"/>
+    public static CompletionContext Create(CommandCompleter commandCompleter, CommandAst commandAst, int cursorPosition, string cwd)
+        => Create(commandCompleter, commandAst.ToString(), cursorPosition, cwd);
 
     /// <summary>
     /// Create nested CompletionContext for sub-command
@@ -222,6 +264,35 @@ public sealed class CompletionContext
         }
     }
 
+    /// <summary>
+    /// Computes the effective argument at the cursor position.
+    /// <para>
+    /// If the argument at the cursor can be combined with the previous argument,
+    /// this method returns the combined value; otherwise, it returns the original argument.
+    /// </para>
+    /// <para>
+    /// For example, when the command-line input is <c>'/path/to'/file</c>,
+    /// PowerShell splits it into two arguments: <c>'/path/to'</c> and <c>/file</c>.
+    /// However, this is usually not what the user intends.
+    /// For completion purposes, treat only the argument at the cursor position as a single combined argument.
+    /// </para>
+    /// </summary>
+    private static ArgumentElement ComputeEffectiveCurrentArgument(int currentArgIndex, ImmutableArray<ArgumentElement> arguments, ref Range beforeCursorRange)
+    {
+        var prev = arguments[currentArgIndex - 1];
+        var current = arguments[currentArgIndex];
+        if (prev.Type is ArgumentElementType.StringSingleQuoted or ArgumentElementType.StringDoubleQuoted
+            && prev.EndOffset == current.StartOffset)
+        {
+            beforeCursorRange = beforeCursorRange.Start..(beforeCursorRange.End.Value - 1);
+            return new($"{prev.Value}{current.Value}",
+                       ArgumentElementType.Expression,
+                       prev.TokenRange.Start..current.TokenRange.End,
+                       prev.RawRange.Start..current.RawRange.End);
+        }
+        return current;
+    }
+
     internal void AddUnboundArgument(ArgumentElement arg)
     {
         _unboundArguments.Add(arg);
@@ -233,7 +304,6 @@ public sealed class CompletionContext
     /// <param name="parameter">The parameter object</param>
     /// <param name="paramName">Parameter name of the parameter</param>
     /// <param name="paramArgs">Arguments of the parameter</param>
-    /// <param name="optionPrefix">Prefix of the prameter name. e.g) <c>-</c>, <c>--</c></param>
     /// <param name="completeOnly">
     /// <see langword="true"/> for only completion of this parameter argument,
     /// <see langword="false"/> for completion of other parameters as well
@@ -241,12 +311,16 @@ public sealed class CompletionContext
     internal void SetPendingParameter(ParamCompleter parameter,
                                       string paramName,
                                       IList<ArgumentElement> paramArgs,
-                                      string optionPrefix,
                                       bool completeOnly = true)
     {
-        _pendingParam = new(parameter, paramName, paramArgs, optionPrefix, completeOnly);
-        NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}], Prefix='{optionPrefix}' }}");
+        _pendingParam = new(parameter, paramName, paramArgs, completeOnly);
+        NativeCompleter.Debug($"[{Name}] SetPendingParameter: {{ ID='{parameter.Id}', Name='{paramName}', Args=[{string.Join(',', paramArgs)}] }}");
     }
+
+    /// <summary>
+    /// Get the raw string in command-line of the target argument.
+    /// </summary>
+    public string GetRawValue(ArgumentElement arg) => CommandLine[arg.RawRange];
 
     /// <summary>
     /// Attempts to retrieve the element at the cursor position from <paramref name="arg"/>.
@@ -423,9 +497,13 @@ public sealed class CompletionContext
         return index;
     }
 
-    public IEnumerable<CompletionResult?> Complete()
+    public IEnumerable<CompletionResult?> Complete(PSHost? host = null)
     {
         NativeCompleter.Debug($"[{Name}] Start Complete");
+
+        // delegate completions to PowerShell core
+        if (CurrentArgument.Type is ArgumentElementType.RedirectionTarget)
+            return [];
 
         int cursorOffsetPosition = GetCursorOffsetInValue();
 
@@ -439,8 +517,7 @@ public sealed class CompletionContext
                                                               _pendingParam.ParamName,
                                                               CurrentArgument.Value,
                                                               _pendingParam.ParamArgs.AsReadOnly(),
-                                                              cursorOffsetPosition,
-                                                              _pendingParam.OptionPrefix);
+                                                              cursorOffsetPosition);
             if (!_pendingParam.CompleteOnly)
             {
                 completed = CommandCompleter.CompleteSubCommands(results, this);
@@ -467,6 +544,6 @@ public sealed class CompletionContext
             return [null];
         }
         NativeCompleter.Debug($"[{Name}] Build completion data");
-        return results.Build(Host);
+        return results.Build(host);
     }
 }

@@ -13,9 +13,10 @@ internal class CompletionDataCollection : Collection<CompletionData>
     /// Build completion data to <see cref="CompletionResult"/> and enumerate.
     /// </summary>
     /// <param name="host">Host interface</param>
-    public IEnumerable<CompletionResult> Build(PSHost host)
+    public IEnumerable<CompletionResult> Build(PSHost? host)
     {
         if (Config.ShowDescriptionInListItem
+            && host is not null
             && host.Name.Equals("ConsoleHost", StringComparison.OrdinalIgnoreCase)
             && host.UI.RawUI.BufferSize.Height > 0)
         {

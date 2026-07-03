@@ -22,35 +22,6 @@ public enum ParameterType
     Required
 }
 
-public enum ArgumentType
-{
-    /// <summary>
-    /// Default (not specified)
-    /// </summary>
-    Any = 0,
-
-    /// <summary>
-    /// Indicates that the argument is a file or directory path
-    /// </summary>
-    File = 1 << 2,
-
-    /// <summary>
-    /// Indicates that the argument is a directory path
-    /// </summary>
-    Directory = 1 << 3,
-
-    /// <summary>
-    /// Indicates that the argument is a command or a path
-    /// </summary>
-    Command = 1 << 4,
-
-    /// <summary>
-    /// Just like <see cref="Command"/>, indicates that the argument is a command or a path.
-    /// Additionally, the subsequent arguments serve as arguments for that command.
-    /// </summary>
-    DelegatingCommand = Command | (1 << 1),
-}
-
 public class ParamCompleter
 {
     /// <summary>
@@ -414,9 +385,6 @@ public class ParamCompleter
     /// <param name="paramValue">Parameter value to be completed</param>
     /// <param name="paramArgs">Other parameter arguments</param>.
     /// <param name="position">Position of cursor in <paramref name="paramValue"/></param>.
-    /// <param name="optionPrefix">
-    /// <see cref="CommandCompleter.LongOptionPrefix"/> or <see cref="CommandCompleter.ShortOptionPrefix"/>
-    /// </param>
     /// <param name="prefix">Prefix string of <paramref name="paramValue"/>.
     /// <para>
     /// e.g.)
@@ -432,8 +400,7 @@ public class ParamCompleter
                               ReadOnlySpan<char> paramValue,
                               ReadOnlyCollection<ArgumentElement> paramArgs,
                               int position,
-                              string optionPrefix,
-                              string prefix = "")
+                              ReadOnlySpan<char> prefix = default)
     {
         // | tokenValue  | WordToComplete | prefix | paramValue | Note
         // |:------------|:---------------|:-------|:-----------|:-------------------------------------------------
@@ -446,18 +413,6 @@ public class ParamCompleter
         // See: https://github.com/PowerShell/PowerShell/issues/6291
         //
         // Quoting completion text for proper handling.
-        //
-        // FIXME: 引用符が処理されていない生データの paramValue が欲しい。
-        //
-        // bool shouldBeQuoted = !string.IsNullOrEmpty(prefix) && optionPrefix == "-";
-        // if (shouldBeQuoted && !context.WordToComplete.StartsWith('-'))
-        // {
-        //     // As a workaround, fix to quoted value
-        //     var cv = new CompletionValue($"{paramValue}", "Fix to quoted");
-        //     cv.QuoteText();
-        //     results.Add(cv);
-        //     return true;
-        // }
 
         int argumentIndex = paramArgs.Count;
         var ac = Arguments.GetByArgumentIndex(argumentIndex);
@@ -473,6 +428,8 @@ public class ParamCompleter
         var cursorElement = context.CursorElement;
         if (cursorElement.IsAvailable)
         {
+            bool isValueAdjacentToParameter = prefix.Length > 1 && prefix[0] is '-' && prefix[1] is not '-';
+
             if (cursorElement.Index > 0)
             {
                 if (!ac.List)
@@ -480,18 +437,26 @@ public class ParamCompleter
                     // Don't perform completion if the argument completer does not support comma-separated list.
                     return true;
                 }
-                prefix = string.Empty;
+                prefix = default;
                 position = context.GetCursorOffsetInValue(cursorElement.Element);
                 paramValue = cursorElement.Element.Value;
             }
+            else if (isValueAdjacentToParameter)
+            {
+                if (paramValue.ContainsAny("."))
+                {
+                    prefix = default;
+                }
+            }
             NativeCompleter.Debug($"[{context.Name}] CompleteValue: {{ name '{paramName}', value: '{paramValue}', position: {position}, prefx: '{prefix}' }}");
-
-            // TODO: should care quoted text
 
             int count = 0;
             foreach (var data in ac.Complete(context, paramValue, position, argumentIndex))
             {
-                results.Add(data.SetTooltipPrefix(tooltipPrefix).SetPrefix(prefix));
+                data.SetType(cursorElement.Element.Type, isValueAdjacentToParameter)
+                    .SetTooltipPrefix(tooltipPrefix)
+                    .SetPrefix(prefix.ToString());
+                results.Add(data);
                 NativeCompleter.Debug($"  Matched: '{prefix}{data.Text}', '{data.ListItemText}'");
                 count++;
             }

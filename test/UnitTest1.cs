@@ -12,6 +12,8 @@ public class TokenizerTest
     [InlineData("cmd \"a\"b", new[] { "\"a\"", "b" }, new[] { "a", "b" }, new[] { ArgumentElementType.StringDoubleQuoted, ArgumentElementType.String })]
     [InlineData("cmd -i.bak file", new[] { "-i.bak", "file" }, null, new[] { ArgumentElementType.String, ArgumentElementType.String })]
     [InlineData("cmd (1,2,3)", new[] { "(1,2,3)" }, null, new[] { ArgumentElementType.NestedExpression })]
+    [InlineData("cmd (1,2,3)[0]", new[] { "(1,2,3)[0]" }, null, new[] { ArgumentElementType.NestedExpression })]
+    [InlineData("cmd (Get-Item foo).Name", new[] { "(Get-Item foo).Name" }, null, new[] { ArgumentElementType.NestedExpression })]
     [InlineData("cmd foo@(1,2,3)", new[] { "foo@", "(1,2,3)" }, null, new[] { ArgumentElementType.String, ArgumentElementType.NestedExpression })]
     [InlineData("cmd (1,(2,3),4)", new[] { "(1,(2,3),4)" }, null, new[] { ArgumentElementType.NestedExpression })]
     [InlineData("cmd {Write-Host hi}", new[] { "{Write-Host hi}" }, null, new[] { ArgumentElementType.String })]
@@ -54,7 +56,7 @@ public class TokenizerTest
     [InlineData("cmd a, (1),b", new[] { "a,", "(1),b" }, null, new[] { ArgumentElementType.ArrayLiteral, ArgumentElementType.ArrayLiteral})]
     public void TestTokenizer(string input, string[] expectedRawValues, string[]? expectedValues = null, ArgumentElementType[]? expectedTyeps = null)
     {
-        var args = Tokenizer.ReconstructArgv(input, out var tokens);
+        (var args, var redirections) = Tokenizer.ReconstructArgv(input, out var tokens);
         Assert.Equal(expectedRawValues, args.Select(arg => $"{input[arg.RawRange]}").ToArray());
 
         if (expectedValues is not null)
@@ -66,5 +68,28 @@ public class TokenizerTest
         {
             Assert.Equal(expectedTyeps, args.Select(arg => arg.Type).ToArray());
         }
+    }
+
+    // Tests for redirection
+    [Theory]
+    [InlineData("cmd > file",          new[] { "> file" })]
+    [InlineData("cmd >>file",          new[] { ">>file" })]
+    [InlineData("cmd 2>file",          new[] { "2>file" })]
+    [InlineData("cmd 2>&1",            new[] { "2>&1" })]
+    [InlineData("cmd >",               new[] { ">" })]
+    [InlineData("cmd >>",              new[] { ">>" })]
+    [InlineData("cmd 2>",              new[] { "2>" })]
+    [InlineData("cmd arg > file",      new[] { "> file" })]
+    [InlineData("cmd arg > file arg2", new[] { "> file" })]
+    [InlineData("cmd > a,\"b\"",       new[] { "> a,\"b\"" })]
+    [InlineData("cmd >@(1,2)",         new[] { ">@(1,2)" })]
+    [InlineData("cmd > $(GetFileName())",     new[] { "> $(GetFileName())" })]
+    [InlineData("cmd >$val[0].Prop.Method()", new[] { ">$val[0].Prop.Method()" })]
+    [InlineData("cmd > $(GetFiles())[0]",     new[] { "> $(GetFiles())[0]" })]
+    [InlineData("cmd > (Get-Item foo).Name",  new[] { "> (Get-Item foo).Name" })]
+    public void TestTokenizer_redirections(string input, string[] expectedRawValues)
+    {
+        (var args, var redirections) = Tokenizer.ReconstructArgv(input, out var tokens);
+        Assert.Equal(expectedRawValues, redirections.Select(arg => $"{input[arg.RawRange]}").ToArray());
     }
 }

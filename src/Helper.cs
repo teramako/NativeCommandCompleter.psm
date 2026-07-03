@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Management.Automation;
+using System.Text;
 
 namespace Sabamiso;
 
@@ -11,13 +12,9 @@ public static class Helper
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
                                                               ScriptBlock? filter = null,
-                                                              string? prefix = null,
-                                                              string? suffix = null)
-    {
-        string pathToComplete = context.CurrentArgument.Value;
-        string cwd = context.CurrentDirectory.Path;
-        return CompleteFilename(pathToComplete, cwd, includeHidden, onlyDirectory, filter, prefix, suffix);
-    }
+                                                              ReadOnlySpan<char> prefix = default,
+                                                              ReadOnlySpan<char> suffix = default)
+        => CompleteFilename(context.CurrentArgument.Value, context.CurrentDirectory, includeHidden, onlyDirectory, filter, prefix, suffix);
 
     /// <summary>
     /// Generate a completion list for a file or directory paths
@@ -32,34 +29,38 @@ public static class Helper
     /// <param name="prefix">Prefix string of the completion text</param>
     /// <param name="suffix">Suffix string of the completion text</param>
     /// <returns>Completion candidates</returns>
-    public static Collection<CompletionData> CompleteFilename(string pathToComplete,
+    public static Collection<CompletionData> CompleteFilename(ReadOnlySpan<char> pathToComplete,
                                                               string cwd,
                                                               bool includeHidden = false,
                                                               bool onlyDirectory = false,
                                                               ScriptBlock? filter = null,
-                                                              string? prefix = null,
-                                                              string? suffix = null)
+                                                              ReadOnlySpan<char> prefix = default,
+                                                              ReadOnlySpan<char> suffix = default)
     {
         bool isStartsWithTilde = false;
         char quote = default;
-        if (!string.IsNullOrEmpty(pathToComplete) && pathToComplete[0] is '\'' or '"')
+        if (!pathToComplete.IsEmpty && pathToComplete[0] is '\'' or '"')
         {
             quote = pathToComplete[0];
-            pathToComplete = pathToComplete.Replace($"{quote}", string.Empty);
+            pathToComplete = pathToComplete[1..];
+            if (!pathToComplete.IsEmpty && pathToComplete[^1] == quote)
+            {
+                pathToComplete = pathToComplete[..^1];
+            }
         }
-        if (!string.IsNullOrEmpty(prefix)
+        if (!prefix.IsEmpty
             && pathToComplete.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
         {
-            pathToComplete = pathToComplete.Substring(prefix.Length);
+            pathToComplete = pathToComplete[prefix.Length..];
         }
-        if (!string.IsNullOrEmpty(suffix)
+        if (!suffix.IsEmpty
             && pathToComplete.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
         {
-            pathToComplete = pathToComplete.Substring(0, pathToComplete.Length - suffix.Length);
+            pathToComplete = pathToComplete[..^suffix.Length];
         }
         bool isAbsolutePath = Path.IsPathFullyQualified(pathToComplete);
         string homeDir = string.Empty;
-        if (string.IsNullOrEmpty(pathToComplete))
+        if (pathToComplete.IsEmpty)
         {
             pathToComplete = $".{Path.DirectorySeparatorChar}";
         }
@@ -80,7 +81,7 @@ public static class Helper
         }
 
         string absPath = isAbsolutePath
-            ? pathToComplete
+            ? pathToComplete.ToString()
             : Path.Join(cwd, pathToComplete);
 
         var targetDir = Path.GetDirectoryName(absPath);
@@ -103,6 +104,15 @@ public static class Helper
         foreach (string path in directoryEnumerator)
         {
             var file = new FileInfo(path);
+            bool isDirectory;
+            try
+            {
+                isDirectory = file.Attributes.HasFlag(FileAttributes.Directory);
+            }
+            catch
+            {
+                continue;
+            }
             bool filtered = false;
             if (filter is not null)
             {
@@ -149,20 +159,7 @@ public static class Helper
                 text = $"{prefix}{file.FullName}{suffix}";
             }
 
-            if (quote > 0)
-            {
-                text = $"{quote}{text}{quote}";
-            }
-            else if (text.Contains(' '))
-            {
-                text = $"'{text}'";
-            }
-            else if (text[0] is '@' or '$')
-            {
-                text = $"'{text}'";
-            }
-
-            if (file.Attributes.HasFlag(FileAttributes.Directory))
+            if (isDirectory)
             {
                 results.Add(new CompletionValue(text, "Directory", $"{file.Name}{Path.DirectorySeparatorChar}",
                                                 file.FullName, CompletionResultType.ProviderContainer));
@@ -206,6 +203,70 @@ public static class Helper
             {
                 yield return result;
             }
+        }
+    }
+
+    /// <summary>
+    /// Reconstructs a PowerShell-valid string representation of this argument.
+    /// </summary>
+    /// <remarks>
+    /// If <paramref name="quote"/> is one of the following, the <paramref name="text"/> is
+    /// enclosed in the corresponding quotation marks, and any quotation marks
+    /// inside the content are escaped according to PowerShell rules:
+    /// <list type="bullet">
+    ///     <item><term><c>'</c></term><description>enclosed in single quotes, internal <c>'</c> becomes <c>''</c></description></item>
+    ///     <item><term><c>"</c></term><description>enclosed in double quotes, internal <c>"</c> becomes <c>""</c></description></item>
+    /// </list>
+    /// For all other types (e.g., bare words), <see cref="Value"/> is returned as-is.
+    /// </remarks>
+    /// <param name="quote"></param>
+    /// <param name="text"></param>
+    public static string Quote(char quote, ReadOnlySpan<char> text)
+    {
+        StringBuilder sb = new(text.Length + 2);
+        sb.Append(quote);
+        Quote(sb, text, quote);
+        sb.Append(quote);
+        return sb.ToString();
+    }
+
+    internal static string Quote(char quote, ReadOnlySpan<char> text1, ReadOnlySpan<char> text2)
+    {
+        StringBuilder sb = new(text1.Length + text2.Length + 2);
+        sb.Append(quote);
+        Quote(sb, text1, quote);
+        Quote(sb, text2, quote);
+        sb.Append(quote);
+        return sb.ToString();
+    }
+
+    internal static void Quote(StringBuilder sb, ReadOnlySpan<char> text, char quote)
+    {
+        if (quote is '\'')
+        {
+            foreach (char c in text)
+            {
+                if (c == quote)
+                    sb.Append(c, 2);
+                else
+                    sb.Append(c);
+            }
+        }
+        else if (quote is '"')
+        {
+            foreach (char c in text)
+            {
+                if (c is '"')
+                    sb.Append("`\"");
+                else if (c is '`')
+                    sb.Append("``");
+                else
+                    sb.Append(c);
+            }
+        }
+        else
+        {
+            sb.Append(text);
         }
     }
 }

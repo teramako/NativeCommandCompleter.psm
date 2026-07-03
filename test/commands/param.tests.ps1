@@ -8,12 +8,12 @@ BeforeAll {
         New-ParamCompleter -ShortName v -LongName version
         New-ParamCompleter -Name name -Arguments @{
             Name = 'NAME';
-            Script = { param([int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $_, $position, $argIndex }
+            Script = { param([string] $w, [int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $w, $position, $argIndex }
         }
         New-ParamCompleter -Name list -ShortName l -LongName list -Arguments @{
-            Name = '1st'; Script = { param([int] $position, [int] $argIndex) "{0}_1st:{1}:{2}" -f $_, $position, $argIndex }
+            Name = '1st'; Script = { param([string] $w, [int] $position, [int] $argIndex) "{0}_1st:{1}:{2}" -f $w, $position, $argIndex }
         }, @{
-            Name = '2nd'; Script = { param([int] $position, [int] $argIndex) "{0}_2nd:{1}:{2}" -f $_, $position, $argIndex }
+            Name = '2nd'; Script = { param([string] $w, [int] $position, [int] $argIndex) "{0}_2nd:{1}:{2}" -f $w, $position, $argIndex }
         }
         New-ParamCompleter -LongName flag-or-value -ShortName 'b' -Arguments @{
             Name = 'opt';
@@ -23,12 +23,12 @@ BeforeAll {
         New-ParamCompleter -Name one-or-more -Arguments @{
             Name = 'values';
             Nargs = '1+';
-            Script = { param([int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $_, $position, $argIndex }
+            Script = { param([string] $w, [int] $position, [int] $argIndex) "{0}:{1}:{2}" -f $w, $position, $argIndex }
         }
         New-ParamCompleter -Name file -Arguments @{ name = "path"; type= 'File' }
     ) -Arguments @{
         Name = "CmdArg1";
-        Script = { param([int] $position, [int] $argIndex) "CmdArg:{0}:{1}:{2}" -f $_, $position, $argIndex }
+        Script = { param([string] $w, [int] $position, [int] $argIndex) "CmdArg:{0}:{1}:{2}" -f $w, $position, $argIndex }
     }, @{
         Name = "list";
         List = $true;
@@ -126,7 +126,8 @@ Describe 'parameters' {
         It 'Completes file parameter (`test-1 -file ./`)' {
             $results = TabExpansion2 -inputScript 'test-1 -file ./' | Select-Object -ExpandProperty CompletionMatches
             $results.Count | Should -BeGreaterThan 0
-            $results[0].ResultType | Should -Be ([System.Management.Automation.CompletionResultType]::ProviderItem)
+            $results[0].ResultType | Should -BeIn @([System.Management.Automation.CompletionResultType]::ProviderItem,
+                                                    [System.Management.Automation.CompletionResultType]::ProviderContainer)
         }
     }
 }

@@ -5,6 +5,9 @@ namespace Sabamiso;
 
 public static class Tokenizer
 {
+    public readonly record struct Result(ImmutableArray<ArgumentElement> Arguments,
+                                         ImmutableArray<ArgumentElement> Redirections);
+
     /// <summary>
     /// Reconstruct command arguments from <paramref name="commandAst"/>.
     /// <para>
@@ -12,7 +15,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandAst">AST built by PowerShell</param>
-    public static ImmutableArray<ArgumentElement> ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
+    public static Result ReconstructArgv(CommandAst commandAst, out ImmutableArray<Token> immutableTokens)
     {
         var commandLine = commandAst.ToString();
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
@@ -27,7 +30,7 @@ public static class Tokenizer
     /// </para>
     /// </summary>
     /// <param name="commandLine">Command-line string</param>
-    public static ImmutableArray<ArgumentElement> ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
+    public static Result ReconstructArgv(string commandLine, out ImmutableArray<Token> immutableTokens)
     {
         _ = Parser.ParseInput(commandLine, null, out var tokens, out _);
         immutableTokens = tokens.ToImmutableArray();
@@ -37,19 +40,21 @@ public static class Tokenizer
     [Flags]
     private enum State
     {
-        InArray    = 1 << 0,
-        InVariable = 1 << 1,
-        InBracket  = 1 << 2,
-        InDot      = 1 << 3,
-        InIndex    = InVariable | InBracket,
-        InMember   = InVariable | InDot,
+        InArray       = 1 << 0,
+        InExpression  = 1 << 1,
+        InBracket     = 1 << 2,
+        InDot         = 1 << 3,
+        InRedirection = 1 << 4,
+        InIndex       = InExpression | InBracket,
+        InMember      = InExpression | InDot,
     }
 
-    private static ImmutableArray<ArgumentElement> ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
+    private static Result ReconstructArgvImpl(string commandLine, ImmutableArray<Token> tokens)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tokens.Length, 1, nameof(tokens));
 
-        var builder = ImmutableArray.CreateBuilder<ArgumentElement>();
+        var argvBuilder = ImmutableArray.CreateBuilder<ArgumentElement>();
+        var redirectionsBuilder = ImmutableArray.CreateBuilder<ArgumentElement>();
         var arrayRangeBuilder = ImmutableArray.CreateBuilder<Range>();
 
         int start = 1;
@@ -87,6 +92,9 @@ public static class Tokenizer
                 case TokenKind.Variable:
                     HandleVariable();
                     break;
+                case TokenKind.Redirection:
+                    HandleRedirection();
+                    break;
                 default:
                     HandleDefault();
                     break;
@@ -97,7 +105,12 @@ public static class Tokenizer
         endLoop:
 
         FlushCurrent();
-        return builder.ToImmutableArray();
+
+        // Cases where the command-line ends with a redirection token like `>` (no file path)
+        if (state.HasFlag(State.InRedirection) && start > 0)
+            AddRedirection(start - 1, start - 1);
+
+        return new(argvBuilder.ToImmutableArray(), redirectionsBuilder.ToImmutableArray());
 
         // ---------------------------------------------------------------------
         // Helper functions
@@ -113,7 +126,7 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            else if (state is State.InVariable or State.InIndex)
+            else if (state is State.InExpression or State.InIndex)
             {
                 FlushCurrent();
                 start = index;
@@ -130,14 +143,8 @@ public static class Tokenizer
             {
                 FlushCurrent();
                 (start, index) = (index, ScanBalancedExpression());
-                if (!IsArrayLiteralAhead(index))
-                {
-                    builder.Add(ArgumentElement.Create(commandLine, start, index, tokens, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
-                    state = default;
-                    arrayRangeBuilder.Clear();
-                    start = index + 1;
-                }
             }
+            state |= State.InExpression;
         }
         void HandleBalancedCurly()
         {
@@ -158,7 +165,7 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            else if (state.HasFlag(State.InVariable))
+            else if (state.HasFlag(State.InExpression))
             {
                 state &= ~State.InDot;
                 state |= State.InIndex;
@@ -200,7 +207,7 @@ public static class Tokenizer
             }
             else
             {
-                builder.Add(ArgumentElement.Create(tokens[index], index));
+                Add(index, index);
                 start = index + 1;
             }
         }
@@ -232,12 +239,30 @@ public static class Tokenizer
                 FlushCurrent();
                 start = index;
             }
-            state |= State.InVariable;
+            state |= State.InExpression;
         }
         void HandleDot()
         {
-            state &= State.InBracket;
+            state &= State.InBracket | State.InRedirection;
             state |= State.InMember;
+        }
+
+        void HandleRedirection()
+        {
+            FlushCurrent();
+
+            // e.g) `2>&1`
+            if (tokens[index] is MergingRedirectionToken)
+            {
+                AddRedirection(index, index);
+                start = index + 1;
+                return;
+            }
+
+            // FileRedirectionToken:
+            // Only set the flag and skip the rest here. The redirection check is performed in Add() function.
+            state = State.InRedirection;
+            start = index + 1;
         }
 
         void FlushCurrent()
@@ -248,9 +273,7 @@ public static class Tokenizer
                 {
                     arrayRangeBuilder.Add(arrayStart..index);
                 }
-                builder.Add(ArgumentElement.Create(commandLine, start, index - 1, tokens, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null));
-                state = default;
-                arrayRangeBuilder.Clear();
+                Add(start, index - 1, state.HasFlag(State.InArray) ? arrayRangeBuilder.ToImmutable() : null);
             }
         }
 
@@ -262,6 +285,41 @@ public static class Tokenizer
                 return end < commandLine.Length && !char.IsWhiteSpace(commandLine[end]);
             }
             return false;
+        }
+
+        void Add(int start, int end, ImmutableArray<Range>? arrayRanges = null)
+        {
+            // Check if the previous token is a "Redirection"
+            if (state.HasFlag(State.InRedirection) && start > 0 && tokens[start - 1].Kind is TokenKind.Redirection)
+            {
+                AddRedirection(start - 1, end, arrayRanges);
+                return;
+            }
+
+            if (end - start == 0 && arrayRanges is null)
+            {
+                argvBuilder.Add(ArgumentElement.Create(tokens[start], start));
+            }
+            else
+            {
+                argvBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+            }
+            state = default;
+            arrayRangeBuilder.Clear();
+        }
+
+        void AddRedirection(int start, int end, ImmutableArray<Range>? arrayRanges = null)
+        {
+            if (end - start == 0 && arrayRanges is null)
+            {
+                redirectionsBuilder.Add(ArgumentElement.Create(tokens[start], start));
+            }
+            else
+            {
+                redirectionsBuilder.Add(ArgumentElement.Create(commandLine, start, end, tokens, arrayRanges));
+            }
+            state = default;
+            arrayRangeBuilder.Clear();
         }
     }
 

@@ -19,6 +19,8 @@ public enum ArgumentElementType
     Hashtable = 1 << 8,
     Nested = 1 << 9,
 
+    RedirectionTarget = 1 << 11,
+
     StringDoubleQuoted = String | DoubleQuoted,
     StringSingleQuoted = String | SingleQuoted,
     ArrayLiteral = String | Array,

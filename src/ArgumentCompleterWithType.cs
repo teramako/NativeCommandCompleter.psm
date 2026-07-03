@@ -18,8 +18,8 @@ public class ArgumentCompleterWithType : ArgumentCompleterBase
     {
         return Type switch
         {
-            ArgumentType.File => Helper.CompleteFilename($"{wordToComplete}", $"{context.CurrentDirectory}", true, false),
-            ArgumentType.Directory => Helper.CompleteFilename($"{wordToComplete}", $"{context.CurrentDirectory}", true, true),
+            ArgumentType.File => Helper.CompleteFilename(wordToComplete, context.CurrentDirectory, true, false),
+            ArgumentType.Directory => Helper.CompleteFilename(wordToComplete, context.CurrentDirectory, true, true),
             ArgumentType.Command or ArgumentType.DelegatingCommand => Helper.CompleteCommandOrFilename(context),
             _ => []
         };

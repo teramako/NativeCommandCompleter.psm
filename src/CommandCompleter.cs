@@ -152,7 +152,7 @@ public class CommandCompleter
                     //      \ ^ cursor
                     //       i
                     // the argument of `c` param is NOT supplied
-                    context.SetPendingParameter(p, $"{c}", [], p.Style.ShortOptionPrefix);
+                    context.SetPendingParameter(p, $"{c}", []);
                 }
             }
             else
@@ -201,14 +201,14 @@ public class CommandCompleter
             {
                 // `-param ..value(minCount) .. | .. valueN(maxCount)
                 //                              ^ cursor
-                context.SetPendingParameter(param, $"{paramName}", paramArgs, $"{optionPrefix}", false);
+                context.SetPendingParameter(param, $"{paramName}", paramArgs, false);
             }
         }
         else
         {
             // `-param |`      or `-param value1 .. | ..valueN(minCount)
             //         ^ cursor                     ^ cursor
-            context.SetPendingParameter(param, $"{paramName}", paramArgs, $"{optionPrefix}", true);
+            context.SetPendingParameter(param, $"{paramName}", paramArgs, true);
         }
 
         return paramArgs.Length;
@@ -281,13 +281,14 @@ public class CommandCompleter
             return completed;
 
         var arg = context.CurrentArgument;
+        var tooltipPrefix = $"[{context.Name}] ";
         foreach (var subCommand in SubCommands.Where(subCmd => !subCmd.Hidden))
         {
             if (arg.IsEmpty
                 || subCommand.Name.StartsWith(arg.Value, StringComparison.OrdinalIgnoreCase))
             {
                 var text = subCommand.Name;
-                results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix($"[{context.Name}] "));
+                results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix(tooltipPrefix));
                 completed = true;
             }
             else if (subCommand.Aliases.Length > 0)
@@ -297,7 +298,7 @@ public class CommandCompleter
                     if (alias.StartsWith(arg.Value, StringComparison.OrdinalIgnoreCase))
                     {
                         var text = alias;
-                        results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix($"[{context.Name}] "));
+                        results.Add(new CompletionValue(text, subCommand.Description).SetTooltipPrefix(tooltipPrefix));
                         completed = true;
                     }
                 }
@@ -382,8 +383,7 @@ public class CommandCompleter
                                     paramValue,
                                     [],
                                     offsetPosition - separatorPosition - 1,
-                                    param.Style.LongOptionPrefix,
-                                    $"{arg.Value[..(separatorPosition + 1)]}");
+                                    arg[..(separatorPosition + 1)]);
                 return true;
             }
         }
@@ -458,8 +458,7 @@ public class CommandCompleter
                                     paramValue,
                                     [],
                                     offsetPosition - separatorPosition - 1,
-                                    param.Style.ShortOptionPrefix,
-                                    $"{arg.Value[..(separatorPosition + 1)]}");
+                                    arg[..(separatorPosition + 1)]);
                 return true;
             }
         }
@@ -570,8 +569,7 @@ public class CommandCompleter
                                                    arg[pending.Position..],
                                                    [],
                                                    offsetPosition - pending.Position,
-                                                   pending.Completer.Style.ShortOptionPrefix,
-                                                   arg.Value[..pending.Position]);
+                                                   arg[..pending.Position]);
         }
 
         //
@@ -671,12 +669,10 @@ public class CommandCompleter
             }
             ReadOnlySpan<char> paramValue = cursorElement.Element.Value;
 
-            // TODO: should care quoted text
-
             int count = 0;
             foreach (var data in ac.Complete(context, paramValue, offsetPosition, argumentIndex))
             {
-                results.Add(data.SetTooltipPrefix(tooltipPrefix));
+                results.Add(data.SetTooltipPrefix(tooltipPrefix).SetType(cursorElement.Element.Type));
                 NativeCompleter.Debug($"  Matched: '{data.Text}', '{data.ListItemText}'");
                 count++;
             }
